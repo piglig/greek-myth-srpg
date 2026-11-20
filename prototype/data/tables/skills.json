@@ -1,0 +1,113 @@
+{
+  "spear": {
+    "name": "矛刺",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 2,
+    "shape": "line"
+  },
+  "shield_bash": {
+    "name": "盾击",
+    "mult": 0.6,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1,
+    "knockback": 1,
+    "cooldown": 2
+  },
+  "shoot": {
+    "name": "射击",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 2,
+    "max_range": 5,
+    "ranged": true
+  },
+  "vital_shot": {
+    "name": "要害射击",
+    "mult": 1.4,
+    "type": "physical",
+    "min_range": 2,
+    "max_range": 5,
+    "ranged": true,
+    "cooldown": 2,
+    "marked_flank_stagger": 15
+  },
+  "leap_shot": {
+    "name": "跃射",
+    "mult": 0.8,
+    "type": "physical",
+    "min_range": 2,
+    "max_range": 5,
+    "ranged": true,
+    "cooldown": 3,
+    "leap": 3,
+    "leap_rise": 3
+  },
+  "club": {
+    "name": "棍击",
+    "mult": 1.2,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1,
+    "knockback": 2,
+    "cooldown": 2
+  },
+  "heracles_bow": {
+    "name": "弓射",
+    "mult": 0.8,
+    "type": "physical",
+    "min_range": 2,
+    "max_range": 5,
+    "ranged": true
+  },
+  "bite": {
+    "name": "撕咬",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1
+  },
+  "slash": {
+    "name": "劈砍",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1
+  },
+  "bandit_bow": {
+    "name": "弓射",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 2,
+    "max_range": 4,
+    "ranged": true
+  },
+  "gore": {
+    "name": "冲撞",
+    "mult": 1.0,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1,
+    "knockback": 1
+  },
+  "pounce": {
+    "name": "扑击",
+    "mult": 0.8,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1,
+    "knockback": 1,
+    "cooldown": 2,
+    "leap": 4,
+    "leap_rise": 3
+  },
+  "roar": {
+    "name": "咆哮",
+    "area_status": "feared",
+    "radius": 2,
+    "rounds": 1,
+    "cooldown": 3
+  }
+}

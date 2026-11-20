@@ -1,0 +1,4587 @@
+{
+  "hits": [
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "spear",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "spear",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "spear",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "spear",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "hero"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "hero",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "boar"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shield_bash",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shield_bash",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shield_bash",
+      "target": "lion"
+    },
+    {
+      "attacker": "hero",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shield_bash",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 2,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 2,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "shoot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "shoot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "shoot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "shoot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 14,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 21,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 21,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "vital_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "vital_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "vital_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "vital_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 2,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 2,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "hero"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "heracles"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "wolf"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "bandit"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 2,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "boar"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "leap_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "leap_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "leap_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "atalanta",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "leap_shot",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 22,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 23,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 22,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 27,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 28,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 20,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 25,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 30,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 31,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 22,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 27,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 28,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 19,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 23,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 28,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 29,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 21,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 25,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 26,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "club",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "club",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "club",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 26,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "club",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "heracles_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "heracles_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "heracles_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "heracles",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "heracles_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "wolf",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 2,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 2,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 3,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 2,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 1,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bandit_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bandit_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bandit_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_archer",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bandit_bow",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "hero"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "heracles"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "wolf"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "boar"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "bandit_chief",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "slash",
+      "target": "lion"
+    },
+    {
+      "attacker": "boar",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "hero"
+    },
+    {
+      "attacker": "boar",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "hero"
+    },
+    {
+      "attacker": "boar",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "hero"
+    },
+    {
+      "attacker": "boar",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "hero"
+    },
+    {
+      "attacker": "boar",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "boar",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "boar",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "boar",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "boar",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "heracles"
+    },
+    {
+      "attacker": "boar",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "heracles"
+    },
+    {
+      "attacker": "boar",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "heracles"
+    },
+    {
+      "attacker": "boar",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "heracles"
+    },
+    {
+      "attacker": "boar",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "wolf"
+    },
+    {
+      "attacker": "boar",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "wolf"
+    },
+    {
+      "attacker": "boar",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "wolf"
+    },
+    {
+      "attacker": "boar",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "wolf"
+    },
+    {
+      "attacker": "boar",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "bandit"
+    },
+    {
+      "attacker": "boar",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "bandit"
+    },
+    {
+      "attacker": "boar",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "bandit"
+    },
+    {
+      "attacker": "boar",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "bandit"
+    },
+    {
+      "attacker": "boar",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "boar",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "boar",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "boar",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "boar",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "boar",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "boar",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "boar",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "boar",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "boar"
+    },
+    {
+      "attacker": "boar",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "boar"
+    },
+    {
+      "attacker": "boar",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "boar"
+    },
+    {
+      "attacker": "boar",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "boar"
+    },
+    {
+      "attacker": "boar",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "gore",
+      "target": "lion"
+    },
+    {
+      "attacker": "boar",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "gore",
+      "target": "lion"
+    },
+    {
+      "attacker": "boar",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "gore",
+      "target": "lion"
+    },
+    {
+      "attacker": "boar",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "gore",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 8,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 22,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 23,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 14,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 21,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 21,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 8,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 18,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 6,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 9,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 9,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "hero"
+    },
+    {
+      "attacker": "lion",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 3,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 3,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 4,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 4,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 10,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 4,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 5,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 6,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "lion"
+    }
+  ],
+  "units": {
+    "atalanta": {
+      "hp": 30,
+      "max_hp": 30,
+      "size": 1
+    },
+    "bandit": {
+      "hp": 20,
+      "max_hp": 20,
+      "size": 1
+    },
+    "bandit_archer": {
+      "hp": 16,
+      "max_hp": 16,
+      "size": 1
+    },
+    "bandit_chief": {
+      "hp": 30,
+      "max_hp": 30,
+      "size": 1
+    },
+    "boar": {
+      "hp": 36,
+      "max_hp": 36,
+      "size": 2
+    },
+    "heracles": {
+      "hp": 60,
+      "max_hp": 80,
+      "size": 1
+    },
+    "hero": {
+      "hp": 40,
+      "max_hp": 40,
+      "size": 1
+    },
+    "lion": {
+      "hp": 60,
+      "max_hp": 60,
+      "size": 2
+    },
+    "wolf": {
+      "hp": 16,
+      "max_hp": 16,
+      "size": 1
+    }
+  }
+}

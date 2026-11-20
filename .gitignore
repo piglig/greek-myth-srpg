@@ -1,0 +1,18 @@
+# 构建产物和生成物
+engine/bin/
+art/splatgen/out/
+balance/out/
+balance/web/dist/
+node_modules/
+prototype/.godot/
+prototype/reports/
+
+# 游戏商店页头图：版权归原作者，只在本地作参考，不入库
+art/refs/*_game_*
+
+# 系统和编辑器
+.DS_Store
+Thumbs.db
+*.tmp
+engine/*.exe
+engine/*.test

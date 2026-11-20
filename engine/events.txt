@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Cache-Control: no-cache
+Content-Type: text/event-stream; charset=utf-8
+X-Accel-Buffering: no
+Date: Fri, 20 Nov 2026 04:10:36 GMT
+Transfer-Encoding: chunked
+
+retry: 1500
+
+data: {"kind": "activity", "data": {"ts": "2026-11-20T13:10:36", "actor": "ai", "kind": "variant", "text": "新建变体「sse-check」：x", "variant": "sse-check"}}
+
+data: {"kind": "data", "data": {"variant": "sse-check"}}
+
+data: {"kind": "activity", "data": {"ts": "2026-11-20T13:10:36", "actor": "human", "kind": "variant", "text": "删除变体「sse-check」"}}
+
+data: {"kind": "data", "data": {"variant": "sse-check", "deleted": true}}
+

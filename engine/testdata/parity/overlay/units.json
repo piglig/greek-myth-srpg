@@ -1,0 +1,142 @@
+{
+  "hero": {
+    "name": "主角",
+    "hp": 40,
+    "str": 12,
+    "div": 4,
+    "def": 6,
+    "wil": 4,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "spear",
+      "shield_bash"
+    ],
+    "traits": {
+      "grapple": 4
+    }
+  },
+  "atalanta": {
+    "name": "阿塔兰忒",
+    "hp": 30,
+    "str": 11,
+    "div": 5,
+    "def": 3,
+    "wil": 5,
+    "move": 5,
+    "jump": 3,
+    "skills": [
+      "shoot"
+    ],
+    "traits": {
+      "forest_stride": true,
+      "cannot_attack_adjacent": true,
+      "hunter_mark": true,
+      "anti_air": true
+    }
+  },
+  "heracles": {
+    "name": "赫拉克勒斯",
+    "hp": 60,
+    "max_hp": 80,
+    "str": 15,
+    "div": 6,
+    "def": 9,
+    "wil": 6,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "club",
+      "heracles_bow"
+    ],
+    "traits": {
+      "grapple": 7,
+      "guest": true,
+      "strong": true
+    }
+  },
+  "wolf": {
+    "name": "野狼",
+    "hp": 18,
+    "str": 7,
+    "def": 1,
+    "wil": 1,
+    "move": 5,
+    "jump": 2,
+    "skills": [
+      "bite"
+    ]
+  },
+  "bandit": {
+    "name": "劫掠者",
+    "hp": 20,
+    "str": 10,
+    "def": 3,
+    "wil": 2,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "slash"
+    ]
+  },
+  "bandit_archer": {
+    "name": "劫掠者弓手",
+    "hp": 16,
+    "str": 9,
+    "def": 2,
+    "wil": 2,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "bandit_bow"
+    ]
+  },
+  "bandit_chief": {
+    "name": "劫掠者头目",
+    "hp": 30,
+    "str": 12,
+    "def": 4,
+    "wil": 3,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "slash"
+    ],
+    "traits": {
+      "block": true
+    }
+  },
+  "boar": {
+    "name": "巨型野猪",
+    "hp": 36,
+    "str": 13,
+    "def": 8,
+    "wil": 2,
+    "move": 5,
+    "jump": 1,
+    "size": 2,
+    "skills": [
+      "gore"
+    ]
+  },
+  "lion": {
+    "name": "涅墨亚狮子",
+    "hp": 60,
+    "str": 16,
+    "def": 4,
+    "wil": 6,
+    "move": 5,
+    "jump": 3,
+    "size": 2,
+    "skills": [
+      "bite",
+      "pounce",
+      "roar"
+    ],
+    "actions": 2,
+    "stagger_max": 100,
+    "traits": {
+      "physical_immune": true
+    }
+  }
+}

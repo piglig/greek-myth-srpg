@@ -1,0 +1,82 @@
+{"ts": "2026-11-20T02:19:11", "actor": "ai", "kind": "variant", "text": "新建变体「api-test」：接口自测", "variant": "api-test"}
+{"ts": "2026-11-20T02:19:11", "actor": "ai", "kind": "edit", "text": "修改关卡 1-4", "variant": "api-test", "battle": "1-4"}
+{"ts": "2026-11-20T02:19:11", "actor": "ai", "kind": "edit", "text": "西侧野猪南移一格", "variant": "api-test", "battle": "1-4"}
+{"ts": "2026-11-20T02:19:11", "actor": "ai", "kind": "sim", "text": "开始模拟 1-4（新手机器人，各 8 局）", "variant": "api-test", "battle": "1-4"}
+{"ts": "2026-11-20T02:19:14", "actor": "ai", "kind": "sim", "text": "模拟完成 1-4：新手机器人胜率 12%，目标通过 0/9", "variant": "api-test", "battle": "1-4"}
+{"ts": "2026-11-20T02:19:20", "actor": "ai", "kind": "variant", "text": "删除变体「api-test」"}
+{"ts": "2026-11-20T02:27:51", "actor": "ai", "kind": "sim", "text": "开始模拟 1-4（熟练机器人、新手机器人，各 400 局）", "variant": "baseline", "battle": "1-4"}
+{"ts": "2026-11-20T02:32:02", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:32:03", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:32:54", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:32:55", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:32:56", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:32:58", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:33:09", "actor": "ai", "kind": "sim", "text": "模拟完成 1-4：熟练机器人胜率 87%，目标通过 7/9", "variant": "baseline", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:17", "actor": "ai", "kind": "variant", "text": "新建变体「dbg」", "variant": "dbg"}
+{"ts": "2026-11-20T02:33:19", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "dbg", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:24", "actor": "ai", "kind": "variant", "text": "删除变体「dbg」"}
+{"ts": "2026-11-20T02:33:34", "actor": "ai", "kind": "variant", "text": "新建变体「dbg」", "variant": "dbg"}
+{"ts": "2026-11-20T02:33:36", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "dbg", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:39", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "dbg", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:41", "actor": "ai", "kind": "variant", "text": "删除变体「dbg」"}
+{"ts": "2026-11-20T02:33:42", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:33:44", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:45", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:45", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:46", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:47", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:48", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:33:57", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:33:58", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:33:59", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:00", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:01", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:01", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:01", "actor": "human", "kind": "edit", "text": "野狼 的生命 16 → 15", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:34:32", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:34:42", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:34:43", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:44", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:45", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:46", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:46", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:46", "actor": "human", "kind": "edit", "text": "野狼 的生命 16 → 15", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:34:47", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:34:52", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:34:53", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:54", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:55", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:56", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:56", "actor": "human", "kind": "edit", "text": "修改关卡 1-4", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:34:56", "actor": "human", "kind": "edit", "text": "野狼 的生命 16 → 15", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:34:57", "actor": "human", "kind": "sim", "text": "开始模拟 1-4（新手机器人，各 50 局）", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:35:05", "actor": "human", "kind": "sim", "text": "模拟完成 1-4：新手机器人胜率 46%，目标通过 0/9", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:35:36", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:36:01", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:36:02", "actor": "human", "kind": "edit", "text": "1-4：高度改了 3 格", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:03", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (5, 2)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:04", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 2) 移到 (5, 1)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:05", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (5, 12)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:05", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 12) 移到 (5, 1)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:05", "actor": "human", "kind": "edit", "text": "野狼 的生命 16 → 15", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:36:06", "actor": "human", "kind": "sim", "text": "开始模拟 1-4（新手机器人，各 50 局）", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:15", "actor": "human", "kind": "sim", "text": "模拟完成 1-4：新手机器人胜率 46%，目标通过 0/9", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:36:18", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:50:09", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:50:11", "actor": "human", "kind": "edit", "text": "1-4：高度改了 3 格", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:50:12", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (5, 2)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:50:12", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 2) 移到 (5, 1)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:50:13", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (6, 13)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:50:44", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:51:04", "actor": "human", "kind": "variant", "text": "新建变体「e2e-check」", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:51:05", "actor": "human", "kind": "edit", "text": "1-4：高度改了 3 格", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:06", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (5, 2)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:07", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 2) 移到 (5, 1)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:08", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 1) 移到 (5, 12)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:08", "actor": "human", "kind": "edit", "text": "1-4：wolf_3 从 (5, 12) 移到 (5, 1)", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:08", "actor": "human", "kind": "edit", "text": "野狼 的生命 16 → 15", "variant": "e2e-check"}
+{"ts": "2026-11-20T02:51:09", "actor": "human", "kind": "sim", "text": "开始模拟 1-4（新手机器人，各 50 局）", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:17", "actor": "human", "kind": "sim", "text": "模拟完成 1-4：新手机器人胜率 46%，目标通过 0/9", "variant": "e2e-check", "battle": "1-4"}
+{"ts": "2026-11-20T02:51:19", "actor": "ai", "kind": "variant", "text": "删除变体「e2e-check」"}
+{"ts": "2026-11-20T02:54:12", "actor": "human", "kind": "sim", "text": "开始模拟 1-4（熟练机器人、新手机器人，各 50 局）", "variant": "baseline", "battle": "1-4"}
+{"ts": "2026-11-20T02:55:40", "actor": "human", "kind": "sim", "text": "模拟完成 1-4：熟练机器人胜率 84%，目标通过 0/9", "variant": "baseline", "battle": "1-4"}

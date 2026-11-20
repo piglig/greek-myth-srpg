@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unit definitions (data/tables/units.json)",
+  "type": "object",
+  "minProperties": 1,
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$"
+  },
+  "additionalProperties": {
+    "type": "object",
+    "required": [
+      "name",
+      "hp",
+      "str",
+      "def",
+      "wil",
+      "move",
+      "jump",
+      "skills"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1
+      },
+      "hp": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 999
+      },
+      "max_hp": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 999
+      },
+      "str": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "div": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "def": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "wil": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "move": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 12
+      },
+      "jump": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "size": {
+        "enum": [
+          1,
+          2,
+          3
+        ]
+      },
+      "actions": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4
+      },
+      "stagger_max": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "skills": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      },
+      "traits": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "grapple": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "choke damage per settlement"
+          },
+          "forest_stride": {
+            "const": true
+          },
+          "cannot_attack_adjacent": {
+            "const": true
+          },
+          "hunter_mark": {
+            "const": true
+          },
+          "anti_air": {
+            "const": true
+          },
+          "guest": {
+            "const": true
+          },
+          "block": {
+            "const": true
+          },
+          "physical_immune": {
+            "const": true
+          },
+          "flying": {
+            "const": true
+          },
+          "undead": {
+            "const": true
+          },
+          "strong": {
+            "const": true,
+            "description": "rolls a boulder home in one push"
+          }
+        }
+      }
+    }
+  }
+}

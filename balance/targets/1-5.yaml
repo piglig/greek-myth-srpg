@@ -1,0 +1,15 @@
+# 设计目标：1-5 双口洞穴（docs/09 §3）。每个指标：[下限, 上限]。
+battle: "1-5"
+runs_min: 50           # fewer battles than this: every verdict is INCONCLUSIVE
+bots:
+  skilled:
+    win_rate: [0.55, 0.85]              # 第 1 章 Boss：熟练玩家大多能过，但会输
+    hero_ko_rate: [0.00, 0.35]
+    timeout_rate: [0.00, 0.03]
+    rounds_p50: [8, 14]                 # docs/09：目标回合数 10–13
+    party_hp_left_p50: [0.25, 0.70]
+    battles_with_break: [0.80, 1.00]    # 破势是本战要教的核心
+    phase2_reached: [0.60, 1.00]        # 大多数胜局应该打到洞穴阶段
+    battles_with_grapple: [0.50, 1.00]
+  novice:
+    win_rate: [0.15, 0.50]

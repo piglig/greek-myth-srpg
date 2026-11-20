@@ -1,0 +1,62 @@
+# Static balance specs for chapter 1 (no battle simulation; one hit on flat ground).
+# Every rule cites the design doc it comes from. Change the doc and the spec together.
+#
+# Rule kinds
+#   hits_to_kill      attackers ("unit:skill") x targets must die in [min, max] hits
+#   max_hit_fraction  any skill of these attackers may remove at most `max` of a target's max HP
+#   party_burst       sum of each party member's best hit vs target in `scenario`,
+#                     as a fraction of target HP, must be within [min, max]
+#
+# known_issue: <text>  marks a rule that is known to fail and logged in docs/06-decisions.md.
+#                      It runs as a strict expected failure: still reported, and it errors
+#                      the moment it starts passing so the marker gets removed.
+
+rules:
+  - id: main_attacks_vs_common_enemies
+    kind: hits_to_kill
+    source: docs/09 §4 验算 — 普通敌人 2–3 下倒下
+    attackers: [hero:spear, atalanta:shoot]
+    targets: [wolf, bandit, bandit_archer]
+    scenario: front
+    range: [2, 3]
+
+  - id: boar_is_hard_to_physical
+    kind: hits_to_kill
+    source: docs/09 §3 1-4 — 野猪防御高，每次只能打出 3–4 点，逼玩家改用真实伤害
+    attackers: [hero:spear, atalanta:shoot]
+    targets: [boar]
+    scenario: front
+    range: [5, 99]
+
+  - id: chief_needs_flanking
+    kind: hits_to_kill
+    source: docs/09 §3 1-2 — 头目正面格挡，逼玩家用包夹和背击
+    attackers: [hero:spear, atalanta:shoot]
+    targets: [bandit_chief]
+    scenario: front
+    range: [6, 99]
+
+  - id: chief_from_behind_is_fair
+    kind: hits_to_kill
+    source: docs/09 §3 1-2 — 绕到背后后应当是正常强度
+    attackers: [hero:spear, atalanta:shoot]
+    targets: [bandit_chief]
+    scenario: back
+    range: [2, 4]
+
+  - id: no_one_shot_chunks_in_chapter1
+    kind: max_hit_fraction
+    source: 第 1 章是教学章，任何敌人单次攻击不应打掉我方单位一半以上的生命
+    attackers: [wolf, bandit, bandit_archer, bandit_chief, boar, lion]
+    targets: [hero, atalanta, heracles]
+    scenario: front
+    max: 0.5
+
+  - id: lion_break_window
+    kind: party_burst
+    source: docs/09 §3 1-5 击败方式 — 第一次破势窗口打掉大约 25–35 点生命（满血 60）
+    party: [hero, atalanta, heracles]
+    target: lion
+    scenario: broken_side
+    range: [0.40, 0.60]
+    known_issue: 2026-11-19 现值 60/60（100%），赫拉克勒斯一人 31。M4 实装狮子时处理，候选方案见 06-decisions。

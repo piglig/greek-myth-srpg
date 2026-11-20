@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill definitions (data/tables/skills.json)",
+  "type": "object",
+  "minProperties": 1,
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$"
+  },
+  "additionalProperties": {
+    "type": "object",
+    "required": [
+      "name"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1
+      },
+      "mult": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "maximum": 5
+      },
+      "type": {
+        "enum": [
+          "physical",
+          "divine",
+          "true"
+        ]
+      },
+      "min_range": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      },
+      "max_range": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      },
+      "shape": {
+        "enum": [
+          "single",
+          "line"
+        ]
+      },
+      "ranged": {
+        "type": "boolean"
+      },
+      "knockback": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4
+      },
+      "cooldown": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      },
+      "stagger_bonus": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "marked_flank_stagger": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "leap": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 6
+      },
+      "leap_rise": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "area_status": {
+        "enum": [
+          "feared",
+          "rooted",
+          "stunned"
+        ]
+      },
+      "radius": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 6
+      },
+      "rounds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      }
+    },
+    "oneOf": [
+      {
+        "required": [
+          "mult",
+          "type",
+          "min_range",
+          "max_range"
+        ]
+      },
+      {
+        "required": [
+          "area_status",
+          "radius"
+        ]
+      }
+    ]
+  }
+}

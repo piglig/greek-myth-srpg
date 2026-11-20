@@ -1,0 +1,17 @@
+# Design targets for 1-4 涅墨亚山谷 (docs/09 §3), checked against bot simulations.
+# Ranges are the initial guesses from docs/11 §5.2; adjust together with the design doc.
+# Each metric: [min, max], or {range: [min, max], known_issue: "..."}.
+battle: "1-4"
+runs_min: 50           # fewer battles than this: every verdict is INCONCLUSIVE
+bots:
+  skilled:             # main acceptance bot
+    win_rate: [0.70, 0.95]               # 2026-11-19 教学章放宽上限（原 90%），见 06-decisions
+    hero_ko_rate: [0.00, 0.15]
+    timeout_rate: [0.00, 0.02]
+    rounds_p50: [6, 10]
+    rounds_mean: [6.0, 10.0]             # finer-grained than the integer median
+    party_hp_left_p50: [0.35, 0.75]
+    battles_with_fall: [0.50, 1.00]      # docs/09: 这一关要教会"推下悬崖"
+    battles_with_grapple: [0.50, 1.00]   # docs/09: 赫拉克勒斯示范擒抱
+  novice:
+    win_rate: [0.30, 0.65]

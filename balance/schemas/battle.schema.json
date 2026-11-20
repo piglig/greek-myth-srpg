@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Battle setup (data/tables/battles/<id>.json)",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "heights",
+    "units"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer"
+    },
+    "note": {
+      "type": "string"
+    },
+    "heights": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-5]+$"
+      }
+    },
+    "terrain": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[.fwDsbx]+$"
+      }
+    },
+    "units": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "def",
+          "id",
+          "team",
+          "pos"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "def": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "team": {
+            "enum": [
+              "player",
+              "enemy",
+              "neutral"
+            ]
+          },
+          "pos": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "facing": {
+            "enum": [
+              "N",
+              "E",
+              "S",
+              "W"
+            ]
+          }
+        }
+      }
+    },
+    "cave": {
+      "type": "object",
+      "required": [
+        "boss",
+        "trigger_hp",
+        "entrances"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "boss": {
+          "type": "string"
+        },
+        "trigger_hp": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "emerge_actions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "entrances": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "anchor"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "anchor": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        "boulders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "pos",
+              "seals"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "pos": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "seals": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "points": 4,
+  "trees": {
+    "hero": [
+      {
+        "branch": "战阵",
+        "nodes": [
+          {
+            "id": "shield_wall",
+            "name": "盾墙",
+            "cost": 1,
+            "trait": "shield_wall",
+            "desc": "处于防御姿态时，相邻同伴受到的伤害 −15%"
+          },
+          {
+            "id": "intercept",
+            "name": "截击",
+            "cost": 2,
+            "trait": "intercept",
+            "desc": "相邻同伴被攻击时，主角代为承受（每回合 1 次）"
+          }
+        ]
+      },
+      {
+        "branch": "搏击",
+        "nodes": [
+          {
+            "id": "slam",
+            "name": "摔投",
+            "cost": 1,
+            "trait": "slam",
+            "desc": "把擒抱中的目标向任一方向摔出 1 格，结算坠落，结束擒抱"
+          },
+          {
+            "id": "iron_arm",
+            "name": "铁臂",
+            "cost": 2,
+            "trait": "iron_arm",
+            "desc": "窒息伤害 +3；擒抱期间受到的伤害 −20%"
+          }
+        ]
+      }
+    ],
+    "atalanta": [
+      {
+        "branch": "卡吕冬猎手",
+        "nodes": [
+          {
+            "id": "vital_shot",
+            "name": "要害射击",
+            "cost": 1,
+            "skill": "vital_shot",
+            "desc": "1.4 倍射击，冷却 2；从侧面或背面射击被标记的目标时额外破势 +15"
+          },
+          {
+            "id": "patience",
+            "name": "猎人耐心",
+            "cost": 2,
+            "trait": "patience",
+            "desc": "本回合没有移动时，伤害 +25%"
+          }
+        ]
+      },
+      {
+        "branch": "疾风",
+        "nodes": [
+          {
+            "id": "skirmish",
+            "name": "游击",
+            "cost": 1,
+            "trait": "skirmish",
+            "desc": "攻击后可以再移动 2 格"
+          },
+          {
+            "id": "leap_shot",
+            "name": "跃射",
+            "cost": 2,
+            "skill": "leap_shot",
+            "desc": "跳到 3 格内（最多高 3 层）的位置再射击 0.8 倍，冷却 3"
+          }
+        ]
+      }
+    ]
+  },
+  "default_picks": {
+    "hero": [
+      "slam",
+      "iron_arm",
+      "shield_wall"
+    ],
+    "atalanta": [
+      "vital_shot",
+      "patience",
+      "skirmish"
+    ]
+  }
+}

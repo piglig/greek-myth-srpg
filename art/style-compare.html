@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>美术方向对照：同一场景，三套配色</title>
+<style>
+  body { margin: 0; background: #17181b; color: #d8d4cc; font: 14px/1.6 "Microsoft YaHei", sans-serif; }
+  main { max-width: 1320px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  p.note { margin: 0 0 20px; color: #9a968d; }
+  section { margin-bottom: 28px; }
+  h2 { font-size: 16px; margin: 0 0 2px; }
+  .desc { color: #9a968d; margin: 0 0 8px; }
+  canvas { width: 1280px; max-width: 100%; height: auto; image-rendering: pixelated; display: block; }
+  .sw { display: flex; gap: 0; margin-top: 6px; }
+  .sw i { width: 28px; height: 14px; display: block; }
+</style>
+</head>
+<body>
+<main>
+<h1>美术方向对照：同一场景，三套配色</h1>
+<p class="note">程序生成的示意图，640×360 放大 2 倍。只用来比较配色、明暗关系和角色与地面的分离度，不代表最终的造型和画工。每张图左边的人是凡人状态的主角，右边是高神性状态。</p>
+<div id="out"></div>
+</main>
+<script>
+const W = 640, H = 360, TW = 16, TH = 8, LV = 8, N = 12;
+
+// ---------- 场景（三套风格共用） ----------
+function cell(x, y) {
+  let h = 1, t = 'ground';
+  if (y <= 3) h = 3;                       // 后方高台
+  if (y === 4 && x >= 4 && x <= 6) { h = 2; t = 'stair'; }
+  if (y <= 3 && x >= 9) h = 4;
+  if (x >= 8 && y >= 7 && x + y <= 21 && !(x === 8 && y === 7)) { h = 0; t = 'water'; }
+  if (y === 3 && (x === 1 || x === 3 || x === 7)) t = 'column';
+  if ((x === 1 && y === 8) || (x === 3 && y === 10) || (x === 10 && y === 5)) t = 'bush';
+  if (y <= 3 && t === 'ground') t = 'terrace';
+  return { h, t };
+}
+const hash = (x, y) => { let n = (x * 374761393 + y * 668265263) >>> 0; n = (n ^ (n >> 13)) * 1274126177 >>> 0; return (n >>> 8) % 100 / 100; };
+
+// ---------- 三套风格 ----------
+const STYLES = [
+  {
+    id: 'fresco', name: 'A 壁画（当前建议）',
+    desc: '灰泥白的地面，平涂，深色勾线。人是赭色，神是蓝色。',
+    bg: ['#DCD3BF', '#DCD3BF'],
+    top: { ground: ['#EDE6D6', '#E4DCC8'], terrace: ['#EDE6D6', '#E4DCC8'], stair: ['#E4DCC8', '#E4DCC8'] },
+    left: '#CFC4AD', right: '#B8AC93', line: '#1E1A1A', lineAlpha: 1,
+    band: '#A8432D', band2: '#2F6FB0',
+    water: ['#8DB8D9', '#2F6FB0'], bush: ['#4E8C5A', '#2E5A3A'], column: ['#A8432D', '#6E2A1E', '#1E1A1A'],
+    ao: 0, grain: 0,
+    hero: { skin: '#B5613A', hair: '#1E1A1A', cloth: '#EDE6D6', cloak: '#A8432D', metal: '#D9A441', line: '#1E1A1A' },
+    god:  { skin: '#B5613A', hair: '#1B3F6E', cloth: '#2F6FB0', cloak: '#1B3F6E', metal: '#D9A441', line: '#1B3F6E', eye: '#8DB8D9' },
+    foe:  { skin: '#B5613A', hair: '#1E1A1A', cloth: '#6E2A1E', cloak: '#1E1A1A', metal: '#B07D2E', line: '#1E1A1A' },
+    lion: ['#D9A441', '#B07D2E', '#6E2A1E', '#1E1A1A'],
+    sw: ['#EDE6D6','#CFC4AD','#A8432D','#6E2A1E','#D9A441','#B07D2E','#2F6FB0','#1B3F6E','#8DB8D9','#4E8C5A','#2E5A3A','#1E1A1A','#F7F3EA'],
+  },
+  {
+    id: 'marble', name: 'B 彩绘大理石（备选）',
+    desc: '冷白的石头，明暗层次多，局部涂高饱和的彩。更接近照片感的沙盘。',
+    bg: ['#9FB4C4', '#C9D3D6'],
+    top: { ground: ['#E2E1DC', '#D3D3CF', '#C6C8C6'], terrace: ['#ECEBE6', '#DEDDD8', '#D0D1CE'], stair: ['#D3D3CF', '#C6C8C6', '#C6C8C6'] },
+    left: '#A9ADB0', right: '#878D93', line: '#5B6168', lineAlpha: 0.55,
+    band: '#C23B2E', band2: '#1F5FA8',
+    water: ['#6FA9B8', '#2E6E86'], bush: ['#5E9A4A', '#3B6B34'], column: ['#ECEBE6', '#B9BDBF', '#878D93'],
+    ao: 0.16, grain: 1,
+    hero: { skin: '#D9A07A', hair: '#5A3A22', cloth: '#ECEBE6', cloak: '#C23B2E', metal: '#E0B43C', line: '#3A3134' },
+    god:  { skin: '#D9A07A', hair: '#E0B43C', cloth: '#ECEBE6', cloak: '#1F5FA8', metal: '#E0B43C', line: '#3A3134', eye: '#1F5FA8' },
+    foe:  { skin: '#D9A07A', hair: '#2B2326', cloth: '#3E7A52', cloak: '#2B2326', metal: '#B58B3A', line: '#3A3134' },
+    lion: ['#D8B15A', '#B58B3A', '#7A5524', '#3A3134'],
+    sw: ['#ECEBE6','#D3D3CF','#A9ADB0','#878D93','#5B6168','#C23B2E','#1F5FA8','#E0B43C','#5E9A4A','#6FA9B8','#2E6E86','#D9A07A','#3A3134'],
+  },
+  {
+    id: 'bronze', name: 'C 夜色青铜（备选）',
+    desc: '近黑的底，铜绿和金的轮廓光。轮廓最强，颜色最少。',
+    bg: ['#0C1018', '#141B26'],
+    top: { ground: ['#1F2B33', '#1A252D'], terrace: ['#25343C', '#1F2B33'], stair: ['#1A252D', '#1A252D'] },
+    left: '#141C23', right: '#0E141A', line: '#C99A3B', lineAlpha: 0.9,
+    band: '#3E8C7A', band2: '#C99A3B',
+    water: ['#1E4A52', '#12303A'], bush: ['#2F6F5E', '#1D4A40'], column: ['#3E8C7A', '#285E54', '#0E141A'],
+    ao: 0, grain: 0,
+    hero: { skin: '#C97E4A', hair: '#0C1018', cloth: '#E6D9B8', cloak: '#A8432D', metal: '#E8C15A', line: '#0C1018' },
+    god:  { skin: '#C97E4A', hair: '#E8C15A', cloth: '#3E8C7A', cloak: '#1E4A52', metal: '#E8C15A', line: '#0C1018', eye: '#9FE0CF' },
+    foe:  { skin: '#8A5A3A', hair: '#0C1018', cloth: '#5A2A22', cloak: '#0C1018', metal: '#C99A3B', line: '#0C1018' },
+    lion: ['#C99A3B', '#8E6A2A', '#5A2A22', '#0C1018'],
+    sw: ['#0C1018','#141C23','#1F2B33','#25343C','#3E8C7A','#285E54','#C99A3B','#E8C15A','#A8432D','#E6D9B8','#1E4A52','#C97E4A'],
+  },
+];
+
+// ---------- 绘制 ----------
+function render(st) {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  const R = (c, x, y, w, h) => { g.fillStyle = c; g.fillRect(x | 0, y | 0, w | 0, h | 0); };
+  // 背景
+  for (let y = 0; y < H; y++) R(y < H * 0.45 ? st.bg[0] : st.bg[1], 0, y, W, 1);
+  const ox = W / 2 + 4, oy = 62;
+  const pos = (x, y, h) => [ox + (x - y) * TW, oy + (x + y) * TH - h * LV];
+  const sprites = [];
+  const put = (x, y, fn) => sprites.push({ x, y, fn });
+
+  put(5, 7, (sx, sy) => figure(sx, sy, st.hero, 1));
+  put(7, 6, (sx, sy) => figure(sx, sy, st.god, 1));
+  put(2, 6, (sx, sy) => figure(sx, sy, st.foe, -1));
+  put(3, 2, (sx, sy) => figure(sx, sy, st.foe, 1));
+  put(5, 10, (sx, sy) => lion(sx, sy));
+
+  for (let s = 0; s <= 2 * (N - 1); s++) for (let x = 0; x < N; x++) {
+    const y = s - x; if (y < 0 || y >= N) continue;
+    const c = cell(x, y); const [sx, sy] = pos(x, y, c.h);
+    const hF = y + 1 < N ? cell(x, y + 1).h : 0, hR = x + 1 < N ? cell(x + 1, y).h : 0;
+    const hB = y > 0 ? cell(x, y - 1).h : c.h, hL = x > 0 ? cell(x - 1, y).h : c.h;
+    // 侧面
+    const dl = Math.max(0, c.h - hF) * LV, dr = Math.max(0, c.h - hR) * LV;
+    for (let i = 0; i < TW; i++) {
+      if (dl) { R(st.left, sx - TW + i, sy + TH + (i >> 1), 1, dl);
+        if (c.t !== 'water' && dl >= LV * 2) R(st.band, sx - TW + i, sy + TH + (i >> 1) + 3, 1, 2); }
+      if (dr) { R(st.right, sx + i, sy + 2 * TH - 1 - (i >> 1), 1, dr);
+        if (c.t !== 'water' && dr >= LV * 2) R(st.band2, sx + i, sy + 2 * TH - 1 - (i >> 1) + 3, 1, 2); }
+    }
+    // 顶面
+    let col;
+    if (c.t === 'water') col = st.water[(x + y) % 2 ? 0 : 0];
+    else { const p = st.top[c.t] || st.top.ground; col = st.grain ? p[Math.floor(hash(x, y) * p.length)] : p[(x + y) % 2]; }
+    for (let r = 0; r < 2 * TH; r++) { const hw = r < TH ? 2 * (r + 1) : 2 * (2 * TH - r); R(col, sx - hw, sy + r, 2 * hw, 1); }
+    if (c.t === 'water') { R(st.water[1], sx - 8, sy + 6, 6, 1); R(st.water[1], sx + 2, sy + 10, 7, 1); }
+    // 接触阴影（只有大理石用）
+    if (st.ao && (hB > c.h || hL > c.h)) { g.globalAlpha = st.ao;
+      for (let r = 0; r < TH; r++) { const hw = 2 * (r + 1); R('#000', hB > c.h ? sx : sx - hw, sy + r, hw, 1); if (hL > c.h && hB > c.h) R('#000', sx - hw, sy + r, hw, 1); }
+      g.globalAlpha = 1; }
+    // 勾线
+    g.globalAlpha = st.lineAlpha;
+    for (let i = 0; i < TW; i++) {
+      if (dl) R(st.line, sx - TW + i, sy + TH + (i >> 1), 1, 1);
+      if (dr) R(st.line, sx + i, sy + 2 * TH - 1 - (i >> 1), 1, 1);
+      if (hB < c.h) R(st.line, sx + i, sy + (i >> 1), 1, 1);
+      if (hL < c.h) R(st.line, sx - TW + i, sy + TH - 1 - (i >> 1), 1, 1);
+    }
+    if (dl && dr) R(st.line, sx, sy + 2 * TH, 1, Math.min(dl, dr));
+    g.globalAlpha = 1;
+    // 物件
+    if (c.t === 'column') column(sx, sy + TH);
+    if (c.t === 'bush') bush(sx, sy + TH);
+    for (const sp of sprites) if (sp.x === x && sp.y === y) sp.fn(sx, sy + TH + 2);
+  }
+
+  function column(cx, fy) {
+    const [a, b, l] = st.column;
+    R(l, cx - 6, fy - 37, 12, 39); R(a, cx - 5, fy - 36, 6, 37); R(b, cx + 1, fy - 36, 4, 37);
+    R(l, cx - 8, fy - 41, 16, 5); R(st.band2, cx - 7, fy - 40, 14, 3);
+    R(l, cx - 7, fy - 1, 14, 4); R(b, cx - 6, fy, 12, 2);
+  }
+  function bush(cx, fy) {
+    const [a, b] = st.bush; const l = st.id === 'bronze' ? st.left : st.line;
+    R(l, cx - 8, fy - 13, 16, 14); R(l, cx - 5, fy - 17, 10, 5);
+    R(a, cx - 7, fy - 12, 14, 12); R(a, cx - 4, fy - 16, 8, 4); R(b, cx + 1, fy - 9, 6, 9); R(b, cx - 7, fy - 3, 8, 3);
+  }
+  function figure(cx, fy, p, dir) {
+    g.globalAlpha = 0.28; R('#000', cx - 8, fy - 2, 16, 4); g.globalAlpha = 1;
+    const parts = [
+      [p.cloak, -dir * 6 - 2, -30, 5, 20],          // 披风
+      [p.skin, -4, -12, 3, 12], [p.skin, 1, -12, 3, 12], // 腿
+      [p.cloth, -5, -28, 10, 17],                   // 衣
+      [p.metal, -5, -17, 10, 2],                    // 腰带
+      [p.skin, dir * 5, -27, 3, 10],                // 前臂
+      [p.skin, -4, -37, 8, 8],                      // 头
+      [p.hair, -4, -39, 8, 3], [p.hair, -dir * 4 - (dir > 0 ? 0 : 1), -37, 1, 5],
+      [p.metal, dir * 8, -44, 1, 44],               // 矛
+    ];
+    for (const [, x, y, w, h] of parts) R(p.line, cx + x - 1, fy + y - 1, w + 2, h + 2);
+    for (const [c, x, y, w, h] of parts) R(c, cx + x, fy + y, w, h);
+    R(p.eye || p.line, cx + dir * 2, fy - 34, 2, 2);
+    R(p.line, cx + dir * 8 - 1, fy - 47, 3, 4); R(p.metal, cx + dir * 8, fy - 46, 1, 3);
+  }
+  function lion(cx, fy) {
+    const [a, b, m, l] = st.lion;
+    g.globalAlpha = 0.28; R('#000', cx - 18, fy - 2, 36, 5); g.globalAlpha = 1;
+    const parts = [[a, -16, -20, 26, 12], [b, -14, -9, 4, 9], [b, 4, -9, 4, 9], [m, 6, -28, 14, 18], [a, 10, -24, 10, 10], [b, -20, -22, 3, 10]];
+    for (const [, x, y, w, h] of parts) R(l, cx + x - 1, fy + y - 1, w + 2, h + 2);
+    for (const [c, x, y, w, h] of parts) R(c, cx + x, fy + y, w, h);
+    R(l, cx + 16, fy - 21, 2, 2); R(l, cx + 17, fy - 17, 3, 1);
+  }
+  return cv;
+}
+
+const out = document.getElementById('out');
+const only = new URLSearchParams(location.search).get('only');
+for (const st of STYLES) {
+  if (only && only !== st.id) continue;
+  const sec = document.createElement('section');
+  sec.innerHTML = `<h2>${st.name}</h2><p class="desc">${st.desc}</p>`;
+  sec.appendChild(render(st));
+  const sw = document.createElement('div'); sw.className = 'sw';
+  sw.innerHTML = st.sw.map(c => `<i style="background:${c}" title="${c}"></i>`).join('');
+  sec.appendChild(sw); out.appendChild(sec);
+}
+</script>
+</body>
+</html>
