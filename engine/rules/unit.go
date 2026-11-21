@@ -80,6 +80,7 @@ func (t *Traits) Set(key string, value int) {
 
 // UnitState 是一个单位的运行时状态。纯数据；规则在 rules.go 等文件里。
 type UnitState struct {
+	chargeDir       Cell
 	ID, DefID, Name string
 	Team            Team
 	Pos             Cell // 占地的左上角
@@ -104,8 +105,9 @@ type UnitState struct {
 	GrapplingID, GrappledByID string
 	Escape                    int
 
-	Alive  bool
-	Hidden bool // 不在场上（狮子在洞里）：不能被选中，也不挡路
+	Arrival int // Scheduled round, zero after arrival.
+	Alive   bool
+	Hidden  bool // 不在场上（狮子在洞里）：不能被选中，也不挡路
 
 	// 移动撤销用的快照
 	undoOK              bool

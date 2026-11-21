@@ -1,0 +1,115 @@
+{
+  "id": "1-3",
+  "title": "1-3 福洛厄山的酒宴",
+  "order": 2,
+  "heights": [
+    "222222222222",
+    "222222111122",
+    "222211111112",
+    "211111111112",
+    "211111111111",
+    "211111111111",
+    "211111111111",
+    "211111111111",
+    "211111111112",
+    "221111111112",
+    "222211111122",
+    "222222222222"
+  ],
+  "terrain": [
+    "ffffffffffff",
+    "fffff....fff",
+    "fff.......ff",
+    "ff.........f",
+    "f..........f",
+    "............",
+    "............",
+    "f..........f",
+    "ff.........f",
+    "ff........ff",
+    "fff......fff",
+    "ffffff..ffff"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        3,
+        7
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        4,
+        8
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "wounded_chiron",
+      "def": "chiron",
+      "team": "player",
+      "pos": [
+        3,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "rider_1",
+      "def": "centaur",
+      "team": "enemy",
+      "pos": [
+        9,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "rider_2",
+      "def": "centaur",
+      "team": "enemy",
+      "pos": [
+        10,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "rider_3",
+      "def": "centaur",
+      "team": "enemy",
+      "pos": [
+        11,
+        9
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "rider_4",
+      "def": "centaur",
+      "team": "enemy",
+      "pos": [
+        9,
+        0
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "rider_5",
+      "def": "centaur",
+      "team": "enemy",
+      "pos": [
+        11,
+        11
+      ],
+      "facing": "W"
+    }
+  ]
+}

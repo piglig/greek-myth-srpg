@@ -17,7 +17,32 @@
             "name": "截击",
             "cost": 2,
             "trait": "intercept",
-            "desc": "相邻同伴被攻击时，主角代为承受（每回合 1 次）"
+            "desc": "相邻同伴被攻击时，主角代为承受（每回合 1 次）",
+            "parent": "shield_wall"
+          },
+          {
+            "id": "shield_drive",
+            "name": "盾缘猛推",
+            "skill": "shield_drive",
+            "desc": "以盾缘击退相邻敌人 2 格，冷却 3。",
+            "parent": "shield_wall",
+            "cost": 2
+          },
+          {
+            "id": "bulwark",
+            "name": "执盾如山",
+            "trait": "bulwark",
+            "desc": "永久增加 3 点防御。",
+            "parent": "intercept",
+            "cost": 3
+          },
+          {
+            "id": "phalanx_thrust",
+            "name": "方阵贯刺",
+            "skill": "phalanx_thrust",
+            "desc": "沿直线 1–3 格刺出 1.55 倍物理伤害，冷却 3。",
+            "parent": "shield_drive",
+            "cost": 4
           }
         ]
       },
@@ -36,7 +61,32 @@
             "name": "铁臂",
             "cost": 2,
             "trait": "iron_arm",
-            "desc": "窒息伤害 +3；擒抱期间受到的伤害 −20%"
+            "desc": "窒息伤害 +3；擒抱期间受到的伤害 −20%",
+            "parent": "slam"
+          },
+          {
+            "id": "heel_strike",
+            "name": "扫膝",
+            "skill": "heel_strike",
+            "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
+            "parent": "slam",
+            "cost": 2
+          },
+          {
+            "id": "wrestler",
+            "name": "角力呼吸",
+            "trait": "wrestler",
+            "desc": "永久增加 8 点生命上限。",
+            "parent": "iron_arm",
+            "cost": 3
+          },
+          {
+            "id": "breaker",
+            "name": "碎阵重击",
+            "skill": "breaker",
+            "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
+            "parent": "heel_strike",
+            "cost": 4
           }
         ]
       }
@@ -57,7 +107,32 @@
             "name": "猎人耐心",
             "cost": 2,
             "trait": "patience",
-            "desc": "本回合没有移动时，伤害 +25%"
+            "desc": "本回合没有移动时，伤害 +25%",
+            "parent": "vital_shot"
+          },
+          {
+            "id": "pin_shot",
+            "name": "钉足箭",
+            "skill": "pin_shot",
+            "desc": "0.8 倍射击，命中后束缚 1 回合，冷却 2。",
+            "parent": "vital_shot",
+            "cost": 2
+          },
+          {
+            "id": "beast_hunter",
+            "name": "巨兽克星",
+            "trait": "beast_hunter",
+            "desc": "攻击占据多格的敌人时，伤害提高 20%。",
+            "parent": "patience",
+            "cost": 3
+          },
+          {
+            "id": "calydon",
+            "name": "卡吕冬之矢",
+            "skill": "calydon",
+            "desc": "1.9 倍射击，额外破势 25，冷却 4。",
+            "parent": "pin_shot",
+            "cost": 4
           }
         ]
       },
@@ -76,7 +151,212 @@
             "name": "跃射",
             "cost": 2,
             "skill": "leap_shot",
-            "desc": "跳到 3 格内（最多高 3 层）的位置再射击 0.8 倍，冷却 3"
+            "desc": "跳到 3 格内（最多高 3 层）的位置再射击 0.8 倍，冷却 3",
+            "parent": "skirmish"
+          },
+          {
+            "id": "fleet",
+            "name": "越林步",
+            "trait": "fleet",
+            "desc": "移动力永久增加 1 格。",
+            "parent": "skirmish",
+            "cost": 2
+          },
+          {
+            "id": "ridge_shot",
+            "name": "越岭射",
+            "skill": "ridge_shot",
+            "desc": "跃向 4 格内的落点，再作 1.25 倍射击，冷却 4。",
+            "parent": "leap_shot",
+            "cost": 3
+          },
+          {
+            "id": "high_jump",
+            "name": "羚跃",
+            "trait": "high_jump",
+            "desc": "跳跃力永久增加 2 层。",
+            "parent": "fleet",
+            "cost": 4
+          }
+        ]
+      }
+    ],
+    "chiron": [
+      {
+        "branch": "医者",
+        "nodes": [
+          {
+            "id": "purify_arrow",
+            "name": "净化箭",
+            "cost": 1,
+            "skill": "purify_arrow",
+            "desc": "射程 2–4。友军恢复 8 点生命，并解除灼烧、中毒、恐惧中的一种。冷却 2。"
+          },
+          {
+            "id": "field_medicine",
+            "name": "战地医术",
+            "cost": 2,
+            "trait": "field_medicine",
+            "desc": "净化箭治疗生命低于一半的同伴时，恢复量从 8 提升至 12。",
+            "parent": "purify_arrow"
+          },
+          {
+            "id": "herb_pouch",
+            "name": "药囊",
+            "trait": "herb_pouch",
+            "desc": "净化箭的基础治疗量增加 3。",
+            "parent": "purify_arrow",
+            "cost": 2
+          },
+          {
+            "id": "triage",
+            "name": "止血包扎",
+            "trait": "triage",
+            "desc": "净化箭命中后，为同伴增加 4 点护盾。",
+            "parent": "field_medicine",
+            "cost": 3
+          },
+          {
+            "id": "antidote",
+            "name": "复方解毒",
+            "trait": "antidote",
+            "desc": "净化箭每次最多解除两种负面状态。",
+            "parent": "herb_pouch",
+            "cost": 4
+          }
+        ]
+      },
+      {
+        "branch": "导师",
+        "nodes": [
+          {
+            "id": "weak_point",
+            "name": "指隙箭",
+            "cost": 1,
+            "skill": "weak_point",
+            "desc": "射程 2–4。轻射命中后揭示破绽，使目标物防降低 3，持续 2 回合。冷却 2。"
+          },
+          {
+            "id": "mentor_stagger",
+            "name": "识破架势",
+            "cost": 2,
+            "trait": "mentor_stagger",
+            "desc": "指隙箭命中带破势条的敌人时，额外累积 20 点破势。",
+            "parent": "weak_point"
+          },
+          {
+            "id": "repel_arrow",
+            "name": "退敌箭",
+            "skill": "repel_arrow",
+            "desc": "0.85 倍射击，击退 1 格，为伤员拉开距离，冷却 2。",
+            "parent": "weak_point",
+            "cost": 2
+          },
+          {
+            "id": "keen_eye",
+            "name": "观隙",
+            "trait": "keen_eye",
+            "desc": "指隙箭造成的破绽持续 3 回合。",
+            "parent": "mentor_stagger",
+            "cost": 3
+          },
+          {
+            "id": "centaur_volley",
+            "name": "射手座之矢",
+            "skill": "centaur_volley",
+            "desc": "1.5 倍射击，击退 2 格，冷却 4。",
+            "parent": "repel_arrow",
+            "cost": 4
+          }
+        ]
+      }
+    ],
+    "medea": [
+      {
+        "branch": "烈焰",
+        "nodes": [
+          {
+            "id": "kindling",
+            "name": "助燃",
+            "cost": 1,
+            "trait": "kindling",
+            "desc": "对已灼烧的敌人施放神力攻击时，伤害提高 25%。"
+          },
+          {
+            "id": "solar_flame",
+            "name": "日轮焰",
+            "cost": 2,
+            "skill": "solar_flame",
+            "desc": "射程 1–4。造成 1.5 倍神力伤害，并使目标灼烧 2 回合。冷却 3。",
+            "parent": "kindling"
+          },
+          {
+            "id": "cinder_lance",
+            "name": "烬火长矛",
+            "skill": "cinder_lance",
+            "desc": "沿直线 1–5 格投出火矛，1.2 倍神力伤害并灼烧 2 回合，冷却 2。",
+            "parent": "kindling",
+            "cost": 2
+          },
+          {
+            "id": "long_flame",
+            "name": "焚尽",
+            "trait": "long_flame",
+            "desc": "巫火、日轮焰与烬火长矛造成的灼烧延长 1 回合。",
+            "parent": "solar_flame",
+            "cost": 3
+          },
+          {
+            "id": "solar_blood",
+            "name": "日神血脉",
+            "trait": "solar_blood",
+            "desc": "神力永久增加 3 点。",
+            "parent": "cinder_lance",
+            "cost": 4
+          }
+        ]
+      },
+      {
+        "branch": "诅咒",
+        "nodes": [
+          {
+            "id": "frailty",
+            "name": "衰弱咒",
+            "cost": 1,
+            "skill": "frailty",
+            "desc": "射程 1–4。造成 0.6 倍神力伤害，并降低目标 3 点力量，持续 2 回合。冷却 2。"
+          },
+          {
+            "id": "lingering_hex",
+            "name": "缠身咒",
+            "cost": 2,
+            "trait": "lingering_hex",
+            "desc": "衰弱咒造成的力量削弱延长至 3 回合。",
+            "parent": "frailty"
+          },
+          {
+            "id": "bind_hex",
+            "name": "缚足咒",
+            "skill": "bind_hex",
+            "desc": "0.7 倍神力伤害，命中后束缚 1 回合，冷却 3。",
+            "parent": "frailty",
+            "cost": 2
+          },
+          {
+            "id": "hex_ward",
+            "name": "赫卡忒的庇护",
+            "trait": "hex_ward",
+            "desc": "意志永久增加 4 点。",
+            "parent": "lingering_hex",
+            "cost": 3
+          },
+          {
+            "id": "night_hex",
+            "name": "长夜咒",
+            "skill": "night_hex",
+            "desc": "1.25 倍神力伤害，命中后施加恐惧 1 回合，冷却 4。",
+            "parent": "bind_hex",
+            "cost": 4
           }
         ]
       }

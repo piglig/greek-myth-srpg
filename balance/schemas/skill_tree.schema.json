@@ -58,6 +58,7 @@
                   "skill": {
                     "type": "string"
                   },
+                  "parent": {"type": "string"},
                   "desc": {
                     "type": "string"
                   }

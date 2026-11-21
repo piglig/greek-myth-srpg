@@ -1,4 +1,5 @@
 {
+  "medea": {"name": "美狄亚", "hp": 30, "str": 5, "div": 13, "def": 3, "wil": 9, "move": 4, "jump": 2, "skills": ["witch_fire"]},
   "hero": {
     "name": "主角",
     "hp": 40,
@@ -56,6 +57,7 @@
     }
   },
   "wolf": {
+    "traits": {"turn_on_guard": true},
     "name": "野狼",
     "hp": 16,
     "str": 7,
@@ -66,6 +68,11 @@
     "skills": [
       "bite"
     ]
+  },
+  "refugee": {
+    "name": "逃难村民",
+    "hp": 23, "str": 1, "def": 1, "wil": 2, "move": 4, "jump": 1,
+    "skills": []
   },
   "bandit": {
     "name": "劫掠者",
@@ -107,6 +114,7 @@
     }
   },
   "boar": {
+    "traits": {"turn_on_guard": true},
     "name": "巨型野猪",
     "hp": 36,
     "str": 13,
@@ -136,7 +144,34 @@
     "actions": 2,
     "stagger_max": 100,
     "traits": {
+      "turn_on_guard": true,
       "physical_immune": true
     }
+  },
+  "chiron": {
+    "name": "喀戎",
+    "hp": 30,
+    "max_hp": 45,
+    "str": 12,
+    "def": 4,
+    "wil": 8,
+    "move": 4,
+    "jump": 2,
+    "skills": [
+      "shoot"
+    ]
+  },
+  "centaur": {
+    "traits": {"turn_on_guard": true},
+    "name": "醉酒半人马",
+    "hp": 26,
+    "str": 12,
+    "def": 3,
+    "wil": 2,
+    "move": 6,
+    "jump": 2,
+    "skills": [
+      "spear"
+    ]
   }
 }

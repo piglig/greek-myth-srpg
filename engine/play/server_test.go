@@ -47,7 +47,7 @@ func TestBattleRoundTrip(t *testing.T) {
 		t.Fatalf("protocol %v", p)
 	}
 	data := ask(t, s, `{"op":"data"}`)
-	if len(data["battles"].([]any)) < 3 || len(data["skills"].([]any)) == 0 || len(data["trees"].([]any)) != 2 {
+	if len(data["battles"].([]any)) < 3 || len(data["skills"].([]any)) == 0 || len(data["trees"].([]any)) != 4 {
 		t.Fatalf("data tables incomplete")
 	}
 	b := ask(t, s, `{"op":"build","battle":"test","picks":{}}`)

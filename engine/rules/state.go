@@ -58,12 +58,17 @@ func (c *Cave) copy() *Cave {
 
 // BattleState 是整场战斗的状态。规则修改它；表现层只读。
 type BattleState struct {
-	Grid     *Grid
-	Units    []*UnitState // 加入顺序，也是所有平局判定的顺序
-	Round    int
-	Phase    Phase
-	MarkedID string
-	Cave     *Cave
+	Grid         *Grid
+	Units        []*UnitState // 加入顺序，也是所有平局判定的顺序
+	Round        int
+	Phase        Phase
+	MarkedID     string
+	PreviousMark string
+	Reward       ChapterReward
+	EscortExits  []Cell
+	RescueExits  []Cell   // Immutable evacuation zone.
+	Village      *Village // Read-only scenario data.
+	Cave         *Cave
 
 	mc *moveCache // 移动范围缓存，同一场战斗的副本共用
 
@@ -247,7 +252,17 @@ func (s *BattleState) AppendSignature(buf []byte) []byte {
 	buf = append(buf, byte(s.Phase))
 	buf = binary.AppendVarint(buf, int64(s.Round))
 	buf = appendStr(buf, s.MarkedID)
+	buf = appendStr(buf, s.PreviousMark)
+	buf = appendStr(buf, s.Reward.Boon)
+	buf = appendStr(buf, s.Reward.EquippedRelic)
+	buf = binary.AppendVarint(buf, int64(s.Reward.Divinity))
 	for _, u := range s.Units {
+		if u.DefID == "centaur" {
+			buf = append(buf, byte(u.chargeDir.X+1), byte(u.chargeDir.Y+1))
+		}
+		if s.Village != nil || len(s.RescueExits) > 0 {
+			buf = binary.AppendVarint(buf, int64(u.Arrival))
+		}
 		buf = binary.AppendVarint(buf, int64(u.Pos.X))
 		buf = binary.AppendVarint(buf, int64(u.Pos.Y))
 		buf = binary.AppendVarint(buf, int64(u.HP))
@@ -313,6 +328,10 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 	if dst == nil {
 		dst = &BattleState{}
 	}
+	dst.Reward, dst.PreviousMark = s.Reward, s.PreviousMark
+	dst.Village = s.Village
+	dst.RescueExits = s.RescueExits
+	dst.EscortExits = s.EscortExits
 	dst.Grid, dst.Round, dst.Phase, dst.MarkedID, dst.mc = s.Grid, s.Round, s.Phase, s.MarkedID, s.mc
 	if cap(dst.slab) < n {
 		dst.slab = make([]UnitState, n)

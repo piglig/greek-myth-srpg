@@ -148,7 +148,7 @@ func (b *Bot) PlayTurn(s *rules.BattleState, rng *rules.RNG) []Step {
 func (b *Bot) playGreedy(s *rules.BattleState, rng *rules.RNG) []Step {
 	played := []Step{}
 	for _, u := range s.Living(rules.TeamPlayer) {
-		if !u.Alive || u.HasActed {
+		if !u.Alive || u.HasActed || u.Hidden || (u.DefID == "refugee" || u.ID == "wounded_chiron") {
 			continue
 		}
 		sc := b.scoredPlans(s, u)
@@ -177,7 +177,7 @@ func (b *Bot) playBeam(s *rules.BattleState, rng *rules.RNG) []Step {
 			b.key = st.AppendSignature(b.key[:0])
 			sigLen := len(b.key)
 			for _, u := range st.Units {
-				if !u.Alive || u.Team != rules.TeamPlayer || u.HasActed {
+				if !u.Alive || u.Team != rules.TeamPlayer || u.HasActed || u.Hidden || (u.DefID == "refugee" || u.ID == "wounded_chiron") {
 					continue
 				}
 				b.key = append(b.key[:sigLen], u.ID...)
@@ -395,7 +395,7 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 					continue
 				}
 				out = append(out, plan(nil, act))
-				if canMark && s.MarkedID != e.ID {
+				if canMark && !s.IsMarked(e.ID) {
 					pos := e.Pos
 					out = append(out, plan(&pos, act))
 				}

@@ -103,18 +103,20 @@ type actionJSON struct {
 }
 
 type request struct {
-	Op      string              `json:"op"`
-	SID     int                 `json:"sid"`
-	Battle  string              `json:"battle"`
-	Picks   map[string][]string `json:"picks"`
-	Action  *actionJSON         `json:"action"`
-	Unit    string              `json:"unit"`
-	Budget  *int                `json:"budget"`
-	Cell    *cell               `json:"cell"`
-	Skill   string              `json:"skill"`
-	Def     string              `json:"def"`
-	Nodes   []string            `json:"nodes"`
-	Actions []*actionJSON       `json:"actions"`
+	Reward       rules.ChapterReward `json:"reward"`
+	ChironJoined bool                `json:"chiron_joined"`
+	Op           string              `json:"op"`
+	SID          int                 `json:"sid"`
+	Battle       string              `json:"battle"`
+	Picks        map[string][]string `json:"picks"`
+	Action       *actionJSON         `json:"action"`
+	Unit         string              `json:"unit"`
+	Budget       *int                `json:"budget"`
+	Cell         *cell               `json:"cell"`
+	Skill        string              `json:"skill"`
+	Def          string              `json:"def"`
+	Nodes        []string            `json:"nodes"`
+	Actions      []*actionJSON       `json:"actions"`
 }
 
 type obj = map[string]any
@@ -173,12 +175,34 @@ func (s *Server) dispatch(req *request) obj {
 	case "data":
 		return s.dataJSON()
 	case "picks_check":
-		return obj{"cost": s.data.PicksCost(req.Def, req.Nodes), "error": s.data.ValidatePicks(req.Def, req.Nodes)}
+		budget := s.data.Points
+		if req.Budget != nil && *req.Budget > 0 {
+			budget = *req.Budget
+		}
+		return obj{"cost": s.data.PicksCost(req.Def, req.Nodes), "error": s.data.ValidateTraining(req.Def, req.Nodes, budget)}
 	case "build":
 		st, err := s.data.Build(req.Battle, req.Picks)
 		if err != nil {
 			return fail("%v", err)
 		}
+		if req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {
+			hero := st.Unit("hero")
+			for _, dir := range rules.Dirs {
+				c := hero.Pos.Add(dir)
+				if !st.Grid.InBounds(c) || st.UnitAt(c) != nil {
+					continue
+				}
+				u, err := s.data.MakeUnit("chiron", "chiron", rules.TeamPlayer, c, hero.Facing)
+				if err != nil {
+					return fail("%v", err)
+				}
+				s.data.ApplyPicks(u, req.Picks["chiron"])
+				u.HP = u.MaxHP
+				st.AddUnit(u)
+				break
+			}
+		}
+		st.EquipReward(s.data, req.Reward)
 		s.nextID++
 		s.sessions[s.nextID] = st
 		s.order = append(s.order, s.nextID)
@@ -237,6 +261,13 @@ func (s *Server) dispatch(req *request) obj {
 		}
 		p, events := rules.Simulate(st, u)
 		return obj{"plan": planJSON(p), "events": eventsJSON(events), "threat": cellsJSON(rules.ThreatCells(st, u))}
+	case "rescue_preview":
+		u := unit()
+		if u == nil || u.DefID != "refugee" || !u.Alive || u.Hidden || st.Phase != rules.PhasePlayer {
+			return fail("invalid rescue preview")
+		}
+		path, threats, escapes := rules.RescuePreview(st, u)
+		return obj{"path": cellsJSON(path), "threats": threats, "escapes": escapes}
 	case "threat":
 		u := unit()
 		if u == nil {
@@ -354,7 +385,7 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 			}
 		}
 		for _, e := range st.Units {
-			if !e.Alive || e.Team == u.Team || e.Hidden {
+			if !e.Alive || e.Hidden {
 				continue
 			}
 			act.Target = e.Pos

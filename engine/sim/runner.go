@@ -253,22 +253,5 @@ func (c *collector) collect(events []rules.Event, actor string) {
 }
 
 func outcome(s *rules.BattleState) string {
-	hero := s.Unit("hero")
-	if hero == nil || !hero.Alive {
-		return "loss_hero"
-	}
-	players, enemies := false, false
-	for _, u := range s.Units {
-		if u.Alive {
-			players = players || u.Team == rules.TeamPlayer
-			enemies = enemies || u.Team == rules.TeamEnemy
-		}
-	}
-	if !players {
-		return "loss_wipe"
-	}
-	if !enemies {
-		return "win"
-	}
-	return ""
+	return s.Outcome()
 }

@@ -74,6 +74,9 @@ func TestRowsMatchGodot(t *testing.T) {
 		t.Run(gc.file, func(t *testing.T) {
 			golden := readLines(t, parityDir+gc.file+".jsonl")
 			opts := gc.opts
+			if opts.DataDir == "" {
+				opts.DataDir = parityDir + "base"
+			} // Original roster used for the Godot captures.
 			opts.Count = len(golden)
 			rows, err := Run(context.Background(), opts)
 			if err != nil {
@@ -173,7 +176,7 @@ func TestReplayMatchesGodot(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		rep, err := Replay(rc.battle, rc.bot, rc.seed, "")
+		rep, err := Replay(rc.battle, rc.bot, rc.seed, parityDir+"base")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -199,6 +202,33 @@ func TestMetricsMatchGodot(t *testing.T) {
 	m, err := ExportMetrics(data)
 	if err != nil {
 		t.Fatal(err)
+	}
+	// Compare the original Godot roster; newer units still appear in the live matrix.
+	var fixture Metrics
+	if err := json.Unmarshal(want, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := m.Units["refugee"]; !ok {
+		t.Fatal("missing civilian damage target")
+	}
+	// Newly learned attacks have no reference value in the archived game.
+	originalSkills := map[string]bool{}
+	for _, hit := range fixture.Hits {
+		originalSkills[hit.Skill] = true
+	}
+	original := m.Hits[:0]
+	for _, hit := range m.Hits {
+		_, atk := fixture.Units[hit.Attacker]
+		_, tgt := fixture.Units[hit.Target]
+		if atk && tgt && originalSkills[hit.Skill] {
+			original = append(original, hit)
+		}
+	}
+	m.Hits = original
+	for id := range m.Units {
+		if _, ok := fixture.Units[id]; !ok {
+			delete(m.Units, id)
+		}
 	}
 	text, err := m.JSON()
 	if err != nil {

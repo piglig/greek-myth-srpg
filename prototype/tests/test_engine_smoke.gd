@@ -140,3 +140,15 @@ func test_cave_battle_snapshot_and_previews() -> void:
 	_enemy_phase(s)
 	eq(s.round_number, 2, "round 2")
 	check(lion.pos != Vector2i(6, 3), "the lion moved")
+
+
+func test_village_reinforcements_and_fire_reach_view() -> void:
+	var s := Battles.build("1-1", SkillTree.default_picks())
+	Rules.start_battle(s)
+	check(s.village_exits.has(Vector2i(8, 0)), "escape gate arrives")
+	check(not s.unit("atalanta").alive, "archer waits off board")
+	for i in 2:
+		Rules.end_phase(s)
+		Rules.end_phase(s)
+	eq(s.grid.terrain_at(Vector2i(1, 7)), Defs.Terrain.BURNING, "new flames reach the map")
+	check(s.unit("atalanta").alive and not s.unit("atalanta").has_acted, "archer joins ready to act")

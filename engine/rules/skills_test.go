@@ -22,7 +22,7 @@ func TestBudgetAndPrerequisites(t *testing.T) {
 	eq(t, d.ValidatePicks("hero", []string{"slam", "iron_arm", "shield_wall", "intercept"}), "over budget", "6 points")
 	eq(t, d.ValidatePicks("hero", []string{"iron_arm"}), "missing prerequisite", "node 2 needs node 1")
 	eq(t, d.ValidatePicks("atalanta", d.DefaultPicks()["atalanta"]), "", "default atalanta")
-	eq(t, len(d.AllBuilds("hero")), 8, "hero builds within 4 points")
+	eq(t, len(d.AllBuilds("hero")), 12, "hero builds within 4 points")
 }
 
 func TestShieldWallProtectsGuardedNeighbours(t *testing.T) {
@@ -136,4 +136,66 @@ func TestLeapShotLandsHighThenShoots(t *testing.T) {
 	foe(s2, "wolf", "wolf", c(5, 0))
 	StartBattle(s2)
 	eq(t, Preview(s2, act).Error, "bad landing", "4 levels is too high")
+}
+
+func TestChironMedicineAndMentorship(t *testing.T) {
+	s := flat(8, 8)
+	u := ally(s, "chiron", "chiron", c(1, 2))
+	ward := ally(s, "hero", "hero", c(3, 2))
+	enemy := foe(s, "bandit_chief", "chief", c(1, 5))
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"purify_arrow", "field_medicine"})
+	ward.HP = 10
+	ward.SetStatus("poisoned", 2)
+	ward.SetStatus("burning", 1)
+	check(t, Validate(s, UseSkill(u.ID, "purify_arrow", enemy.Pos)) != "", "no enemy healing")
+	o := Perform(s, UseSkill(u.ID, "purify_arrow", ward.Pos))
+	check(t, o.OK && hasEvent(o.Events, EvHeal), "medicine resolves")
+	eq(t, ward.HP, 22, "critical healing")
+	check(t, !ward.HasStatus("burning") && ward.HasStatus("poisoned"), "exactly one condition cleansed")
+	check(t, u.HasActed && u.Cooldown("purify_arrow") > 0, "medicine costs an action and cooldown")
+
+	s = flat(8, 8)
+	u = ally(s, "chiron", "chiron", c(1, 2))
+	enemy = foe(s, "bandit_chief", "chief", c(1, 5))
+	enemy.StaggerMax = 100
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"weak_point", "mentor_stagger"})
+	o = Perform(s, UseSkill(u.ID, "weak_point", enemy.Pos))
+	check(t, o.OK && enemy.HasStatus("exposed") && enemy.Stagger >= 20, "weak point exposes and staggers")
+	with := Compute(s, u, enemy, 1, Physical, true, NoPos)
+	enemy.EraseStatus("exposed")
+	check(t, with.Amount > Compute(s, u, enemy, 1, Physical, true, NoPos).Amount, "physical attacks exploit opening")
+}
+
+func TestMedeaFireAndHex(t *testing.T) {
+	s := flat(8, 8)
+	u := ally(s, "medea", "medea", c(1, 2))
+	enemy := foe(s, "bandit_chief", "chief", c(1, 5))
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"kindling", "solar_flame"})
+	first := Compute(s, u, enemy, 1.5, Divine, true, NoPos)
+	o := Perform(s, UseSkill(u.ID, "solar_flame", enemy.Pos))
+	second := Compute(s, u, enemy, 1.5, Divine, true, NoPos)
+	check(t, o.OK && enemy.HasStatus("burning") && !first.Notes.Has(NoteKindling) && second.Notes.Has(NoteKindling) && second.Amount > first.Amount, "fire enables next strike")
+	s = flat(8, 8)
+	u = ally(s, "medea", "medea", c(1, 2))
+	enemy = foe(s, "bandit_chief", "chief", c(1, 5))
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"frailty", "lingering_hex"})
+	before := Compute(s, enemy, u, 1, Physical, false, NoPos)
+	o = Perform(s, UseSkill(u.ID, "frailty", enemy.Pos))
+	duration, _ := enemy.Status("weakened")
+	check(t, o.OK && duration == 3 && Compute(s, enemy, u, 1, Physical, false, NoPos).Amount < before.Amount, "lingering curse reduces physical output")
+}
+
+func TestBranchTraining(t *testing.T) {
+	picks := []string{"weak_point", "repel_arrow", "centaur_volley"}
+	eq(t, testData.ValidateTraining("chiron", picks, 7), "", "sibling node is optional")
+	eq(t, testData.ValidateTraining("chiron", picks, 6), "over budget", "current level budget")
+	eq(t, testData.ValidateTraining("chiron", []string{"weak_point", "centaur_volley"}, 9), "missing prerequisite", "cannot skip branch")
+	s := flat(8, 8)
+	u := ally(s, "chiron", "chiron", c(1, 2))
+	testData.ApplyPicks(u, picks)
+	check(t, u.HasSkill("centaur_volley") && !u.Traits.Has("mentor_stagger"), "learned leaf independent from other path")
 }

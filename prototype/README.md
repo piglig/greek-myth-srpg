@@ -21,7 +21,7 @@ cd ../engine && ./build.sh      # Windows 也可以双击 build.bat
 
 找不到引擎程序时游戏会直接显示原因。环境变量 `SRPG_BIN` 可以指定引擎程序的位置；命令行 `--` 之后的 `--data-dir=<目录>`、`--set=<表>:<键>=<值>` 会原样交给引擎。
 
-用 Godot 4.7 打开 `prototype/` 运行。启动后先进入**战前编成**：选择战斗（1-4 或测试战），并在 4 个技能点内为主角和阿塔兰忒挑选技能。也可以用命令行跳过编成：
+用 Godot 4.7 打开 `prototype/` 运行。启动后进入《潘多拉之裔》首页。选择「开始征程」进入**战前编成**：选择战斗（包括 1-5 双口洞穴），并在 4 个技能点内为主角和阿塔兰忒挑选技能。也可以用命令行跳过编成：
 
 ```sh
 "$GODOT" --path . --resolution 1920x1080 -- --battle=1-4
@@ -49,6 +49,20 @@ cd ../engine && ./build.sh      # Windows 也可以双击 build.bat
 ```sh
 "$GODOT" --path . --resolution 1920x1080 -- --capture=<输出.png> --demo=<build|move|target|threat|leap|rotate|enemy>
 ```
+
+## PC 美术切片 · 1-1 焚村撤离
+
+战前编成默认选中 1-1。主角从燃烧的村中出发，火势逐回合向外扩展。第三回合阿塔兰忒从高地入场。让两人各占一个村门出口格，或消灭三波狼群，即可获胜。运行 `-- --battle=1-1 --demo=escape --capture=escape.png` 可观看四回合撤离演示。默认镜头全程保留操作界面。将演示名换为 `escape_far` 可在最远缩放下重放相同的战斗，镜头在第二、第三回合各旋转一次。
+
+建筑、树木和岩石使用 `art/landmarks/` 下的三维模型。运行仓库中的 `python3 art/tools/model_landmarks.py` 可重新生成。
+
+## PC 美术切片 · 1-5 双口洞穴
+
+在战前编成选择 **1-4 涅墨亚山谷** 或 **1-5 双口洞穴**，或以 `-- --battle=1-5` 直接进入。战场按桌面窗口原生分辨率显示。可行走台面、高差、双方占地和封洞均取自规则引擎，绘制地形的笔触固定在世界坐标。Q/E 旋转，滚轮缩放，Tab 查看战术地图。
+
+九类单位的正式图集位于 `art/original/actors/`。在仓库根目录运行 `python3 art/tools/pack_originals.py` 从原创透明原稿重新排版人物、野兽、火焰及地表。该命令需要 Pillow。前后两组各含待机、走格和攻击。主角与狮子另有蓄力和收势关键帧。
+
+在焚村使用 `--demo=material --capture=material.png` 可重放走格、矛刺与敌方阶段。`material_side` 旋转 90°，`material_close` 和 `material_far` 分别切换最近与最远缩放档。
 
 ## 运行测试
 

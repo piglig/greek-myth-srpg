@@ -53,7 +53,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 			"can_undo": u.CanUndoMove(), "height": s.UnitHeight(u),
 		}
 	}
-	out := obj{"round": s.Round, "phase": int(s.Phase), "marked": s.MarkedID, "units": units, "cave": nil}
+	out := obj{"round": s.Round, "phase": int(s.Phase), "marked": s.MarkedID, "previous_mark": s.PreviousMark, "reward": s.Reward, "units": units, "cave": nil}
 	if c := s.Cave; c != nil {
 		entrances := make([]obj, len(c.Entrances))
 		for i, e := range c.Entrances {
@@ -66,7 +66,22 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 		out["cave"] = obj{"boss": c.Boss, "trigger_hp": c.TriggerHP, "emerge_actions": c.EmergeActions, "last": c.Last,
 			"entrances": entrances, "boulders": boulders}
 	}
-	if withGrid {
+	if len(s.EscortExits) > 0 {
+		out["escort_exits"] = cellsJSON(s.EscortExits)
+		out["escort_result"] = s.Outcome()
+	}
+	if len(s.RescueExits) > 0 {
+		out["rescue_result"] = s.Outcome()
+		out["rescue_exits"] = cellsJSON(s.RescueExits)
+	}
+	if s.Village != nil {
+		exits := make([][]int, 0, len(s.Village.Exits))
+		for _, c := range s.Village.Exits {
+			exits = append(exits, []int{c.X, c.Y})
+		}
+		out["village"] = obj{"exits": exits, "result": s.Outcome()}
+	}
+	if withGrid || s.Village != nil {
 		g := s.Grid
 		heights := make([]int, 0, g.Width*g.Depth)
 		terrain := make([]int, 0, g.Width*g.Depth)
@@ -92,8 +107,12 @@ func eventsJSON(events []rules.Event) []obj {
 			m["target"], m["source"] = e.Target, e.Source
 		case rules.EvShield:
 			m["target"], m["absorbed"] = e.Target, e.Absorbed
+		case rules.EvHeal:
+			m["unit"], m["target"], m["skill"], m["amount"], m["hp"] = e.Unit, e.Target, e.Skill, e.Amount, e.HP
 		case rules.EvDamage:
 			m["target"], m["amount"], m["dmg_type"], m["source"], m["hp"] = e.Target, e.Amount, int(e.DmgType), e.Source, e.HP
+		case rules.EvArrival, rules.EvRescued, rules.EvFlee:
+			m["unit"] = e.Unit
 		case rules.EvKO, rules.EvBroken, rules.EvEdge:
 			m["target"] = e.Target
 		case rules.EvResist:
@@ -216,6 +235,9 @@ func (s *Server) dataJSON() obj {
 		if sk.HasLeap {
 			m["leap"], m["leap_rise"] = sk.Leap, sk.LeapRise
 		}
+		if sk.SelfStatus != "" {
+			m["self_status"], m["rounds"] = sk.SelfStatus, sk.Rounds
+		}
 		if sk.IsArea() {
 			m["area_status"], m["radius"], m["rounds"] = sk.AreaStatus, sk.Radius, sk.Rounds
 		}
@@ -238,7 +260,7 @@ func (s *Server) dataJSON() obj {
 		for _, br := range d.Trees(def) {
 			nodes := []obj{}
 			for _, n := range br.Nodes {
-				node := obj{"id": n.ID, "name": n.Name, "cost": n.Cost, "desc": n.Desc}
+				node := obj{"id": n.ID, "name": n.Name, "cost": n.Cost, "desc": n.Desc, "parent": n.Parent}
 				if n.Trait != "" {
 					node["trait"] = n.Trait
 				}

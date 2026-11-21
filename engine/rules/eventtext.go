@@ -8,7 +8,7 @@ import (
 // 把规则事件写成中文，用于预览面板、战斗日志和回放。
 
 var statusNames = map[string]string{
-	"guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"exposed": "破绽", "weakened": "衰弱", "guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"feared": "恐惧", "rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
@@ -19,7 +19,7 @@ var sourceNames = map[string]string{
 }
 
 var noteTexts = map[string]string{
-	"block": "格挡", "high_ground": "高处", "cover": "掩体", "marked": "标记",
+	"kindling": "助燃", "charge": "冲锋", "block": "格挡", "high_ground": "高处", "cover": "掩体", "marked": "标记",
 	"flanked": "包夹", "guard": "防御姿态", "broken": "破势中", "grappled": "被擒抱",
 	"physical_immune": "物理免疫", "patience": "猎人耐心", "iron_arm": "铁臂", "shield_wall": "盾墙",
 }
@@ -29,10 +29,10 @@ var relationNames = [...]string{"正面", "侧面", "背面"}
 var entranceNames = map[string]string{"west": "西侧", "east": "东侧", "north": "北侧", "south": "南侧"}
 
 var errorTexts = map[string]string{
-	"no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
+	"wounded ally": "负伤的喀戎会自行射击", "no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
 	"grappled": "正被擒抱", "grappling": "正在擒抱", "cannot move now": "现在不能移动",
 	"unreachable": "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
-	"on cooldown": "冷却中", "feared": "恐惧中，不能攻击", "no enemy there": "那里没有敌人",
+	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "feared": "恐惧中，不能攻击", "no enemy there": "那里没有敌人",
 	"grappled: can only strike the grappler": "被擒抱时只能攻击擒抱者", "out of range": "超出射程",
 	"not in line": "不在直线上", "no line of sight": "视线被挡住", "cannot grapple": "不会擒抱",
 	"not adjacent": "不相邻", "cannot grapple that": "不能擒抱这个目标", "already grappled": "已被擒抱",
@@ -90,6 +90,12 @@ func cellText(c Cell) string { return fmt.Sprintf("(%d, %d)", c.X, c.Y) }
 
 func describeOne(s *BattleState, e *Event) string {
 	switch e.Type {
+	case EvFlee:
+		return s.Unit(e.Unit).Name + " 撤出了宴地"
+	case EvRescued:
+		return "村民已从西侧山道撤离"
+	case EvArrival:
+		return s.Unit(e.Unit).Name + " 进入战场"
 	case EvAttack:
 		extra := ""
 		if names := e.Notes.Names(); len(names) > 0 {
@@ -100,6 +106,8 @@ func describeOne(s *BattleState, e *Event) string {
 		}
 		return fmt.Sprintf("%s 对 %s 使用「%s」（%s%s）", nameOf(s, e.Unit), nameOf(s, e.Target),
 			skillName(s, e.Skill), relationNames[e.Relation], extra)
+	case EvHeal:
+		return fmt.Sprintf("%s 的净化箭为 %s 恢复 %d 点生命（现有 %d）", nameOf(s, e.Unit), nameOf(s, e.Target), e.Amount, e.HP)
 	case EvDamage:
 		label := ""
 		if src, ok := sourceNames[e.Source]; ok && src != "" {

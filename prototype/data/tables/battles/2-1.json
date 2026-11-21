@@ -1,0 +1,101 @@
+{
+  "id": "2-1",
+  "title": "2-1 科林斯的刑场",
+  "order": 6,
+  "escort_exits": [
+    [
+      10,
+      2
+    ],
+    [
+      10,
+      3
+    ]
+  ],
+  "heights": [
+    "222222222222",
+    "222211111112",
+    "221111111111",
+    "221111111111",
+    "211111111111",
+    "211111111111",
+    "211111111111",
+    "111111111112",
+    "111111111122",
+    "111111111222"
+  ],
+  "terrain": [
+    "ffffffffffff",
+    "fff.......ff",
+    "ff..........",
+    "ff..........",
+    "f...........",
+    "f..........f",
+    "...........f",
+    "..........ff",
+    "..........ff",
+    "fff......fff"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        3,
+        7
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        2,
+        8
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "medea",
+      "def": "medea",
+      "team": "player",
+      "pos": [
+        2,
+        7
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "watchman",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        5,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "warden",
+      "def": "bandit_chief",
+      "team": "enemy",
+      "pos": [
+        8,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bowman",
+      "def": "bandit_archer",
+      "team": "enemy",
+      "pos": [
+        9,
+        5
+      ],
+      "facing": "W"
+    }
+  ]
+}

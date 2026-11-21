@@ -39,10 +39,14 @@ const (
 	EvChoke
 	EvEscapeTick
 	EvStatusEnd
+	EvArrival
+	EvRescued
+	EvFlee
+	EvHeal
 )
 
 var eventNames = [...]string{
-	EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
+	EvHeal: "heal", EvFlee: "flee", EvRescued: "rescued", EvArrival: "arrival", EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
 	EvStatus: "status", EvStagger: "stagger", EvBroken: "broken", EvCollision: "collision",
 	EvKnockback: "knockback", EvFall: "fall", EvEdge: "edge", EvGrappleStart: "grapple_start",
 	EvGrappleEnd: "grapple_end", EvReinforce: "reinforce", EvStruggle: "struggle", EvFace: "face",
@@ -70,10 +74,12 @@ const (
 	NoteBroken
 	NoteGrappled
 	NotePhysicalImmune
+	NoteCharge
+	NoteKindling
 )
 
 var noteNames = [...]string{"block", "high_ground", "cover", "marked", "flanked", "patience",
-	"iron_arm", "shield_wall", "guard", "broken", "grappled", "physical_immune"}
+	"iron_arm", "shield_wall", "guard", "broken", "grappled", "physical_immune", "charge", "kindling"}
 
 // Names 按原版顺序列出修正名。
 func (n Notes) Names() []string {

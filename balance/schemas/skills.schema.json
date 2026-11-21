@@ -76,6 +76,7 @@
         "minimum": 0,
         "maximum": 5
       },
+      "self_status": {"enum": ["impervious_hide"]},
       "area_status": {
         "enum": [
           "feared",
@@ -95,6 +96,7 @@
       }
     },
     "oneOf": [
+      {"required": ["self_status", "rounds"]},
       {
         "required": [
           "mult",

@@ -21,6 +21,9 @@ func show_cells(key: String, cells: Array, color: Color, layer: int = 0, pattern
 	var group := Node3D.new()
 	add_child(group)
 	_groups[key] = group
+	if map_view.field != null:
+		_drape(group,cells,_material(color,pattern,inset),layer)
+		return
 	var mat := _material(color, pattern)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(1.0 - inset * 2.0, 1.0 - inset * 2.0)
@@ -33,6 +36,37 @@ func show_cells(key: String, cells: Array, color: Color, layer: int = 0, pattern
 		group.add_child(mi)
 
 
+func show_threat(key: String, cells: Array) -> void:
+	clear(key)
+	if cells.is_empty():
+		return
+	var region := {}
+	for cell in cells:
+		region[cell] = true
+	var group := Node3D.new()
+	add_child(group)
+	_groups[key] = group
+	var mat := _material(Color("#ba6d52"),3)
+	var plane := PlaneMesh.new()
+	plane.size = Vector2.ONE
+	for cell: Vector2i in region:
+		var tile := MeshInstance3D.new()
+		if map_view.field != null:
+			tile.mesh = map_view.field.patch(cell)
+			tile.position.y = 0.013
+		else:
+			tile.mesh = plane
+			tile.position = Vector3(cell.x+.5,map_view.cell_top(cell)+.013,cell.y+.5)
+		tile.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		tile.material_override = mat
+		var edges := 0
+		for side in 4:
+			if not region.has(cell+[Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN][side]):
+				edges |= 1 << side
+		tile.set_instance_shader_parameter("edges",edges)
+		group.add_child(tile)
+
+
 ## A solid frame around one cell (hover cursor, knockback landing spot...).
 func show_frame(key: String, cells: Array, color: Color, layer: int = 10) -> void:
 	clear(key)
@@ -41,6 +75,9 @@ func show_frame(key: String, cells: Array, color: Color, layer: int = 10) -> voi
 	var group := Node3D.new()
 	add_child(group)
 	_groups[key] = group
+	if map_view.field != null:
+		_drape(group,cells,_material(color,2,0.0,true),layer)
+		return
 	var mat := _material(color, 2)
 	for c in cells:
 		var y := map_view.cell_top(c) + 0.015 + layer * 0.004
@@ -58,6 +95,16 @@ func show_frame(key: String, cells: Array, color: Color, layer: int = 10) -> voi
 			group.add_child(mi)
 
 
+func _drape(group: Node3D, cells: Array, mat: ShaderMaterial, layer: int) -> void:
+	for cell in cells:
+		var mi := MeshInstance3D.new()
+		mi.mesh = map_view.field.patch(cell)
+		mi.material_override = mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.position.y = 0.015 + layer*0.004
+		group.add_child(mi)
+
+
 func clear(key: String) -> void:
 	if _groups.has(key):
 		(_groups[key] as Node).queue_free()
@@ -69,12 +116,14 @@ func clear_all() -> void:
 		clear(key)
 
 
-func _material(color: Color, pattern: int) -> ShaderMaterial:
-	var key := "%s_%d" % [color.to_html(), pattern]
+func _material(color: Color, pattern: int, inset := 0.0, frame := false) -> ShaderMaterial:
+	var key := "%s_%d_%s_%s" % [color.to_html(),pattern,inset,frame]
 	if not _materials.has(key):
 		var m := ShaderMaterial.new()
 		m.shader = SHADER
 		m.set_shader_parameter("color", color)
 		m.set_shader_parameter("pattern", pattern)
+		m.set_shader_parameter("inset",inset)
+		m.set_shader_parameter("frame",frame)
 		_materials[key] = m
 	return _materials[key]

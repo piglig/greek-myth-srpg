@@ -11,9 +11,19 @@ var order: Array[String] = []
 var round_number := 1
 var phase: int = Defs.Phase.PLAYER
 var marked_id := ""
+var previous_mark := ""
+var reward := {}
 var move_undo := {}  ## 还能撤销移动的单位 id -> true
 ## 洞穴（没有则为空）：{boss, entrances: {id: {anchor, sealed}}, boulders: {id: {pos, seals, progress, placed}}}
 var cave := {}
+var village_exits: Array[Vector2i] = []
+var village_result := ""
+var escort_exits: Array[Vector2i] = []
+var escort_result := ""
+var record_orders := false
+var orders: Array = []
+var rescue_result := ""
+var rescue_exits: Array[Vector2i] = []
 
 var _cache := {}  ## 请求 -> 应答；局面一变就清空，悬停时反复问同一件事不用再走一趟
 
@@ -23,9 +33,20 @@ func apply(d: Dictionary) -> void:
 	_cache.clear()
 	if d.has("grid"):
 		grid = BattleGrid.from_dict(d["grid"])
+	if d.has("escort_exits"):
+		escort_exits=GoEngine.cells(d.escort_exits)
+		escort_result=d.escort_result
+	if d.has("rescue_exits"):
+		rescue_result = d.rescue_result
+		rescue_exits = GoEngine.cells(d.rescue_exits)
+	if d.has("village"):
+		village_exits = GoEngine.cells(d["village"]["exits"])
+		village_result = d["village"]["result"]
 	round_number = d["round"]
 	phase = d["phase"]
 	marked_id = d["marked"]
+	previous_mark = d.get("previous_mark","")
+	reward = d.get("reward",{})
 	move_undo.clear()
 	var list: Array = d["units"]
 	for e: Variant in list:
@@ -66,10 +87,12 @@ func query(req: Dictionary) -> Dictionary:
 
 ## 让引擎执行会改变局面的请求，并用发回的新局面刷新自己。
 func command(req: Dictionary) -> Dictionary:
+	var order:=req.duplicate(true) if record_orders else {}
 	req["sid"] = sid
 	var reply: Dictionary = GoEngine.request(req)
 	if reply.has("state"):
 		apply(reply["state"])
+		if record_orders and reply.get("ok",true): orders.append(order)
 	return reply
 
 

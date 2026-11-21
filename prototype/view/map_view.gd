@@ -1,8 +1,9 @@
 class_name MapView
 extends Node3D
-## Greybox terrain: one box column per cell, plus simple tree props on forest cells.
+## The rule grid drives picking and anchors in both scenic and tactical views.
 
-const LEVEL_HEIGHT := 0.5
+const CHAPTER_CELL_PITCH := 1.20
+const LEVEL_HEIGHT := 0.75
 const BASE_DEPTH := 0.5
 
 const TERRAIN_COLORS := {
@@ -15,6 +16,10 @@ const TERRAIN_COLORS := {
 	Defs.Terrain.STYX: Color(0.34, 0.24, 0.45),
 }
 
+var nemea := false
+var village_sites := false
+var woodland := false
+var field: NemeaField
 var grid: BattleGrid
 var tactical := false
 var _materials := {}
@@ -24,6 +29,12 @@ func build(g: BattleGrid) -> void:
 	grid = g
 	for child in get_children():
 		child.queue_free()
+	field = null
+	if nemea and not tactical:
+		field = NemeaField.new()
+		add_child(field)
+		field.build(g, LEVEL_HEIGHT, village_sites, woodland)
+		return
 	for y in g.depth:
 		for x in g.width:
 			_add_column(Vector2i(x, y))
@@ -43,11 +54,20 @@ func cell_top(c: Vector2i) -> float:
 ## World position of a unit footprint's center on its standing height.
 func anchor_world(state: BattleState, anchor: Vector2i, size: int) -> Vector3:
 	var top := state.standing_height(anchor, size) * LEVEL_HEIGHT
-	return Vector3(anchor.x + size * 0.5, top, anchor.y + size * 0.5)
+	return to_global(Vector3(anchor.x + size * 0.5, top, anchor.y + size * 0.5))
 
 
 ## Cell whose column the ray hits first, or Defs.NO_POS.
 func pick(origin: Vector3, dir: Vector3) -> Vector2i:
+	origin = to_local(origin)
+	dir = global_basis.inverse()*dir
+	if field != null:
+		var hit := field.picking_surface.intersect_ray(origin,dir)
+		if hit.is_empty():
+			return Defs.NO_POS
+		var point: Vector3 = hit["position"]
+		var cell := Vector2i(floori(point.x),floori(point.z))
+		return cell if grid.in_bounds(cell) else Defs.NO_POS
 	var best_t := INF
 	var best := Defs.NO_POS
 	for y in grid.depth:

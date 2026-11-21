@@ -24,7 +24,12 @@ func Deal(s *BattleState, target *UnitState, amount int, dmgType DamageType, sou
 	}
 	target.HP -= dealt
 	emit(ev, Event{Type: EvDamage, Target: target.ID, Amount: dealt, DmgType: dmgType, Source: source, HP: target.HP})
-	if target.HP <= 0 {
+	if target.DefID == "centaur" && target.HP*2 < target.MaxHP {
+		target.Alive = false
+		EndGrapplesOf(s, target, ev, "displaced")
+		s.removeMark(target.ID)
+		emit(ev, Event{Type: EvFlee, Unit: target.ID})
+	} else if target.HP <= 0 {
 		KnockOut(s, target, ev)
 	}
 	return dealt
@@ -37,9 +42,7 @@ func KnockOut(s *BattleState, u *UnitState, ev *[]Event) {
 	u.HP = min(u.HP, 0)
 	u.Alive = false
 	EndGrapplesOf(s, u, ev, "ko")
-	if s.MarkedID == u.ID {
-		s.MarkedID = ""
-	}
+	s.removeMark(u.ID)
 	emit(ev, Event{Type: EvKO, Target: u.ID})
 }
 

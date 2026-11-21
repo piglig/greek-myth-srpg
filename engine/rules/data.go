@@ -43,6 +43,7 @@ type Skill struct {
 	HasLeap        bool
 	Leap, LeapRise int
 
+	SelfStatus string
 	AreaStatus string // 非空表示以自身为中心的范围状态技能
 	Radius     int
 	HasRadius  bool
@@ -68,8 +69,8 @@ type UnitDef struct {
 
 // TreeNode 是技能树的一个节点：给特性或给技能。
 type TreeNode struct {
-	ID, Name, Trait, Skill, Desc string
-	Cost                         int
+	ID, Name, Trait, Skill, Desc, Parent string
+	Cost                                 int
 }
 
 type TreeBranch struct {
@@ -79,20 +80,24 @@ type TreeBranch struct {
 
 // BattleUnit 是战斗表里的一个出场单位。
 type BattleUnit struct {
-	Def, ID string
-	Team    Team
-	Pos     Cell
-	Facing  Cell
+	Def, ID, Name string
+	Arrival       int
+	Team          Team
+	Pos           Cell
+	Facing        Cell
 }
 
 // BattleDef 是一场战斗的布置（battles/<id>.json）。
 type BattleDef struct {
-	ID, Title string
-	Order     int
-	Heights   []string
-	Terrain   []string
-	Units     []BattleUnit
-	Cave      *Cave
+	ID, Title   string
+	Order       int
+	Heights     []string
+	Terrain     []string
+	EscortExits []Cell
+	RescueExits []Cell
+	Village     *Village
+	Units       []BattleUnit
+	Cave        *Cave
 }
 
 // Data 是加载好的全部数据表。加载后只读，可以在多个 goroutine 间共用。
@@ -395,6 +400,7 @@ func (d *Data) loadSkills() error {
 		sk.MarkedFlankStagger = raw.int("marked_flank_stagger", 0)
 		sk.HasLeap, sk.Leap = raw.has("leap"), raw.int("leap", 0)
 		sk.LeapRise = raw.int("leap_rise", 0)
+		sk.SelfStatus = raw.str("self_status", "")
 		sk.AreaStatus = raw.str("area_status", "")
 		sk.HasRadius, sk.Radius = raw.has("radius"), raw.int("radius", 0)
 		sk.Rounds = raw.int("rounds", 1)
@@ -402,8 +408,10 @@ func (d *Data) loadSkills() error {
 			if !sk.HasRadius {
 				return fmt.Errorf("范围技能 %s 缺少 radius", id)
 			}
-		} else if err := raw.need("技能 "+id, "mult", "type", "min_range", "max_range"); err != nil {
-			return err
+		} else if sk.SelfStatus == "" {
+			if err := raw.need("技能 "+id, "mult", "type", "min_range", "max_range"); err != nil {
+				return err
+			}
 		}
 		d.SkillIDs = append(d.SkillIDs, id)
 		d.skills[id] = sk
@@ -503,7 +511,7 @@ func (d *Data) loadTree() error {
 						continue
 					}
 					node := TreeNode{ID: no.str("id", ""), Name: no.str("name", ""), Trait: no.str("trait", ""),
-						Skill: no.str("skill", ""), Desc: no.str("desc", ""), Cost: no.int("cost", 0)}
+						Skill: no.str("skill", ""), Desc: no.str("desc", ""), Parent: no.str("parent", ""), Cost: no.int("cost", 0)}
 					if node.Skill != "" && d.skills[node.Skill] == nil {
 						return fmt.Errorf("技能树节点 %s 用到了不存在的技能 %s", node.ID, node.Skill)
 					}
@@ -567,20 +575,23 @@ func contains(list []string, s string) bool {
 
 // ValidatePicks 返回 "" 表示加点合法：不超预算，且每个后续节点都点了它前面的节点。
 func (d *Data) ValidatePicks(defID string, picks []string) string {
+	return d.ValidateTraining(defID, picks, d.Points)
+}
+
+func (d *Data) ValidateTraining(defID string, picks []string, budget int) string {
+	seen := map[string]bool{}
 	for _, id := range picks {
-		if d.TreeNode(defID, id) == nil {
+		n := d.TreeNode(defID, id)
+		if n == nil || seen[id] {
 			return "unknown node"
 		}
-	}
-	if d.PicksCost(defID, picks) > d.Points {
-		return "over budget"
-	}
-	for _, br := range d.trees[defID] {
-		for i := 1; i < len(br.Nodes); i++ {
-			if contains(picks, br.Nodes[i].ID) && !contains(picks, br.Nodes[i-1].ID) {
-				return "missing prerequisite"
-			}
+		seen[id] = true
+		if n.Parent != "" && !contains(picks, n.Parent) {
+			return "missing prerequisite"
 		}
+	}
+	if d.PicksCost(defID, picks) > budget {
+		return "over budget"
 	}
 	return ""
 }
@@ -617,6 +628,21 @@ func (d *Data) ApplyPicks(u *UnitState, picks []string) {
 		}
 		if n.Trait != "" {
 			u.Traits.Set(n.Trait, 1)
+			switch n.Trait {
+			case "bulwark":
+				u.Defense += 3
+			case "wrestler":
+				u.MaxHP += 8
+				u.HP += 8
+			case "fleet":
+				u.Move++
+			case "high_jump":
+				u.Jump += 2
+			case "solar_blood":
+				u.Divinity += 3
+			case "hex_ward":
+				u.Will += 4
+			}
 		}
 		if n.Skill != "" {
 			u.AddSkill(d.skills[n.Skill])
@@ -654,7 +680,7 @@ func (d *Data) Battle(id string) (*BattleDef, error) {
 		if err := eo.need("战斗 "+id+" 的单位", "def", "id", "team", "pos"); err != nil {
 			return nil, err
 		}
-		bu := BattleUnit{Def: eo.str("def", ""), ID: eo.str("id", "")}
+		bu := BattleUnit{Name: eo.str("name", ""), Def: eo.str("def", ""), ID: eo.str("id", ""), Arrival: eo.int("round", 1)}
 		if bu.Pos, err = cellOf(eo.m["pos"]); err != nil {
 			return nil, fmt.Errorf("战斗 %s 单位 %s: %w", id, bu.ID, err)
 		}
@@ -672,6 +698,52 @@ func (d *Data) Battle(id string) (*BattleDef, error) {
 			return nil, fmt.Errorf("战斗 %s 用到了不存在的单位 %s", id, bu.Def)
 		}
 		b.Units = append(b.Units, bu)
+	}
+	if exits, ok := tbl.m["escort_exits"].([]any); ok {
+		for _, raw := range exits {
+			cell, err := cellOf(raw)
+			if err != nil || cell.Y < 0 || cell.Y >= len(b.Heights) || cell.X < 0 || cell.X >= len(b.Heights[cell.Y]) {
+				return nil, fmt.Errorf("%s: invalid escort exit", id)
+			}
+			b.EscortExits = append(b.EscortExits, cell)
+		}
+	}
+	if exits, ok := tbl.m["rescue_exits"].([]any); ok {
+		for _, raw := range exits {
+			cell, err := cellOf(raw)
+			if err != nil || cell.Y < 0 || cell.Y >= len(b.Heights) || cell.X < 0 || cell.X >= len(b.Heights[cell.Y]) {
+				return nil, fmt.Errorf("%s: invalid rescue exit", id)
+			}
+			b.RescueExits = append(b.RescueExits, cell)
+		}
+	}
+	if v, ok := tbl.m["village"].(*jobj); ok {
+		setting := &Village{Ignition: stringsOf(v.m["ignition"])}
+		if len(setting.Ignition) != len(b.Heights) || len(b.Heights) == 0 {
+			return nil, fmt.Errorf("%s: invalid fire rows", id)
+		}
+		for _, row := range setting.Ignition {
+			if len(row) != len(b.Heights[0]) {
+				return nil, fmt.Errorf("%s: invalid fire width", id)
+			}
+			for _, ch := range row {
+				if ch != '.' && (ch < '1' || ch > '9') {
+					return nil, fmt.Errorf("%s: invalid fire round", id)
+				}
+			}
+		}
+		exits, _ := v.m["exits"].([]any)
+		for _, raw := range exits {
+			c, err := cellOf(raw)
+			if err != nil || c.X < 0 || c.Y < 0 || c.Y >= len(b.Heights) || c.X >= len(b.Heights[c.Y]) {
+				return nil, fmt.Errorf("%s: invalid exit", id)
+			}
+			setting.Exits = append(setting.Exits, c)
+		}
+		if len(setting.Exits) < 2 {
+			return nil, fmt.Errorf("%s: two exit cells required", id)
+		}
+		b.Village = setting
 	}
 	if c, ok := tbl.m["cave"].(*jobj); ok {
 		if err := c.need("战斗 "+id+" 的 cave", "boss", "trigger_hp", "entrances"); err != nil {
@@ -785,6 +857,9 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 		return nil, fmt.Errorf("战斗 %s: %w", id, err)
 	}
 	s := NewBattleState(grid)
+	s.Village = b.Village
+	s.RescueExits = b.RescueExits
+	s.EscortExits = b.EscortExits
 	for _, e := range b.Units {
 		u, err := d.MakeUnit(e.Def, e.ID, e.Team, e.Pos, e.Facing)
 		if err != nil {
@@ -796,6 +871,16 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 		if !s.FootprintInBounds(u.Pos, u.Size) {
 			return nil, fmt.Errorf("战斗 %s 里单位 %s 站在地图外", id, u.ID)
 		}
+		if u.ID == "wounded_chiron" {
+			u.Move = 0
+		}
+		if e.Name != "" {
+			u.Name = e.Name
+		}
+		if e.Arrival > 1 {
+			u.Arrival = e.Arrival
+			u.Alive = false
+		}
 		s.AddUnit(u)
 	}
 	s.Cave = b.Cave.copy()
@@ -803,7 +888,7 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 		picks = d.defaultPicks
 	}
 	for _, u := range s.Units {
-		if u.Alive && u.Team == TeamPlayer {
+		if u.Team == TeamPlayer {
 			d.ApplyPicks(u, picks[u.DefID])
 		}
 	}

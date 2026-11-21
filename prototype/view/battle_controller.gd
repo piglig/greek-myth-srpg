@@ -9,6 +9,11 @@ extends Node
 ##   --capture=<png>   save a screenshot after the scripted demo and quit
 ##   --demo=<name>     build | idle | move | target | threat | rotate | enemy  (scripted captures)
 
+const DUST := preload("res://art/original/fx/dust.png")
+const IMPACT := preload("res://art/original/fx/impact.png")
+const SLASH := preload("res://art/original/fx/slash.png")
+const ARROW := preload("res://art/original/fx/arrow.png")
+const ROAR := preload("res://art/original/fx/roar.png")
 const LOW_RES := Vector2(640, 360)
 
 enum Mode { IDLE, TARGET, FACING, BUSY, OVER }
@@ -17,9 +22,14 @@ var state: BattleState
 var map_view: MapView
 var highlights: HighlightLayer
 var cam_rig: CameraRig
+var village: VillageDisplay
+var fire_round := 0
 var hud: Hud
 var unit_views := {}
-var boulder_views := {}  ## boulder id -> MeshInstance3D
+const CaveMouth := preload("res://view/cave_mouth.gd")
+var cave_mouths := {}
+var boulder_vertices := PackedVector3Array()
+var boulder_views := {}  ## boulder id -> Node3D
 var ui_scale := 1.0
 var tactical := false
 var shrink := 3
@@ -33,14 +43,31 @@ var _pending := {}  ## action template while targeting: {"type": ..., "skill": .
 var _hovered := Defs.NO_POS
 var _show_threat := false
 var _actions: Array = []
+var _reachable := {}
+var _mission_name := ""
+var _available_units: Array[String] = []
+var _active_enemy := ""
 var _drag_from := Vector2.INF
 var _capture_path := ""
 var _demo := ""
 var _battle_id := ""
+var _skill_picks := {}
+const Checkpoint := preload("res://core/campaign_checkpoint.gd")
+var _next_battle := ""
+var _campaign := false
+var _rescued: Array = []
+var _outcomes := {}
+var _campaign_reward := {}
+var _purse := {}
+var _camp_stop := {}
+var _saved_orders: Array = []
+var rescued_count := 0
+var _chiron_joined := false
 var _build_panel: BuildPanel
 
 
 func _ready() -> void:
+	get_tree().set_meta("battle_entered", true)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture="):
 			_capture_path = arg.trim_prefix("--capture=")
@@ -52,11 +79,27 @@ func _ready() -> void:
 		_engine_missing()
 		return
 	_build_scene()
-	get_window().size_changed.connect(_on_resize)
+	get_viewport().size_changed.connect(_on_resize)
 	_on_resize()
-	if _demo == "build" or (_battle_id == "" and _capture_path == ""):
+	if get_tree().has_meta("battle_entry"):
+		var entry: Dictionary = get_tree().get_meta("battle_entry")
+		get_tree().remove_meta("battle_entry")
+		_campaign = entry.get("campaign", false)
+		_purse=entry.get("purse",{}).duplicate(true)
+		_outcomes = entry.get("outcomes",{})
+		_rescued = entry.get("rescued", [])
+		if entry.has("equipped_relic"):
+			for key in ["equipped_relic","boon","divinity"]: _campaign_reward[key]=entry[key]
+		_saved_orders=entry.get("orders",[])
+		_chiron_joined = entry.get("chiron_joined",false)
+		_start_battle(entry.id,entry.picks)
+	elif _demo == "build" or (_battle_id == "" and _capture_path == ""):
+		Soundscape.score("jar")
 		_build_panel = BuildPanel.new()
+		_build_panel.campaign_start = get_tree().has_meta("campaign_build")
+		if _build_panel.campaign_start: get_tree().remove_meta("campaign_build")
 		hud.add_child(_build_panel)
+		_campaign = _demo.is_empty() and _capture_path.is_empty()
 		_build_panel.start_pressed.connect(_start_battle)
 		_build_panel.open(ui_scale)
 		hud.set_battle_controls_visible(false)
@@ -89,39 +132,97 @@ func _notification(what: int) -> void:
 
 
 func _start_battle(battle_id: String, picks: Dictionary) -> void:
+	_battle_id = battle_id
+	_skill_picks = picks.duplicate(true)
+	_mission_name = Battles.title(battle_id)
 	hud.set_battle_controls_visible(true)
-	state = Battles.build(battle_id, picks)
+	var gear:=_campaign_reward.duplicate()
+	gear["charms"]=_purse.get("equipped",{})
+	state = Battles.build(battle_id, picks, _chiron_joined,gear)
 	if state == null:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
 	Rules.start_battle(state)
+	if battle_id=="2-1":
+		for order: Dictionary in _saved_orders:
+			var reply:=state.command(order.duplicate(true))
+			if not reply.has("state") or not reply.get("ok",true):
+				hud.banner("护送进度读取失败，可按 R 从刑场入口重新开始。",0.)
+				_mode=Mode.OVER
+				return
+		state.orders=_saved_orders.duplicate(true)
+		state.record_orders=_campaign
+	Soundscape.score("ridge")
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1"]:
+		map_view.nemea = true
+		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
+		highlights.scale = map_view.scale
+		cam_rig.painted = true
+		cam_rig.post.hide()
+		cam_rig.set_quadrant(0)
+		_on_resize()
+	map_view.woodland = not state.rescue_exits.is_empty()
+	map_view.village_sites = not state.village_exits.is_empty()
 	map_view.build(state.grid)
+	if battle_id=="2-1":
+		var yard:=preload("res://view/corinth_yard.gd").new()
+		_units_root.add_child(yard)
+		yard.scale=map_view.scale
+		yard.setup(map_view.field)
+		for prop in [[preload("res://art/landmarks/gate.glb"),Vector2i(11,2),1.9],[preload("res://art/landmarks/ruin.glb"),Vector2i(1,5),2.0],[preload("res://art/landmarks/cart.glb"),Vector2i(0,7),1.5]]:
+			var landmark:=NemeaField.landmark(prop[0],prop[2])
+			var cell: Vector2i=prop[1]
+			landmark.position=map_view.to_global(Vector3(cell.x+.5,map_view.cell_top(cell),cell.y+.5))
+			_units_root.add_child(landmark)
+	if battle_id=="1-3":
+		var feast := preload("res://view/feast_display.gd").new()
+		_units_root.add_child(feast)
+		feast.scale = map_view.scale
+		feast.setup(map_view.field)
+	if not state.village_exits.is_empty():
+		village = VillageDisplay.new()
+		_units_root.add_child(village)
+		village.scale = map_view.scale
+		village.setup(map_view)
 	for id in state.order:
-		var v := UnitView.new()
+		var u := state.unit(id)
+		var v := PixelUnit.new()
 		_units_root.add_child(v)
-		v.setup(state.units[id])
+		v.setup(u,null,null)
+		v.visible = state.units[id].alive
 		unit_views[id] = v
 	if not state.cave.is_empty():
+		for id in state.cave["entrances"]:
+			var anchor: Vector2i = state.cave["entrances"][id]["anchor"]
+			var entrance := CaveMouth.new()
+			cave_mouths[id] = entrance
+			entrance.position = map_view.to_global(Vector3(anchor.x + 1, map_view.cell_top(anchor), anchor.y + 0.5))
+			_units_root.add_child(entrance)
 		for id in state.cave["boulders"]:
-			var rock := MeshInstance3D.new()
-			var mesh := SphereMesh.new()
-			mesh.radius = 0.42
-			mesh.height = 0.7
-			mesh.radial_segments = 10
-			mesh.rings = 5
-			var mat := StandardMaterial3D.new()
-			mat.albedo_color = Color(0.56, 0.55, 0.58)
-			mat.roughness = 1.0
-			mesh.material = mat
-			rock.mesh = mesh
+			var rock := NemeaField.landmark(preload("res://art/landmarks/boulder.glb"), 2.12)
 			_units_root.add_child(rock)
 			boulder_views[id] = rock
+			if boulder_vertices.is_empty():
+				var parts := rock.find_children("*","MeshInstance3D",true,false)
+				var surface := parts[0] as MeshInstance3D
+				boulder_vertices = surface.mesh.get_faces()
 	_sync_views()
-	cam_rig.bounds = AABB(Vector3.ZERO, Vector3(state.grid.width, 0, state.grid.depth))
-	cam_rig.focus(Vector3(state.grid.width * 0.5, 0.5, state.grid.depth * 0.5))
-	hud.set_help_visible(true)
+	cam_rig.bounds = AABB(Vector3.ZERO, Vector3(state.grid.width, 0, state.grid.depth)*map_view.scale)
+	cam_rig.focus(map_view.to_global(Vector3(state.grid.width * 0.5, 1.45 if village != null else 0.83, state.grid.depth * 0.5)))
+	if battle_id=="1-3":
+		cam_rig.focus(map_view.to_global(Vector3(6.0,1.25,5.1)))
+	if map_view.woodland:
+		cam_rig.focus(map_view.to_global(Vector3(4.5,1.28,5.7)))
+		var cart := NemeaField.landmark(preload("res://art/landmarks/cart.glb"),1.55)
+		cart.position = map_view.to_global(Vector3(-.55,map_view.cell_top(state.rescue_exits[0]),4.45))
+		cart.rotation.y = -.48
+		_units_root.add_child(cart)
+	hud.set_help_visible(true, cam_rig.painted)
 	_refresh()
-	hud.banner("%s　第 1 回合" % Battles.title(battle_id))
+	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
+	_save_checkpoint(battle_id)
+	if battle_id=="2-1" and _saved_orders.is_empty():
+		hud.banner("美狄亚加入队伍　·　护送她抵达东门",3.5)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -144,7 +245,7 @@ func _build_scene() -> void:
 	_viewport.add_child(world)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.55, 0.68, 0.8)
+	env.background_color = Color("#1b3f6e")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.78, 0.8, 0.88)
 	env.ambient_light_energy = 0.6
@@ -153,7 +254,8 @@ func _build_scene() -> void:
 	we.environment = env
 	world.add_child(we)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -30, 0)
+	sun.basis = Basis.looking_at(-Vector3(-0.25,0.75,0.60).normalized(),Vector3.UP)
+	sun.directional_shadow_max_distance = 70.0
 	sun.light_energy = 1.05
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
@@ -174,28 +276,45 @@ func _build_scene() -> void:
 	hud = Hud.new()
 	layer.add_child(hud)
 	hud.overlay.controller = self
+	hud.menu_pressed.connect(_open_menu)
 	hud.action_pressed.connect(_on_action)
+	hud.next_unit_pressed.connect(_next_unit)
+	hud.cancel_pressed.connect(_cancel)
+	hud.order_inspected.connect(_inspect_enemy_order)
+	hud.threat_changed.connect(func(on: bool):
+		_show_threat = on
+		_refresh()
+	)
+	hud.tactical_changed.connect(_set_tactical)
 	hud.end_turn_pressed.connect(_end_turn)
 
 
 func _on_resize() -> void:
-	var size := Vector2(get_window().size)
+	var size := get_viewport().get_visible_rect().size
 	shrink = maxi(1, mini(floori(size.x / LOW_RES.x), floori(size.y / LOW_RES.y)))
+	if cam_rig.painted:
+		shrink = 1
 	_container.stretch_shrink = shrink
-	_container.position = Vector2.ZERO
-	_container.size = size
+	_container.size = size if cam_rig.painted else LOW_RES * shrink
+	_container.position = ((size - _container.size) * 0.5).floor()
 	hud.apply_scale(size)
 	ui_scale = hud.ui_scale
+	if state != null and not unit_views.is_empty():
+		_refresh()
+	elif is_instance_valid(_build_panel) and _build_panel.visible:
+		_build_panel.open(ui_scale)
 
 
 func world_to_screen(p: Vector3) -> Vector2:
-	return cam_rig.camera.unproject_position(p) * shrink
+	return _container.position + cam_rig.camera.unproject_position(p) * shrink
 
 
 # --- Input -----------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
 	if state == null:
+		if event.is_action_pressed("ui_cancel"):
+			get_tree().change_scene_to_file("res://title.tscn")
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		_on_key(event as InputEventKey)
@@ -223,6 +342,18 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_key(k: InputEventKey) -> void:
+	if hud.journal_open():
+		if k.keycode == KEY_ESCAPE:
+			hud.close_journal()
+		return
+	if k.keycode == KEY_ESCAPE and hud.wheel.visible:
+		hud.wheel.hide()
+		return
+	if k.keycode == KEY_ESCAPE and hud.close_order():
+		return
+	if k.keycode >= KEY_1 and k.keycode <= KEY_9:
+		_on_action(int(k.keycode-KEY_1))
+		return
 	match k.keycode:
 		KEY_Q:
 			cam_rig.rotate_step(-1)
@@ -236,9 +367,10 @@ func _on_key(k: InputEventKey) -> void:
 			_show_threat = not _show_threat
 			_refresh()
 		KEY_TAB:
-			tactical = not tactical
-			map_view.set_tactical(tactical)
+			_set_tactical(not tactical)
 		KEY_P:
+			if cam_rig.painted:
+				return
 			var mat := cam_rig.post.material_override as ShaderMaterial
 			cam_rig.set_post_enabled(not mat.get_shader_parameter("enabled"))
 		KEY_Z:
@@ -247,23 +379,78 @@ func _on_key(k: InputEventKey) -> void:
 		KEY_SPACE, KEY_ENTER:
 			_end_turn()
 		KEY_ESCAPE:
-			_cancel()
+			if (_mode == Mode.IDLE and _selected == "") or _mode == Mode.OVER:
+				_open_menu()
+			else:
+				_cancel()
 		KEY_R:
-			get_tree().reload_current_scene()
+			if _next_battle=="camp": return
+			_load_battle(_battle_id)
 		KEY_F11:
-			var w := get_window()
-			w.mode = Window.MODE_WINDOWED if w.mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
+			DisplayPrefs.fullscreen = not DisplayPrefs.fullscreen
+			DisplayPrefs.commit()
+
+
+func _entry(id: String) -> Dictionary:
+	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate()}
+	if id=="2-1":
+		entry.merge(_campaign_reward)
+		entry.stage="battle"
+		entry.medea_joined=true
+		entry.orders=state.orders.duplicate(true)
+	return entry
+
+func _save_checkpoint(id: String, choose_route := false) -> void:
+	if not _campaign or id not in Checkpoint.BATTLES:
+		return
+	var entry := _entry(id)
+	entry.choose_route = choose_route
+	if Checkpoint.write_entry(entry) != OK:
+		hud.banner("关卡进度保存失败，请检查本机存储空间。",4.)
+
+func _load_battle(id: String) -> void:
+	if id != "":
+		var entry := _entry(id)
+		entry.campaign = _campaign
+		if id == "1-3": entry.chiron_joined = false
+		if id == "1-2": entry.rescued = []
+		if _campaign and id != _battle_id:
+			entry.choose_route = _battle_id=="1-2" and _rescued.size()>=2
+			get_tree().set_meta("journey_entry",entry)
+			get_tree().change_scene_to_file("res://journey.tscn")
+			return
+		if id == _battle_id:
+			entry.outcomes.erase(id)
+			entry.erase("orders")
+		get_tree().set_meta("battle_entry",entry)
+	get_tree().reload_current_scene()
+
+
+func _open_menu() -> void:
+	if _mode == Mode.BUSY or get_tree().paused:
+		return
+	var menu := preload("res://ui/title_menu.gd").new()
+	menu.in_battle = true
+	if _campaign: menu.battle_map_entry = _entry(_battle_id)
+	hud.get_parent().add_child(menu)
+	get_tree().paused = true
 
 
 ## Unit sprites take priority over the tile under the cursor (sprites stand in front of tiles).
 func _pick(screen: Vector2) -> Vector2i:
 	if hud.is_over_panel(screen):
 		return Defs.NO_POS
+	if _mode in [Mode.IDLE,Mode.TARGET] and not _needs_landing() and _pending.get("type","") != "slam":
+		for id in hud.overlay.marker_hits:
+			var rect: Rect2 = hud.overlay.marker_hits[id]
+			var unit := state.unit(id)
+			if rect.has_point(screen) and unit.alive and not unit.hidden:
+				return unit.pos
 	var best_depth := INF
 	var best := Defs.NO_POS
 	for id in state.order:
 		var u: UnitState = state.units[id]
-		if not u.alive:
+		if not u.alive or u.hidden:
 			continue
 		var v: UnitView = unit_views[id]
 		var foot := world_to_screen(v.position)
@@ -277,11 +464,16 @@ func _pick(screen: Vector2) -> Vector2i:
 				best = u.pos
 	if best != Defs.NO_POS:
 		return best
-	var sub := screen / shrink
+	var sub := (screen - _container.position) / shrink
 	return map_view.pick(cam_rig.camera.project_ray_origin(sub), cam_rig.camera.project_ray_normal(sub))
 
 
 func _click(cell: Vector2i) -> void:
+	if hud.journal_open():
+		return
+	if hud.wheel.visible:
+		hud.wheel.hide()
+		return
 	if _mode == Mode.BUSY or _mode == Mode.OVER or cell == Defs.NO_POS:
 		return
 	var at := state.unit_at(cell)
@@ -292,16 +484,12 @@ func _click(cell: Vector2i) -> void:
 				if Rules.leap_landing_error(state, state.unit(_selected), cell, sk) == "":
 					_pending["to"] = cell
 					_refresh()
-				else:
-					_set_mode(Mode.IDLE)
 				return
 			var act := _pending.duplicate()
 			act["unit"] = _selected
 			act["target"] = cell
 			if Rules.validate(state, act) == "":
 				_perform(act)
-			else:
-				_set_mode(Mode.IDLE)
 		Mode.FACING:
 			var u := state.unit(_selected)
 			var d := cell - u.pos
@@ -310,8 +498,12 @@ func _click(cell: Vector2i) -> void:
 				_perform({"type": "face", "unit": _selected, "facing": f})
 			_set_mode(Mode.IDLE)
 		_:
-			if at != null and at.team == Defs.Team.PLAYER:
-				_select(at.id)
+			if at != null and at.team == Defs.Team.PLAYER and at.def_id != "refugee" and at.id != "wounded_chiron":
+				if at.id == _selected and state.phase == Defs.Phase.PLAYER:
+					var view: UnitView = unit_views[at.id]
+					hud.open_wheel(_actions,func(): return world_to_screen(view.position+Vector3.UP*view.sprite_height*.5))
+				else:
+					_select(at.id)
 			elif _selected != "":
 				var mv := {"type": "move", "unit": _selected, "to": cell}
 				if Rules.validate(state, mv) == "":
@@ -321,6 +513,9 @@ func _click(cell: Vector2i) -> void:
 
 
 func _cancel() -> void:
+	if hud.wheel.visible:
+		hud.wheel.hide()
+		return
 	if _mode == Mode.TARGET or _mode == Mode.FACING:
 		_set_mode(Mode.IDLE)
 	elif _mode == Mode.IDLE:
@@ -328,12 +523,33 @@ func _cancel() -> void:
 
 
 func _select(id: String) -> void:
+	if id != "" and id != _selected:
+		Soundscape.cue("focus")
 	if _selected != "" and unit_views.has(_selected):
 		(unit_views[_selected] as UnitView).set_selected(false)
 	_selected = id
 	if id != "":
 		(unit_views[id] as UnitView).set_selected(true)
 	_set_mode(Mode.IDLE)
+
+
+func _next_unit() -> void:
+	if _available_units.is_empty() or _mode in [Mode.BUSY,Mode.OVER]:
+		return
+	var index := (_available_units.find(_selected)+1) % _available_units.size()
+	var id := _available_units[index]
+	hud.close_journal()
+	_select(id)
+	_reveal_unit(id)
+
+
+func _reveal_unit(id: String) -> void:
+	var view: UnitView = unit_views[id]
+	var point := view.position+Vector3.UP*view.sprite_height*.5
+	var screen := world_to_screen(point)
+	var bounds := get_viewport().get_visible_rect().grow(-48*ui_scale)
+	if not bounds.has_point(screen) or hud.is_over_panel(screen):
+		cam_rig.glide_to(point)
 
 
 func _set_mode(m: int) -> void:
@@ -344,8 +560,9 @@ func _set_mode(m: int) -> void:
 
 
 func _on_action(index: int) -> void:
-	if _mode == Mode.BUSY or index >= _actions.size():
+	if _mode in [Mode.BUSY,Mode.OVER] or index >= _actions.size() or not _actions[index].get("enabled",true):
 		return
+	Soundscape.cue("confirm")
 	var a: Dictionary = _actions[index]
 	match a["kind"]:
 		"target":
@@ -368,120 +585,840 @@ func _on_action(index: int) -> void:
 func _perform(action: Dictionary) -> void:
 	var o := Rules.perform(state, action)
 	if not o["ok"]:
-		hud.log_lines(["[color=#e88]无法执行：%s[/color]" % EventText.error_text(o["error"])])
+		hud.banner(EventText.error_text(o["error"]))
 		return
 	_set_mode(Mode.BUSY)
 	await _play(o["events"])
 	if _check_end():
 		return
 	_set_mode(Mode.IDLE)
+	if _battle_id=="2-1": _save_checkpoint(_battle_id)
+	if action.unit == _selected:
+		if action.type == "move":
+			_reveal_unit(_selected)
+		elif action.type == "skill" and state.unit(_selected).post_move > 0:
+			_reveal_unit(_selected)
+			unit_views[_selected].signal_post_move()
 
 
-func _play(events: Array) -> void:
-	hud.log_lines(EventText.describe(state, events))
-	for e in events:
+func _advance_phase() -> void:
+	var from_round := state.round_number
+	var events := Rules.end_phase(state)
+	_refresh()
+	await _play(events,from_round)
+
+
+func _play(events: Array, from_round := -1) -> void:
+	var recovery: Tween
+	var attacker: UnitView
+	var attack_source := ""
+	var thrown_target := ""
+	var defender: PixelUnit
+	var ward: UnitView
+	var guard_home := Vector3.ZERO
+	for event in events:
+		if event.type == "damage" and not hud.overlay.playback_hp.has(event.target):
+			hud.overlay.playback_hp[event.target] = event.hp + event.amount
+	for index in events.size():
+		var e: Dictionary=events[index]
+		var evade_slash := false
+		if e.type in ["attack","assist"] and index+1<events.size():
+			var result: Dictionary=events[index+1]
+			if result.type=="dodge" and result.target==e.target:
+				evade_slash=e.type=="attack" and e.skill=="slash" and state.unit(e.unit).def_id in ["bandit","bandit_chief"]
+				if not evade_slash:
+					(unit_views[e.target] as PixelUnit).begin_evade(unit_views[e.unit])
 		match e["type"]:
 			"move":
 				await _animate_path(e["unit"], e["path"])
+			"flee":
+				var rider := unit_views[e.unit] as PixelUnit
+				if rider.falling:
+					await rider.finish_fall()
+					continue
+				_popup(e.unit,"退离宴地",Color.WHEAT)
+				var direction := Vector2i.RIGHT
+				rider.set_facing(direction)
+				rider.walking = true
+				var retreat := create_tween()
+				retreat.tween_property(rider,"position:x",rider.position.x+1.4,.45)
+				await retreat.finished
+				rider.walking = false
+				rider.hide()
+			"rescued":
+				var traveler: UnitView = unit_views[e.unit]
+				var gone := create_tween()
+				traveler.set_facing(Vector2i.LEFT)
+				traveler.walking = true
+				gone.tween_property(traveler,"position",traveler.position+Vector3.LEFT*.9,.34)
+				await gone.finished
+				traveler.walking = false
+				traveler.hide()
+				rescued_count += 1
+				hud.overlay.add_popup(traveler.position+Vector3.UP*1.45,"安全撤离",Color("#9ae0c6"))
+				_refresh()
+			"arrival":
+				var newcomer := state.unit(e["unit"])
+				var view: UnitView = unit_views[newcomer.id]
+				view.position = map_view.anchor_world(state,newcomer.pos,newcomer.size)
+				view.set_facing(newcomer.facing)
+				view.show()
+				if newcomer.team == Defs.Team.PLAYER:
+					_reveal_unit(newcomer.id)
+				_popup(newcomer.id, "山脊支援" if newcomer.team == Defs.Team.PLAYER else (newcomer.display_name + "入场" if map_view.woodland else "狼群增援"), Color.WHEAT)
+				await get_tree().create_timer(0.18).timeout
+			"face":
+				var turning: UnitView = unit_views[e.unit]
+				turning.set_facing(e.facing)
+				if state.unit(e.unit).team == Defs.Team.ENEMY:
+					await get_tree().create_timer(.14).timeout
 			"undo_move":
 				_sync_views()
 			"leap":
 				var lu := state.unit(e["unit"])
 				var lv: UnitView = unit_views[lu.id]
 				var to := map_view.anchor_world(state, e["to"], lu.size)
-				var top := Vector3((lv.position.x + to.x) * 0.5, maxf(lv.position.y, to.y) + 0.8, (lv.position.z + to.z) * 0.5)
-				var ltw := create_tween()
-				ltw.tween_property(lv, "position", top, 0.14)
-				ltw.tween_property(lv, "position", to, 0.14)
-				await ltw.finished
+				await _leap(lv, to, lu.def_id == "lion")
 			"intercept":
-				_popup(e["unit"], "截击", Color(0.6, 0.85, 1.0))
+				defender=unit_views[e.unit] as PixelUnit
+				ward=unit_views[e.protected]
+				guard_home=defender.position
 			"slam":
 				_popup(e["target"], "摔投", Color(1, 0.85, 0.5))
 			"knockback":
-				var u := state.unit(e["target"])
-				var tw := create_tween()
-				tw.tween_property(unit_views[u.id], "position", map_view.anchor_world(state, e["to"], u.size), 0.16)
-				await tw.finished
+				if e.target != thrown_target:
+					await _knockback(e)
+			"assist":
+				attacker = unit_views[e["unit"]]
+				attack_source = "assist"
 			"attack":
-				await _bump(e["unit"], e["target"])
+				if not _active_enemy.is_empty():
+					_reveal_unit(e.target)
+					hud.overlay.hit_target = e.target
+				attacker = unit_views[e["unit"]]
+				attack_source = e["skill"]
+				var covered_spear: bool = defender!=null and e.skill=="spear" and state.unit(e.unit).def_id=="centaur"
+				if defender!=null:
+					hud.overlay.hit_target=ward.unit_id
+					if not covered_spear:
+						await attacker.turn_to_strike(ward.position)
+						await _cover_step(defender,ward,attacker).finished
+				if covered_spear:
+					recovery=await _centaur_strike(attacker as PixelUnit,ward,defender)
+				elif e["skill"] == "spear" and state.unit(e["unit"]).def_id == "hero":
+					recovery = await _spear_strike(unit_views[e["unit"]],unit_views[e["target"]])
+				elif e.skill == "spear" and state.unit(e.unit).def_id == "centaur":
+					recovery = await _centaur_strike(attacker as PixelUnit,unit_views[e.target])
+				elif e.skill in ["witch_fire","solar_flame","frailty","cinder_lance","bind_hex","night_hex"]:
+					var victim: UnitView=unit_views[e.target]
+					await attacker.turn_to_strike(victim.position)
+					attacker.set_pose(2,.18)
+					var spark:=MeshInstance3D.new()
+					var orb:=SphereMesh.new()
+					orb.radius=.17 if e.skill=="solar_flame" else .11
+					orb.height=orb.radius*2
+					spark.mesh=orb
+					var glow:=StandardMaterial3D.new()
+					glow.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+					glow.albedo_color=Color("#b972df") if e.skill in ["frailty","bind_hex","night_hex"] else Color("#ffac41")
+					spark.material_override=glow
+					_units_root.add_child(spark)
+					spark.position=attacker.position+Vector3.UP*1.3
+					var shot:=create_tween()
+					shot.tween_interval(.16)
+					shot.tween_property(spark,"position",victim.position+Vector3.UP,.25)
+					await shot.finished
+					spark.queue_free()
+					attacker.set_pose(-1,.18)
+				elif e["skill"] == "heracles_bow":
+					recovery = await _bow_shot(attacker,unit_views[e.target])
+				elif e.skill == "bandit_bow":
+					recovery = await _bandit_shot(attacker,unit_views[e.target])
+				elif state.unit(e["unit"]).def_id == "chiron":
+					recovery = await _chiron_shot(attacker as PixelUnit,unit_views[e.target])
+				elif state.unit(e["unit"]).def_id == "atalanta" and SkillCatalog.get_skill(e["skill"]).get("ranged",false):
+					recovery = await _bow_shot(attacker,unit_views[e["target"]])
+				elif e["skill"] == "pounce":
+					var lion: UnitView = unit_views[e["unit"]]
+					recovery = lion.create_tween()
+					recovery.tween_interval(.13)
+					recovery.tween_callback(lion.set_pose.bind(-1,.24))
+					recovery.tween_interval(.24)
+					lion.face_point(unit_views[e["target"]].position)
+				else:
+					recovery = await _bump(e["unit"], e["target"],e["skill"],evade_slash)
 			"damage":
-				var col := Color(1, 0.35, 0.3) if e["dmg_type"] != Defs.DamageType.TRUE else Color(1, 1, 1)
-				_popup(e["target"], "-%d" % e["amount"] if e["amount"] > 0 else "0", col)
+				var intercepted: bool = defender!=null and e.target==defender.unit_id
+				Soundscape.cue("shield_hit" if intercepted else _impact_sound(e.source, e.amount))
+				hud.overlay.playback_hp[e.target] = maxi(0,e.hp)
+				var victim: UnitView = unit_views[e.target]
+				var force := Vector3.ZERO
+				if attacker != null and e.source == attack_source:
+					force = (victim.position-attacker.position).slide(Vector3.UP)
+				var severity := float(e.amount)/state.unit(e.target).max_hp
+				var painted := victim as PixelUnit
+				if e.hp <= 0 and painted.fall_sheet != null:
+					painted.start_fall(34. if e.target == thrown_target else 0.)
+				elif e.target != thrown_target and not intercepted and not (
+					painted.kind in ["bandit_chief","lion"] and index+2<events.size() and
+					events[index+1].type=="stagger" and events[index+2].type=="broken" and events[index+2].target==e.target):
+					painted.receive_impact(force,severity,e.source,e.amount==0)
+				if intercepted:
+					hud.overlay.hit_target=defender.unit_id
+					_popup(e.target,"截击",Color("#a5dfd7"))
+					BattleFX.contact(_units_root,"spear",defender.shield_contact()+cam_rig.camera.global_basis.z*.06,force)
+				elif e.amount>0:
+					if attack_source == e["source"] and attacker != null and state.unit(attacker.unit_id).def_id in ["atalanta","chiron","heracles","bandit_archer"] and SkillCatalog.get_skill(attack_source).get("ranged",false):
+						BattleFX.contact(_units_root,"arrow",_effect_origin(victim),force)
+					elif attack_source == e["source"] and attack_source in ["spear","shield_bash","bite"]:
+						BattleFX.contact(_units_root,attack_source,_effect_origin(victim)-force.normalized()*.13,force)
+					elif e.source != "fall":
+						BattleFX.spawn(_units_root, IMPACT, _effect_origin(victim), 0.24)
+				var col := Color("#ffc49e") if e["dmg_type"] != Defs.DamageType.TRUE else Color(1, 1, 1)
+				var damage_text := "−%d" % e.amount if e.amount > 0 else "0"
+				if e.source == "fall":
+					damage_text = "坠落 " + damage_text
+				_popup(e.target,damage_text,col,attacker)
+				if intercepted:
+					if e.hp>0:
+						await _recover_cover(defender,guard_home,true)
+					else:
+						defender.release_intercept()
+					defender=null
 				await get_tree().create_timer(0.08).timeout
 			"ko":
-				(unit_views[e["target"]] as UnitView).fade_out()
+				if e.target == thrown_target:
+					(unit_views[e.target] as PixelUnit).start_fall(34.)
+				await (unit_views[e.target] as PixelUnit).finish_fall()
 			"broken":
+				Soundscape.cue("break_guard")
 				_popup(e["target"], "破势！", Color(1, 0.85, 0.2))
+				var broken := unit_views[e.target] as PixelUnit
+				if broken.kind in ["bandit_chief","lion"] and not broken.falling:
+					await broken.lose_balance()
 			"stagger":
 				_popup(e["target"], "破势 +%d" % e["amount"], Color(0.95, 0.6, 0.2))
 			"dodge":
 				_popup(e["target"], "闪避", Color(0.7, 0.9, 1))
+				var hunter := unit_views[e.target] as PixelUnit
+				if hunter.kind=="atalanta" and not hunter.falling:
+					if hunter.balance_motion==null:
+						hunter.begin_evade(attacker)
+					await hunter.finish_evade()
+				if defender!=null and e.target==defender.unit_id:
+					await _recover_cover(defender,guard_home,false)
+					defender=null
 			"grapple_start":
-				_popup(e["target"], "擒抱", Color(1, 0.85, 0.5))
+				var holder: UnitView = unit_views[e.grappler]
+				var held: UnitView = unit_views[e.target]
+				var direction := (held.position-holder.position).slide(Vector3.UP).normalized()
+				holder.face_point(held.position)
+				held.face_point(holder.position)
+				var grappler := holder as PixelUnit
+				grappler.holding = held
+				var seize := create_tween()
+				seize.tween_property(grappler,"clinch",.66,.25)
+				var raider_pair := grappler.kind=="hero" and (held as PixelUnit).kind=="bandit"
+				if raider_pair:
+					seize.parallel().tween_method(grappler.set_raider_throw,0.,12.,.25)
+					seize.parallel().tween_method((held as PixelUnit).set_raider_throw,0.,12.,.25)
+				elif (held as PixelUnit).kind=="lion":
+					seize.parallel().tween_method((held as PixelUnit).set_lion_wrestle,0.,13.,.25)
+				await seize.finished
+				if not raider_pair and (held as PixelUnit).kind!="lion":
+					held.react_to_hit(direction,.22)
+				hud.overlay.holds[e.grappler] = e.target
+				_popup(e.target,"擒住",Color.WHEAT,holder)
+				var lock := create_tween()
+				lock.tween_property(grappler,"clinch",1.,.28)
+				await lock.finished
+			"struggle":
+				var held := unit_views[e.unit] as PixelUnit
+				if held.kind=="lion":
+					var resist := held.create_tween()
+					resist.tween_method(held.set_lion_wrestle,13.,24.,.20)
+					resist.tween_method(held.set_lion_wrestle,24.,13.,.24)
+					await resist.finished
 			"grapple_end":
+				hud.overlay.holds.erase(e.grappler)
+				var holder := unit_views[e.grappler] as PixelUnit
+				var held := unit_views.get(e.target) as PixelUnit
+				var raider_pair := held!=null and holder.kind=="hero" and held.kind=="bandit"
+				if held and (held.kind=="lion" or raider_pair) and e.why=="slam":
+					var landing := held.position
+					for follow in events:
+						if follow.type=="knockback" and follow.target==e.target:
+							landing=map_view.anchor_world(state,follow.to,held.size)
+							break
+					thrown_target=e.target
+					recovery=await _animate_throw(holder,held,landing,state.unit(e.target).alive)
+					continue
+				var unwind := create_tween()
+				unwind.tween_property(holder,"clinch",0.,.34)
+				if raider_pair:
+					for actor: PixelUnit in [holder,held]:
+						if actor.in_raider_throw:
+							unwind.parallel().tween_method(actor.set_raider_throw,12.,0.,.30)
+							unwind.tween_callback(actor.set_raider_throw.bind(-1.))
+				if held and held.kind=="lion" and not held.falling:
+					unwind.parallel().tween_method(held.set_lion_wrestle,13.,0.,.30)
+					unwind.tween_callback(held.set_lion_wrestle.bind(-1.))
+				await unwind.finished
+				if is_instance_valid(holder.holding): holder.holding.set_hold_offset(Vector3.ZERO)
+				holder.holding=null
 				if e["target"] != "":
 					_popup(e["target"], EventText.END_REASONS.get(e["why"], ""), Color(0.85, 0.85, 0.85))
+			"heal":
+				recovery=await _chiron_shot(unit_views[e.unit] as PixelUnit,unit_views[e.target])
+				_popup(e.target,"净化箭　+%d"%e.amount,Color("#98e3ae"))
 			"status":
 				_popup(e["target"], EventText.STATUS_NAMES.get(e["status"], e["status"]), Color(0.8, 0.9, 1))
 			"stun_skip":
 				_popup(e["unit"], "眩晕", Color(1, 0.85, 0.2))
 			"area":
+				if e.skill == "roar" and state.unit(e.unit).def_id == "lion":
+					var caller: UnitView = unit_views[e.unit]
+					var inhale := caller.create_tween()
+					inhale.tween_method(caller.set_roar_lift,0.,-.26,.18).set_trans(Tween.TRANS_SINE)
+					inhale.tween_method(caller.set_roar_lift,-.26,1.,.17).set_trans(Tween.TRANS_SINE)
+					await inhale.finished
+					recovery = caller.create_tween()
+					recovery.tween_method(caller.set_roar_lift,1.,.83,.18)
+					recovery.tween_method(caller.set_roar_lift,.83,0.,.32).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+				Soundscape.cue("warning")
+				var rows := Hud.CombatRecord.collect(state,events)
+				for row in rows:
+					if row.linked and not row.target_id.is_empty() and not row.outcome.is_empty():
+						hud.overlay.set_health_forecast(row)
+				BattleFX.spawn(_units_root, ROAR, _effect_origin(unit_views[e["unit"]]), 0.38)
 				_popup(e["unit"], EventText.skill_name(e["skill"]), Color(1, 0.6, 0.3))
 				await get_tree().create_timer(0.25).timeout
 			"push":
-				_popup(e["unit"], "推巨石 %d/2" % mini(int(e["progress"]), 2), Color(0.85, 0.85, 0.9))
+				await _push_boulder(e.unit,e.boulder,e.progress)
 			"sealed":
-				hud.banner("%s入口已封住" % EventText.ENTRANCE_NAMES.get(e["entrance"], e["entrance"]), 0.8)
+				var anchor: Vector2i = state.cave.entrances[e.entrance].anchor
+				var end := _plug_position(anchor)
+				Soundscape.cue("hit")
+				cave_mouths[e.entrance].shed_stones()
+				BattleFX.spawn(_units_root, DUST, end + Vector3.UP * 0.25, 0.3)
+				hud.overlay.add_popup(end + Vector3.UP * 1.55, "%s已封住" % EventText.ENTRANCE_NAMES.get(e.entrance,e.entrance), Color.WHEAT)
 				_sync_views()
 			"retreat":
 				_popup(e["unit"], "退回洞内", Color(1, 0.85, 0.2))
 				await get_tree().create_timer(0.35).timeout
 				_sync_views()
 			"emerge":
-				_sync_views()
-				_popup(e["unit"], "冲出！", Color(1, 0.4, 0.3))
-				await get_tree().create_timer(0.3).timeout
+				var mouth: Node3D = cave_mouths[e.entrance]
+				var lion: UnitView = unit_views[e.unit]
+				var exit := map_view.anchor_world(state,e.to,lion.size)
+				mouth.set_warning(false)
+				mouth.shed_stones()
+				cam_rig.glide_to(mouth.position + Vector3.UP*.65)
+				await get_tree().create_timer(.36).timeout
+				lion.position = mouth.position + Vector3(0,-.32,-.61)
+				lion.face_point(exit)
+				lion.set_pose(3,.12)
+				lion.show()
+				var charge := lion.create_tween()
+				charge.tween_callback(lion.set_pose.bind(2,.18))
+				charge.tween_property(lion,"position",exit,.34).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				await charge.finished
+				Soundscape.cue("paw")
+				BattleFX.spawn(_units_root,DUST,exit,.26)
+				lion.set_pose(-1,.16)
+				await get_tree().create_timer(.16).timeout
+	if recovery != null and recovery.is_running():
+		await recovery.finished
+	hud.overlay.hit_target = ""
+	hud.overlay.forecasts.clear()
+	hud.overlay.playback_hp.clear()
+	hud.record_events(state,events,from_round)
 	_sync_views()
+
+
+func _animate_throw(holder: PixelUnit, held: PixelUnit, landing: Vector3, survives: bool) -> Tween:
+	var raider := held.kind=="bandit"
+	var pose := held.set_raider_throw if raider else held.set_lion_wrestle
+	var home := holder.position
+	var origin := held.position
+	var facing := (origin-home).slide(Vector3.UP).normalized()
+	var load := holder.create_tween()
+	load.tween_property(holder,"position",home+facing*.13,.25).set_trans(Tween.TRANS_SINE)
+	load.parallel().tween_property(holder,"clinch",.80,.25)
+	load.parallel().tween_method(pose,12. if raider else 13.,24. if raider else 32.,.25)
+	if raider:
+		holder.holding=null
+		var belt := held._sprite.position
+		load.parallel().tween_method(held.set_hold_offset,belt,belt-facing*.16+Vector3.UP*.16,.25)
+		load.parallel().tween_method(holder.set_raider_throw,12.,24.,.25)
+	await load.finished
+	var hand_lift := held._sprite.position.y-.014 if raider else 0.
+	origin+=held._sprite.position.slide(Vector3.UP)
+	holder.holding=null
+	held.position=origin
+	held.set_hold_offset(Vector3.ZERO)
+	var flight := held.create_tween()
+	flight.tween_method(func(t: float):
+		held.position=origin.lerp(landing,t)
+		if raider:
+			# Keep the destination ring on the ground as both boots leave it.
+			held.lift_body((1.-t)*hand_lift+2.65*t*(1.-t))
+		else:
+			held.position.y+=1.65*t*(1.-t)
+		pose.call(lerpf(24. if raider else 32.,40.,t)),0.,1.,.38)
+	flight.parallel().tween_property(holder,"position",home,.32)
+	flight.parallel().tween_property(holder,"clinch",0.,.25)
+	if raider:
+		flight.parallel().tween_method(holder.set_raider_throw,24.,40.,.38)
+	await flight.finished
+	BattleFX.spawn(_units_root,DUST,landing+Vector3.UP*.08,.26)
+	Soundscape.cue("hit" if raider else "paw")
+	if raider:
+		var recover := holder.create_tween()
+		recover.tween_method(holder.set_raider_throw,40.,55.,.23)
+		recover.tween_callback(holder.set_raider_throw.bind(-1.))
+	if not survives:
+		return null
+	var rise := held.create_tween()
+	rise.tween_interval(.16)
+	rise.tween_method(pose,40.,55.,.69 if raider else .54).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	rise.tween_callback(pose.bind(-1.))
+	return rise
+
+
+func _knockback(event: Dictionary) -> void:
+	var victim: UnitView = unit_views[event.target]
+	var start := victim.position
+	var end := map_view.anchor_world(state,event.to,victim.size)
+	var drop := start.y-end.y
+	var motion := create_tween()
+	if drop > .01:
+		# Clear the lip before gravity pulls the feet down to the lower terrace.
+		var lip := start.lerp(end,.44)
+		lip.y = start.y+.10
+		motion.tween_property(victim,"position",lip,.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		motion.tween_method(func(t: float):
+			var at := lip.lerp(end,t)
+			at.y = lerpf(lip.y,end.y,t*t)
+			victim.position = at,
+			0.,1.,clampf(.20*sqrt(drop),.17,.39))
+	else:
+		motion.tween_property(victim,"position",end,.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await motion.finished
+	if drop > .01:
+		BattleFX.spawn(_units_root,DUST,end+Vector3.UP*.06,.23)
+
+
+func _impact_sound(source: String, amount: int) -> String:
+	if amount <= 0:
+		return "guard"
+	match source:
+		"spear": return "spear_hit"
+		"shield_bash": return "shield_hit"
+		"bite": return "bite"
+	if SkillCatalog.get_skill(source).get("ranged", false):
+		return "arrow_hit"
+	return "hit"
 
 
 func _animate_path(id: String, path: Array) -> void:
 	var u := state.unit(id)
 	var v: UnitView = unit_views[id]
+	if u.def_id in ["heracles","wolf","boar"]:
+		await _walk_planted(v,path,u.def_id)
+		return
+	var step_seconds := .36 if u.def_id == "lion" else .26
 	var tw := create_tween()
 	var prev: Vector3 = v.position
+	if path.is_empty():
+		tw.kill()
+		return
+	v.walking = true
 	for cell in path:
 		var to := map_view.anchor_world(state, cell, u.size)
-		if absf(to.y - prev.y) > 0.01:
-			var mid := Vector3((prev.x + to.x) * 0.5, maxf(prev.y, to.y) + 0.25, (prev.z + to.z) * 0.5)
-			tw.tween_property(v, "position", mid, 0.06)
-			tw.tween_property(v, "position", to, 0.06)
+		var heading := Vector2i(roundi(to.x-prev.x), roundi(to.z-prev.z))
+		if heading != Vector2i.ZERO:
+			tw.tween_callback(v.set_facing.bind(heading))
+		if map_view.field != null and u.size == 1:
+			tw.tween_method(_follow_slope.bind(v,prev,to),0.0,1.0,step_seconds)
+		elif absf(to.y - prev.y) > 0.01:
+			var mid := Vector3((prev.x + to.x) * 0.5, maxf(prev.y, to.y) + 0.12, (prev.z + to.z) * 0.5)
+			tw.tween_property(v, "position", mid, step_seconds*.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw.tween_property(v, "position", to, step_seconds*.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 		else:
-			tw.tween_property(v, "position", to, 0.1)
+			tw.tween_property(v, "position", to, step_seconds)
+		var wet := state.grid.terrain_at(cell) in [Defs.Terrain.SHALLOW, Defs.Terrain.DEEP, Defs.Terrain.SWAMP, Defs.Terrain.STYX]
+		var footfall := "paw" if u.def_id in ["wolf","lion"] else "step"
+		tw.tween_callback(Soundscape.cue.bind("splash" if wet else footfall))
+		tw.tween_callback(BattleFX.spawn.bind(_units_root, DUST, to + Vector3.UP * 0.12, 0.18))
 		prev = to
-	if path.is_empty():
-		return
 	await tw.finished
+	v.walking = false
 
 
-func _bump(attacker_id: String, target_id: String) -> void:
+# Finish a planted step before changing heading. Straight runs keep their momentum.
+func _walk_planted(view: UnitView, path: Array, kind: String) -> void:
+	var step_seconds := .24 if kind == "wolf" else (.32 if kind == "boar" else .36)
+	var plant_seconds := .10 if kind == "wolf" else .13
+	var footfall := "paw" if kind == "wolf" else "step"
+	var index := 0
+	while index < path.size():
+		var start := view.position
+		var local_start := map_view.to_local(start)
+		var cell := Vector2i(roundi(local_start.x-view.size*.5),roundi(local_start.z-view.size*.5))
+		var heading: Vector2i = path[index]-cell
+		if heading == Vector2i.ZERO:
+			index += 1
+			continue
+		var count := 1
+		while index+count < path.size() and path[index+count]-path[index+count-1] == heading:
+			count += 1
+		await view.plant_and_turn(heading)
+		view.walking = true
+		var run := create_tween()
+		var origin := cell
+		var advance := func(distance: float):
+			var whole := mini(floori(distance),count-1)
+			var tile := origin+heading*whole
+			var a := map_view.anchor_world(state,tile,view.size)
+			var b := map_view.anchor_world(state,tile+heading,view.size)
+			if view.size == 1:
+				_follow_slope(distance-whole,view,a,b)
+			else:
+				view.position = a.lerp(b,distance-whole)
+				view.position.y = lerpf(a.y,b.y,smoothstep(0.,1.,distance-whole))
+		run.tween_method(advance,0.,.18,plant_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		run.tween_method(advance,.18,count-.18,(count-.36)*step_seconds)
+		run.tween_method(advance,count-.18,float(count),plant_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		# The contact drawings take weight just after each half-step starts.
+		var steps := create_tween()
+		for n in count:
+			var tile := cell+heading*(n+1)
+			var wet := state.grid.terrain_at(tile) in [Defs.Terrain.SHALLOW,Defs.Terrain.DEEP,Defs.Terrain.SWAMP,Defs.Terrain.STYX]
+			steps.tween_interval(plant_seconds+.06 if n == 0 else step_seconds)
+			steps.tween_callback(Soundscape.cue.bind("splash" if wet else footfall))
+			if kind != "heracles":
+				steps.tween_callback(func(): BattleFX.spawn(_units_root,DUST,view.position+Vector3.UP*.12,.18))
+		await run.finished
+		view.walking = false
+		index += count
+
+
+func _set_tactical(on: bool) -> void:
+	tactical = on
+	cam_rig.tactical = on
+	map_view.set_tactical(on)
+	if village != null:
+		village.visible = not on
+		if not on:
+			village.sync_fire(state.grid)
+	_refresh()
+
+
+func _follow_slope(t: float, view: UnitView, start: Vector3, finish: Vector3) -> void:
+	var point := start.lerp(finish,t)
+	if map_view.field != null:
+		var ground := map_view.to_local(point)
+		point.y = map_view.field.elevation(ground.x,ground.z)
+	view.position = point
+
+
+func _effect_origin(unit: UnitView) -> Vector3:
+	return unit.position + Vector3.UP * unit.sprite_height * 0.55 + cam_rig.camera.global_basis.z * 0.28
+
+
+func _leap(view: UnitView, landing: Vector3, heavy: bool) -> void:
+	var start := view.position
+	view.face_point(landing)
+	var height := (1.05 if heavy else .8) + absf(landing.y-start.y)*.32
+	var leap := view.create_tween()
+	if heavy:
+		view.set_pose(3,.19)
+		view.signal_pounce()
+		leap.tween_interval(.24)
+		leap.tween_callback(view.set_pose.bind(2,.15))
+	var duration := clampf(.34+start.distance_to(landing)*.056,.43,.69) if heavy else .34
+	leap.tween_method(func(progress: float):
+		view.position = start.lerp(landing,progress)
+		var lift := 4.*height*progress*(1.-progress)
+		if heavy:
+			view.lift_body(lift)
+		else:
+			view.position.y += lift,
+		0.,1.,duration)
+	if heavy:
+		# Reach with the forepaws during descent, before contact starts the recovery.
+		leap.parallel().tween_callback(view.set_pose.bind(4,.17)).set_delay(duration-.14)
+	await leap.finished
+	if heavy:
+		Soundscape.cue("paw")
+	BattleFX.spawn(_units_root,DUST,landing + Vector3.UP*0.12,0.32)
+
+
+func _cover_step(hero: PixelUnit, ally: UnitView, source: UnitView) -> Tween:
+	var incoming := (source.position-ally.position).slide(Vector3.UP).normalized()
+	var cover := ally.position+incoming*.48
+	var step := (cover-hero.position).limit_length(.86)
+	hud.overlay.hit_target=hero.unit_id
+	hero.face_point(source.position)
+	hero.intercept_side=step.normalized().dot(cam_rig.camera.global_basis.x)
+	hero.intercept_pose=0.
+	var enter := hero.create_tween().set_parallel()
+	enter.tween_property(hero,"position",hero.position+step,.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	enter.tween_property(hero,"intercept_pose",1.,.24)
+	enter.tween_callback(Soundscape.cue.bind("step")).set_delay(.20)
+	return enter
+
+
+func _recover_cover(hero: PixelUnit, home: Vector3, contact: bool) -> void:
+	if contact:
+		hero.intercept_contact=true
+		hero.intercept_pose=0.
+		var absorb := hero.create_tween()
+		absorb.tween_property(hero,"intercept_pose",1.,.41)
+		await absorb.finished
+	hero.intercept_contact=false
+	hero.intercept_pose=1.
+	hero.intercept_side=-hero.intercept_side
+	var recover := hero.create_tween().set_parallel()
+	recover.tween_property(hero,"position",home,.34).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	recover.tween_property(hero,"intercept_pose",0.,.38)
+	await recover.finished
+	hero.release_intercept()
+
+
+func _centaur_strike(rider: PixelUnit, target: UnitView, defender: PixelUnit=null) -> Tween:
+	await rider.turn_to_strike(target.position)
+	var pose := rider.set_painted_action_frame if defender==null else rider.aim_covered_spear.bind(defender)
+	var thrust := rider.create_tween()
+	var home := rider.position
+	var line := (target.position-home).slide(Vector3.UP).normalized()
+	if defender!=null:
+		# Let the original line of attack read before the defender crosses it.
+		thrust.tween_method(pose,0.,8.,.24)
+		thrust.parallel().tween_property(rider,"position",home-line*.42,.24).set_trans(Tween.TRANS_SINE)
+		thrust.tween_callback(_cover_step.bind(defender,target,rider))
+		thrust.tween_method(pose,8.,16.,.23)
+	else:
+		thrust.tween_method(pose,0.,16.,16./60.)
+	thrust.tween_callback(Soundscape.cue.bind("swing"))
+	thrust.tween_method(pose,16.,21.,5./60.)
+	if defender!=null:
+		thrust.parallel().tween_property(rider,"position",home-line*.26,5./60.)
+	await thrust.finished
+	var settle := rider.create_tween()
+	settle.tween_method(pose,21.,26.,5./60.)
+	settle.tween_callback(Soundscape.cue.bind("step"))
+	settle.tween_method(pose,26.,55.,29./60.)
+	if defender!=null:
+		settle.parallel().tween_property(rider,"position",home,.32)
+		settle.tween_callback(rider._sprite.material_override.set_shader_parameter.bind("parry_warp",Vector4.ZERO))
+	settle.tween_callback(rider.set_painted_action_frame.bind(-1.))
+	return settle
+
+
+func _spear_strike(view: UnitView, target: UnitView) -> Tween:
+	var home := view.position
+	await view.turn_to_strike(target.position)
+	var direction := (target.position-home) * Vector3(1,0,1)
+	direction = direction.normalized()
+	view.attack_key(0,.07)
+	var strike := view.create_tween()
+	strike.tween_property(view,"position",home-direction*0.14,.175).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	strike.parallel().tween_callback(view.attack_key.bind(1,.09)).set_delay(.075)
+	strike.tween_callback(Soundscape.cue.bind("swing"))
+	strike.tween_callback(view.attack_key.bind(2,.12))
+	strike.tween_property(view,"position",home+direction*0.32,.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await strike.finished
+	var recovery := view.create_tween()
+	recovery.tween_callback(view.attack_key.bind(3,.12))
+	recovery.tween_property(view,"position",home,.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	recovery.parallel().tween_callback(view.set_pose.bind(-1,.12)).set_delay(.13)
+	return recovery
+
+
+func _bandit_shot(archer: UnitView, target: UnitView) -> Tween:
+	await archer.turn_to_strike(target.position)
+	archer.set_pose(2,.23)
+	Soundscape.cue("bow_draw")
+	await get_tree().create_timer(.31).timeout
+	var aim := _effect_origin(target)
+	var grip := archer.bow_grip(1.)
+	var arrow := BattleFX.nock(_units_root,ARROW)
+	arrow.align_to_grip(grip,aim)
+	archer.set_pose(3,.05)
+	Soundscape.cue("arrow")
+	var release := archer.create_tween()
+	release.tween_interval(.14)
+	release.tween_callback(archer.set_pose.bind(-1,.29))
+	release.tween_interval(.29)
+	await arrow.fly_to(aim,clampf(grip.distance_to(aim)/13.,.14,.36)).finished
+	return release
+
+
+func _chiron_shot(archer: PixelUnit, target: UnitView) -> Tween:
+	await archer.turn_to_strike(target.position)
+	while archer.hit_phase < 1.:
+		await get_tree().process_frame
+	var draw := archer.create_tween()
+	draw.tween_method(archer.set_painted_action_frame,0.,12.,.26)
+	draw.tween_callback(Soundscape.cue.bind("bow_draw"))
+	draw.tween_method(archer.set_painted_action_frame,12.,26.,.36)
+	draw.tween_interval(.12)
+	await draw.finished
+	var grip := archer.bow_grip(1.)
+	var finish := _effect_origin(target)
+	var shaft := BattleFX.nock(_units_root,ARROW)
+	shaft.pixel_size = archer._sprite.pixel_size*.55
+	shaft.align_to_grip(grip,finish)
+	archer.set_painted_action_frame(31.)
+	Soundscape.cue("arrow")
+	var recovery := archer.create_tween()
+	recovery.tween_method(archer.set_painted_action_frame,31.,39.,.17)
+	recovery.tween_method(archer.set_painted_action_frame,39.,51.,.32)
+	recovery.tween_method(archer.set_painted_action_frame,51.,55.,.13)
+	recovery.tween_callback(archer.set_painted_action_frame.bind(-1.))
+	await shaft.fly_to(finish,clampf(grip.distance_to(finish)/14.,.12,.36)).finished
+	return recovery
+
+
+func _bow_shot(archer: PixelUnit, target: UnitView) -> Tween:
+	var finish := _effect_origin(target)
+	var strongman := archer.kind=="heracles"
+	await archer.turn_to_strike(target.position)
+	if strongman:
+		archer.bow_draw=0.
+		await get_tree().create_timer(.42).timeout
+	else:
+		await archer.raise_bow(target)
+	archer.show_live_arrow()
+	Soundscape.cue("bow_draw")
+	var shaft := BattleFX.nock(_units_root,ARROW)
+	var place_arrow := func(weight: float):
+		archer.set_bow_tension(weight)
+		var grip := archer.bow_grip(weight)
+		if strongman:
+			grip=archer.position+Vector3.UP*archer.sprite_height*.57+archer.position.direction_to(target.position)*.25
+		shaft.align_to_grip(grip,finish)
+	var draw := create_tween()
+	draw.tween_method(place_arrow,0.,1.,.55 if strongman else .30).set_trans(Tween.TRANS_SINE)
+	await draw.finished
+	Soundscape.cue("arrow")
+	var travel := clampf(shaft.global_position.distance_to(finish)/13.5,.13,.36)
+	var flight := shaft.fly_to(finish,travel)
+	var recovery := archer.create_tween()
+	recovery.tween_method(archer.set_bow_tension,1.,0.,.40 if strongman else .26)
+	recovery.tween_callback(archer.lower_bow)
+	await flight.finished
+	return recovery
+
+
+func _bump(attacker_id: String, target_id: String, skill: String, evade_slash := false) -> Tween:
 	var v: UnitView = unit_views[attacker_id]
 	var t: UnitView = unit_views[target_id]
+	await v.turn_to_strike(t.position)
+	if skill=="slash" and state.unit(attacker_id).def_id in ["bandit","bandit_chief"]:
+		return await _raider_slash(v,t,state.unit(attacker_id).def_id=="bandit_chief",evade_slash)
+	if skill=="shield_bash":
+		(v as PixelUnit).bash_clock=0.
+	if skill == "bite" and state.unit(attacker_id).def_id == "lion":
+		var home := v.position
+		var forward := (t.position-home).slide(Vector3.UP).normalized()
+		v.set_pose(3,.17)
+		var bite := v.create_tween()
+		bite.tween_interval(.18)
+		bite.tween_callback(v.set_pose.bind(2,.13))
+		bite.tween_property(v,"position",home+forward*.33,.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		await bite.finished
+		var settle := v.create_tween()
+		settle.tween_callback(v.set_pose.bind(4,.14))
+		settle.tween_interval(.09)
+		settle.tween_property(v,"position",home,.21).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		settle.parallel().tween_callback(v.set_pose.bind(-1,.20)).set_delay(.05)
+		settle.tween_interval(.05)
+		return settle
+	if skill in ["club","gore","bite"]:
+		return await _painted_melee(v,t,skill)
+	v.play_attack()
 	var home := v.position
 	var toward := (t.position - home)
 	toward.y = 0
 	var tw := create_tween()
-	tw.tween_property(v, "position", home + toward.normalized() * 0.25, 0.07)
-	tw.tween_property(v, "position", home, 0.09)
+	if skill == "shield_bash":
+		tw.tween_property(v,"position",home-toward.normalized()*.09,.10)
+		tw.tween_property(v,"position",home+toward.normalized()*.34,.085).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	else:
+		tw.tween_property(v,"position",home+toward.normalized()*.25,.22)
 	await tw.finished
+	var recovery := v.create_tween()
+	recovery.tween_property(v, "position", home, 0.22)
+	if skill != "shield_bash":
+		BattleFX.spawn(_units_root, SLASH, _effect_origin(t), 0.22)
+	return recovery
 
 
-func _popup(id: String, text: String, col: Color) -> void:
+func _raider_slash(attacker: UnitView, target: UnitView, heavy: bool, evade_slash: bool) -> Tween:
+	var home := attacker.position
+	var forward := (target.position-home).slide(Vector3.UP).normalized()
+	var raise_time := .32 if heavy else .14
+	attacker.set_pose(2,raise_time)
+	var swing := attacker.create_tween()
+	swing.tween_property(attacker,"position",home-forward*(.14 if heavy else .045),raise_time).set_trans(Tween.TRANS_SINE)
+	if evade_slash:
+		swing.parallel().tween_callback((target as PixelUnit).begin_evade.bind(attacker)).set_delay(raise_time-.14)
+	if heavy:
+		swing.tween_interval(.10)
+	swing.tween_callback(Soundscape.cue.bind("swing"))
+	swing.tween_callback(attacker.set_pose.bind(-1,.17 if heavy else .12))
+	swing.tween_property(attacker,"position",home+forward*(.38 if heavy else .21),.13 if heavy else .095).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await swing.finished
+	BattleFX.spawn(_units_root,SLASH,_effect_origin(target),.20 if heavy else .13)
+	var settle := attacker.create_tween()
+	settle.tween_interval(.15 if heavy else .025)
+	settle.tween_property(attacker,"position",home,.32 if heavy else .16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	return settle
+
+
+func _painted_melee(view: UnitView,target: UnitView,skill: String) -> Tween:
+	var home := view.position
+	var forward := (target.position-home).slide(Vector3.UP).normalized()
+	var wolf := skill=="bite"
+	var club := skill=="club"
+	var reach := clampf((target.position-home).slide(Vector3.UP).length()-(.95 if skill=="gore" else .65),.23,.70)
+	var impact := view.create_tween()
+	if wolf: view.attack_key(0)
+	else: view.set_pose(1,.12)
+	impact.tween_property(view,"position",home-forward*(.08 if wolf else .14),.12 if wolf else .26).set_trans(Tween.TRANS_SINE)
+	if wolf: impact.tween_callback(view.attack_key.bind(1,.06))
+	impact.tween_callback(Soundscape.cue.bind("swing"))
+	if wolf: impact.tween_callback(view.attack_key.bind(2,.09))
+	else: impact.tween_callback(view.set_pose.bind(2,.10))
+	impact.tween_property(view,"position",home+forward*(.35 if club else reach),.10 if wolf else .16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await impact.finished
+	var recover := view.create_tween()
+	if wolf: recover.tween_callback(view.attack_key.bind(3,.12))
+	recover.tween_property(view,"position",home,.20 if wolf else .34).set_trans(Tween.TRANS_SINE)
+	recover.tween_callback(view.set_pose.bind(-1,.14))
+	return recover
+
+
+func _popup(id: String, text: String, col: Color, attacker: UnitView = null) -> void:
 	var v: UnitView = unit_views[id]
-	hud.overlay.add_popup(v.position + Vector3(0, v.sprite_height + 0.35, 0), text, col)
+	var origin := v.position+Vector3.UP*(v.sprite_height+.35)
+	if attacker != null:
+		var right := cam_rig.camera.global_basis.x
+		var side := 1.0 if (v.position-attacker.position).dot(right)>=0.0 else -1.0
+		origin += right*side*.42
+	hud.overlay.add_popup(origin,text,col)
 
 
 func _sync_views() -> void:
+	if village != null and fire_round != state.round_number:
+		map_view.grid = state.grid
+		if tactical:
+			map_view.build(state.grid)
+		village.sync_fire(state.grid)
+		fire_round = state.round_number
 	for id in state.order:
 		var u: UnitState = state.units[id]
 		var v: UnitView = unit_views[id]
@@ -489,26 +1426,149 @@ func _sync_views() -> void:
 			v.position = map_view.anchor_world(state, u.pos, u.size)
 			v.visible = not u.hidden
 		v.set_facing(u.facing)
+		var painted := v as PixelUnit
+		painted.guarding=u.has_status("guard")
+		if u.def_id=="lion" and not painted.falling:
+			painted.set_lion_exposed(u.alive and not u.hidden and u.has_status("stunned") and u.has_status("staggered") and u.grappled_by_id=="")
+		if u.def_id in ["hero","heracles"]:
+			painted.holding=unit_views.get(u.grappling_id)
+			painted.clinch=1. if painted.holding else 0.
 	for id in boulder_views:
-		var b: Dictionary = state.cave["boulders"][id]
-		var rock: MeshInstance3D = boulder_views[id]
-		rock.visible = not b["placed"]
-		rock.position = Vector3(b["pos"].x + 0.5, map_view.cell_top(b["pos"]) + 0.3, b["pos"].y + 0.5)
+		var b: Dictionary = state.cave.boulders[id]
+		_place_boulder(id,1.0 if b.placed else (.10 if b.progress > 0 else 0.0))
+
+	if not boulder_views.is_empty():
+		for view: UnitView in unit_views.values():
+			var nearest := Vector2.ZERO
+			for rock: Node3D in boulder_views.values():
+				var offset := Vector2(rock.position.x-view.position.x,rock.position.z-view.position.z)
+				if offset.length() <= 1.22*map_view.scale.x and (nearest == Vector2.ZERO or offset.length_squared() < nearest.length_squared()):
+					nearest = offset
+			view.set_nearby_stone(nearest)
+
+
+# Rotate about the rolling axis and rest the lowest actual facet on the ground.
+func _place_boulder(id: String, travel: float) -> void:
+	var data: Dictionary = state.cave.boulders[id]
+	var cell: Vector2i = data.pos
+	var start := map_view.to_global(Vector3(cell.x+.5,map_view.cell_top(cell),cell.y+.5))
+	var finish := _plug_position(state.cave.entrances[data.seals].anchor)
+	var path := (finish-start).slide(Vector3.UP)
+	var rock: Node3D = boulder_views[id]
+	var rolling := Basis(Vector3.UP.cross(path).normalized(),path.length()*travel/.69).scaled(Vector3.ONE*2.12)
+	var bottom := INF
+	for vertex in boulder_vertices:
+		bottom = minf(bottom,(rolling*vertex).y)
+	var at := start.lerp(finish,travel)
+	if map_view.field != null and not tactical:
+		var ground := map_view.to_local(at)
+		at.y = map_view.field.elevation(ground.x,ground.z)
+	at.y -= bottom*.90
+	rock.transform = Transform3D(rolling,at)
+
+
+func _push_boulder(unit_id: String, id: String, progress: int) -> void:
+	var actor: UnitView = unit_views[unit_id]
+	var rock: Node3D = boulder_views[id]
+	var home := actor.position
+	var direction := (rock.position-home).slide(Vector3.UP).normalized()
+	# The first of two ordinary pushes leaves the boulder slightly dislodged.
+	var data: Dictionary = state.cave.boulders[id]
+	var cell: Vector2i = data.pos
+	var center := map_view.anchor_world(state,cell,1)
+	var start := Vector2(center.x,center.z)
+	var end := _plug_position(state.cave.entrances[data.seals].anchor)
+	var path := Vector2(end.x,end.z)-start
+	var initial := clampf((Vector2(rock.position.x,rock.position.z)-start).dot(path)/path.length_squared(),0.,1.)
+	var released := initial + (.20 if progress >= 2 else .10)
+	await actor.turn_to_strike(rock.position)
+	var contact := home + direction*(.18 + map_view.scale.x-1.)
+	var follow := contact + direction*.09
+	var shove := actor.create_tween()
+	shove.tween_method(func(w: float): actor.brace_against(direction,w),0.,.62,.30).set_trans(Tween.TRANS_SINE)
+	shove.parallel().tween_property(actor,"position",contact,.30).set_trans(Tween.TRANS_SINE)
+	shove.tween_method(func(w: float): actor.brace_against(direction,w),.62,1.,.23).set_trans(Tween.TRANS_SINE)
+	shove.tween_callback(Soundscape.cue.bind("step"))
+	shove.tween_callback(BattleFX.spawn.bind(_units_root,DUST,rock.position+Vector3.UP*.1,.26))
+	await shove.finished
+	var drive := actor.create_tween()
+	drive.tween_method(func(t: float): _place_boulder(id,lerpf(initial,released,t)),0.,1.,.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	drive.parallel().tween_property(actor,"position",follow,.32).set_trans(Tween.TRANS_SINE)
+	await drive.finished
+	var release := actor.create_tween().set_parallel()
+	release.tween_method(func(w: float): actor.brace_against(direction,w),1.,0.,.42).set_trans(Tween.TRANS_SINE)
+	release.tween_property(actor,"position",home,.48).set_trans(Tween.TRANS_SINE)
+	if progress >= 2:
+		release.tween_method(func(t: float): _place_boulder(id,lerpf(released,1.,t)),0.,1.,.78).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	else:
+		_popup(unit_id,"推巨石 1/2",Color.WHEAT)
+	await release.finished
+
+
+func _plug_position(anchor: Vector2i) -> Vector3:
+	return map_view.to_global(Vector3(anchor.x + 1, map_view.cell_top(anchor) + 0.04, anchor.y + .54))
 
 
 # --- Turn flow -------------------------------------------------------------------
 
+func _settle_at_camp(destination: String, summary: String, fork := false):
+	_camp_stop=_entry(destination)
+	_camp_stop.stage="camp"
+	_camp_stop.choose_route=fork
+	if _outcomes.get(_battle_id,"")=="已通关" and Checkpoint.read_entry().get("outcomes",{}).get(_battle_id,"")!="已通关":
+		summary+="　全队升至 %d 级，各得 1 技能点。"%SkillTree.campaign_level(_camp_stop)
+	_camp_stop.camp_summary=summary
+	_camp_stop.erase("orders")
+	if _battle_id=="2-1" and state.escort_result=="win":
+		_camp_stop.divinity=state.reward.divinity
+	_next_battle="camp"
+	_mode=Mode.OVER
+	var saved:=Checkpoint.write_entry(_camp_stop)==OK
+	hud.banner(summary+"　·　返回营地" if saved else "保存失败，请点击返回营地重试",0.)
+	_refresh()
+
 func _end_turn() -> void:
+	hud.close_journal()
+	if _next_battle=="camp":
+		if Checkpoint.write_entry(_camp_stop)!=OK:
+			hud.banner("保存失败，请重试。",0.)
+			return
+		get_tree().set_meta("return_to_camp",true)
+		get_tree().change_scene_to_file("res://title.tscn")
+		return
+	if _next_battle=="corinth_map":
+		var next:=_finish_escort()
+		if _campaign and Checkpoint.write_entry(next)!=OK:
+			hud.banner("护送结果保存失败，请重试。",0.)
+			return
+		get_tree().set_meta("journey_entry",next)
+		get_tree().change_scene_to_file("res://journey.tscn")
+		return
+	if _next_battle == "reward":
+		_open_chapter_reward()
+		_refresh()
+		return
+	if not _next_battle.is_empty():
+		var destination := _next_battle
+		_next_battle = ""
+		_load_battle(destination)
+		return
 	if _mode == Mode.BUSY or _mode == Mode.OVER or state.phase != Defs.Phase.PLAYER:
 		return
 	_select("")
 	_set_mode(Mode.BUSY)
-	await _play(Rules.end_phase(state))
-	hud.banner("敌方回合", 0.5)
+	await _advance_phase()
+	if _battle_id == "1-3" and _check_end():
+		return
+	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
 	_refresh()
 	await get_tree().create_timer(0.5).timeout
 	for e in state.living(Defs.Team.ENEMY):
 		while e.alive and not e.has_acted:
+			_active_enemy = e.id
+			hud.set_enemy_order(state,_active_enemy,false)
+			if not e.hidden:
+				_reveal_unit(e.id)
 			var p := EnemyAI.plan(state, e)
 			if p.has("move_to"):
 				await _play(Rules.perform(state, {"type": "move", "unit": e.id, "to": p["move_to"]})["events"])
@@ -520,23 +1580,113 @@ func _end_turn() -> void:
 				return
 			if not Rules.finish_activation(state, e):
 				break
+		_active_enemy = ""
+		hud.set_enemy_order(state,"",false)
 		await get_tree().create_timer(0.12).timeout
-	await _play(Rules.end_phase(state))
+	await _advance_phase()
 	if _check_end():
 		return
-	hud.banner("第 %d 回合 · 我方回合" % state.round_number)
+	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
 	_set_mode(Mode.IDLE)
+	if _battle_id=="2-1": _save_checkpoint(_battle_id)
 
+func _finish_escort() -> Dictionary:
+	var next:=_entry("2-1")
+	next.stage="done"
+	next.divinity=state.reward.divinity
+	next.erase("orders")
+	return next
+
+func _open_chapter_reward() -> void:
+	var entry := Checkpoint.chapter_reward(_entry("1-5"))
+	if _campaign and Checkpoint.write_entry(entry) != OK:
+		hud.banner("章末进度保存失败，点击「领取狮皮」重试。",0.)
+		_next_battle = "reward"
+		return
+	get_tree().set_meta("chapter_reward_screen",{"entry":entry,"campaign":_campaign})
+	get_tree().change_scene_to_file.call_deferred("res://title.tscn")
 
 func _check_end() -> bool:
+	if _next_battle=="camp" and _mode==Mode.OVER:return true
 	var hero := state.unit("hero")
 	if hero == null or not hero.alive or state.living(Defs.Team.PLAYER).is_empty():
+		Soundscape.score("")
+		Soundscape.cue("defeat")
+		if _campaign:
+			_settle_at_camp(_battle_id,"战斗失利，可整备后重试")
+			return true
 		hud.banner("战斗失败　按 R 重开", 0.0)
 		_mode = Mode.OVER
 		_refresh()
 		return true
-	if state.living(Defs.Team.ENEMY).is_empty():
-		hud.banner("胜利！　按 R 重开", 0.0)
+	if _battle_id=="1-3" and not state.unit("wounded_chiron").alive:
+		_mode = Mode.OVER
+		_chiron_joined = false
+		_outcomes[_battle_id]="喀戎负伤离开"
+		Soundscape.score("")
+		if _campaign:
+			_settle_at_camp("1-4","喀戎负伤离开")
+			return true
+		hud.show_feast_result(false,_load_battle)
+		_save_checkpoint("1-4")
+		_refresh()
+		return true
+	if not state.escort_exits.is_empty():
+		if state.escort_result=="":return false
+		_mode=Mode.OVER
+		if state.escort_result=="win":
+			_outcomes["2-1"]="已通关"
+			if _campaign:
+				Checkpoint.award(_purse,_battle_id)
+				Soundscape.cue("victory")
+				_settle_at_camp("2-1","护送成功，美狄亚已随队撤离")
+				return true
+			_next_battle="corinth_map"
+			var saved:=not _campaign or Checkpoint.write_entry(_finish_escort())==OK
+			hud.banner("护送成功　美狄亚已随队撤离" if saved else "保存失败，点击返回行军图重试",0.)
+			Soundscape.cue("victory")
+		else:
+			if _campaign:
+				_settle_at_camp("2-1","护送失败，可整备后重试")
+				return true
+			hud.banner("美狄亚倒下了　按 R 重试",0.)
+			Soundscape.cue("defeat")
+		_refresh()
+		return true
+	if state.village_result == "win" or state.rescue_result == "win" or (village == null and not map_view.woodland and state.living(Defs.Team.ENEMY).is_empty()):
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		if _campaign: Checkpoint.award(_purse,_battle_id)
+		if map_view.woodland:
+			_rescued.clear()
+			for id in state.order:
+				var traveler := state.unit(id)
+				if traveler.def_id == "refugee" and traveler.hidden and traveler.alive:
+					_rescued.append(id)
+			if _campaign:
+				_settle_at_camp("1-4","林道已肃清，%d 名村民获救"%_rescued.size(),_rescued.size()>=2)
+				return true
+			hud.show_rescue_result(state,_load_battle.bind("1-2"),_load_battle,_campaign)
+			_save_checkpoint("1-4",_rescued.size() >= 2)
+		elif _battle_id=="1-3":
+			_chiron_joined = true
+			if _campaign:
+				_settle_at_camp("1-4","酒宴结束，喀戎加入队伍")
+				return true
+			hud.show_feast_result(true,_load_battle)
+			_save_checkpoint("1-4")
+		elif _battle_id == "1-5":
+			_open_chapter_reward()
+		elif _battle_id in ["1-1","1-4"]:
+			_next_battle = "1-2" if _battle_id=="1-1" else "1-5"
+			if _campaign:
+				_settle_at_camp(_next_battle,"村口已安全" if _battle_id=="1-1" else "山谷已肃清")
+				return true
+			hud.banner("村口已安全　前往林间山道" if _battle_id=="1-1" else "山谷已肃清　前往双口洞穴",0.0)
+			_save_checkpoint(_next_battle)
+		else:
+			hud.banner("胜利！　按 R 重开",0.0)
 		_mode = Mode.OVER
 		_refresh()
 		return true
@@ -546,30 +1696,75 @@ func _check_end() -> bool:
 # --- Presentation refresh --------------------------------------------------------
 
 func _refresh() -> void:
+	hud.wheel.hide()
 	if state == null:
 		return
 	var phase_text := "我方回合" if state.phase == Defs.Phase.PLAYER else "敌方回合"
-	hud.set_phase("第 %d 回合 · %s" % [state.round_number, phase_text])
-	hud.set_end_enabled(_mode != Mode.BUSY and _mode != Mode.OVER and state.phase == Defs.Phase.PLAYER)
+	var heading := "第 %d 回合 · %s" % [state.round_number, phase_text]
+	var objective := ""
+	if village != null:
+		objective = "两人抵达北门，或歼灭三批狼群"
+		if state.round_number < 3:
+			objective += "\n阿塔兰忒将在第 3 回合从北面山脊支援"
+	if map_view.woodland:
+		heading += "　·　已撤离 %d/3" % rescued_count
+		objective = "肃清林道，护送至少两人。指向村民可查看撤离路线和威胁。\n第 4 回合南北夹击，第 6 回合头目从东侧入场。"
+	if _battle_id=="2-1":
+		objective="美狄亚已入队。护送她抵达东门的青绿色出口；主角和美狄亚必须存活。"
+	hud.overlay.charge_lanes.clear()
+	if _battle_id=="1-3":
+		objective = "护住负伤的喀戎，击退五名半人马。喀戎会在我方回合结束时放箭。"
+		if state.phase==Defs.Phase.PLAYER and _mode==Mode.IDLE:
+			for rider in state.living(Defs.Team.ENEMY):
+				var sim := EnemyAI.simulate(state,rider)
+				var path: Array = [rider.pos]
+				for event in sim.events:
+					if event.type=="move": path.append_array(event.path)
+					if event.type=="attack" and event.notes.has("charge"):
+						path.append(state.unit(event.target).pos)
+						hud.overlay.charge_lanes.append(path)
+	hud.set_enemy_order(state,_active_enemy,_mode == Mode.OVER)
+	hud.set_mission(_mission_name,heading,objective)
+	hud.set_view_options(_show_threat,tactical)
+	_available_units.clear()
+	var movers := 0
+	for ally in state.living(Defs.Team.PLAYER):
+		if ally.id == "wounded_chiron" or ally.def_id == "refugee" or ally.hidden or (ally.has_acted and ally.post_move <= 0):
+			continue
+		_available_units.append(ally.id)
+		if ally.has_acted:
+			movers += 1
+	hud.set_available_units(_available_units.size()-movers,movers,state.phase == Defs.Phase.PLAYER and _mode not in [Mode.BUSY,Mode.OVER])
+	hud.menu_button.disabled = _mode == Mode.BUSY
+	hud.set_turn_command(not _next_battle.is_empty() or (_mode != Mode.BUSY and _mode != Mode.OVER and state.phase == Defs.Phase.PLAYER),_next_battle)
 
 	highlights.clear_all()
+	if _battle_id=="2-1": highlights.show_frame("east_gate",state.escort_exits,Color("#48ddbb"),8)
+	if map_view.woodland:
+		highlights.show_frame("rescue_gate",state.rescue_exits,Color("#64bcad"),8)
+	if village != null:
+		highlights.show_frame("gate",state.village_exits,Color("#6bbaac"),8)
 	if _show_threat:
 		var cells := {}
 		for e in state.living(Defs.Team.ENEMY):
+			if e.hidden:
+				continue
 			for c in EnemyAI.threat_cells(state, e):
 				cells[c] = true
-		highlights.show_cells("threat", cells.keys(), Color(0.95, 0.45, 0.15), 0, 1)
+		highlights.show_threat("threat",cells.keys())
 
 	if not state.cave.is_empty():
 		var boss := state.unit(state.cave["boss"])
+		var next_exit := EnemyAI.cave_entrance(state,boss) if boss != null and boss.alive and boss.hidden else ""
 		for id in state.cave["entrances"]:
+			cave_mouths[id].set_warning(id == next_exit)
 			var ent: Dictionary = state.cave["entrances"][id]
 			var cells: Array = [ent["anchor"], ent["anchor"] + Vector2i(1, 0), ent["anchor"] + Vector2i(0, 1), ent["anchor"] + Vector2i(1, 1)]
 			if ent["sealed"]:
 				highlights.show_cells("lair_" + id, cells, Color(0.45, 0.45, 0.5), 0, 1)
-			elif boss != null and boss.alive and boss.hidden and EnemyAI.cave_entrance(state, boss) == id:
+			elif next_exit == id:
 				highlights.show_frame("lair_" + id, cells, Color(1.0, 0.3, 0.2), 14)  # intent: it comes out here
-			else:
+			elif tactical:
 				highlights.show_frame("lair_" + id, cells, Color(0.95, 0.75, 0.3), 9)
 
 	var u := state.unit(_selected) if _selected != "" else null
@@ -577,19 +1772,30 @@ func _refresh() -> void:
 		_selected = ""
 		u = null
 	_actions = []
+	_reachable.clear()
 	if u != null and _mode != Mode.OVER:
 		if _mode == Mode.TARGET:
 			_show_targets(u)
 		elif _mode != Mode.BUSY and ((not u.has_moved and not u.has_acted) or (u.has_acted and u.post_move > 0)):
-			var reach := Movement.destinations(state, u, u.post_move if u.has_acted else -1)
+			_reachable = Movement.destinations(state, u, u.post_move if u.has_acted else -1)
 			var cells: Array = []
-			for a in reach:
+			for a in _reachable:
 				if a != u.pos:
 					cells.append_array(u.footprint(a))
-			highlights.show_cells("move", cells, Color(0.3, 0.6, 1.0), 1, 0)
+			highlights.show_cells("move", cells, Color("#5b9995"), 1, 0)
 		_actions = _actions_for(u)
+	var prompt := "选择行动　·　再点角色展开"
+	if _mode == Mode.TARGET:
+		prompt = "选择落点" if _needs_landing() else "选择目标"
+		for action in _actions:
+			if action.get("active",false):
+				prompt = "%s　·　%s" % [action["label"],prompt]
+				break
+	elif _mode == Mode.FACING:
+		prompt = "选择朝向"
+	hud.set_action_context(prompt,_mode in [Mode.TARGET,Mode.FACING])
 	hud.set_actions(_actions if _mode != Mode.BUSY else [])
-	hud.set_unit_text(_unit_text(u) if u != null else "")
+	hud.set_unit(u,state.unit_height(u) if u != null else 0,_mode == Mode.BUSY)
 	_on_hover()
 
 
@@ -616,6 +1822,9 @@ func _show_targets(u: UnitState) -> void:
 	if _pending.has("to"):
 		highlights.show_frame("landing_pick", u.footprint(_pending["to"]), Color(1.0, 0.85, 0.3), 12)
 	highlights.show_cells("range", t["in_range"], Color(0.9, 0.3, 0.25), 1, 0)
+	if _pending.get("skill","")=="purify_arrow":
+		highlights.show_cells("valid",t["valid"],Color("#8fe6ae"),2,2,.12)
+		return
 	highlights.show_cells("valid", t["valid"], Color(1.0, 0.25, 0.2), 2, 2, 0.12)
 
 
@@ -625,9 +1834,12 @@ func _actions_for(u: UnitState) -> Array:
 	var can_act := my_phase and not u.has_acted
 	for sk in u.skills:
 		var cd := u.cooldown(sk)
-		var label: String = SkillCatalog.get_skill(sk)["name"] + ("（%d）" % cd if cd > 0 else "")
+		var label: String = SkillCatalog.get_skill(sk)["name"]
 		var act := {"type": "skill", "skill": sk}
-		out.append({"label": label, "kind": "target", "action": act,
+		if SkillCatalog.get_skill(sk).has("self_status"):
+			out.append({"label":label,"cooldown":cd,"kind":"do","action":act,"enabled":can_act and cd==0 and u.grappling_id=="" and not u.has_status("feared")})
+			continue
+		out.append({"label": label, "cooldown": cd, "kind": "target", "action": act,
 			"enabled": can_act and cd == 0 and u.grappling_id == "",
 			"active": _is_pending(act)})
 	if u.has_trait("grapple"):
@@ -663,53 +1875,36 @@ func _actions_for(u: UnitState) -> Array:
 	return out
 
 
-func _unit_text(u: UnitState) -> String:
-	var lines: Array[String] = []
-	var team := "[color=#7fb2ff]我方[/color]" if u.team == Defs.Team.PLAYER else "[color=#ff8c7a]敌方[/color]"
-	lines.append("[b]%s[/b]　%s" % [u.display_name, team])
-	lines.append("生命 %d/%d　力量 %d　防御 %d　意志 %d" % [maxi(u.hp, 0), u.max_hp, u.strength, u.defense, u.will])
-	lines.append("移动 %d　跳跃 %d　高度 %d　朝向 %s" % [u.move, u.jump, state.unit_height(u), _facing_name(u.facing)])
-	if u.is_boss():
-		lines.append("破势 %d/%d" % [u.stagger, u.stagger_max])
-	var st: Array[String] = []
-	for s in u.statuses:
-		st.append("%s %d" % [EventText.STATUS_NAMES.get(s, s), u.statuses[s]])
-	if not st.is_empty():
-		lines.append("状态：" + "、".join(st))
-	var traits: Array[String] = []
-	if u.has_trait("physical_immune"):
-		traits.append("物理免疫")
-	if u.has_trait("block"):
-		traits.append("正面格挡")
-	if u.has_trait("cannot_attack_adjacent"):
-		traits.append("不能攻击相邻")
-	if u.has_trait("forest_stride"):
-		traits.append("林地疾行")
-	if not traits.is_empty():
-		lines.append("[color=#c8b48a]" + "、".join(traits) + "[/color]")
-	var learned: Array[String] = []
-	for branch in SkillTree.trees().get(u.def_id, []):
-		for n in branch["nodes"]:
-			if u.has_trait(n.get("trait", "-")) or u.skills.has(n.get("skill", "-")):
-				learned.append(n["name"])
-	if not learned.is_empty():
-		lines.append("[color=#9fd3a0]已学：" + "、".join(learned) + "[/color]")
-	if u.has_trait("guest"):
-		lines.append("[color=#9a9a9a]客串：倒下后撤离，不会阵亡[/color]")
-	if u.post_move > 0:
-		lines.append("[color=#9fd3a0]游击：还能移动 %d 格[/color]" % u.post_move)
-	if u.team == Defs.Team.PLAYER:
-		var done := "已移动" if u.has_moved else "可移动"
-		done += "　" + ("已行动" if u.has_acted else "可行动")
-		lines.append("[color=#9a9a9a]%s[/color]" % done)
-	return "\n".join(lines)
+func _inspect_enemy_order(id: String) -> void:
+	if state == null:
+		return
+	if id.is_empty():
+		_on_hover()
+		return
+	var u := state.unit(id)
+	if _mode == Mode.BUSY or u == null:
+		return
+	var sim := EnemyAI.simulate(state,u)
+	var caption := "%d · %s　当前局面推演" % [hud.enemy_numbers[id],u.display_name]
+	if sim["events"].is_empty():
+		hud.set_info_text("待机",caption)
+	else:
+		hud.preview_records(state,sim["events"],caption)
 
 
-func _facing_name(f: Vector2i) -> String:
-	return {Defs.NORTH: "北", Defs.EAST: "东", Defs.SOUTH: "南", Defs.WEST: "西"}.get(f, "?")
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and hud != null and hud.overlay != null and hud.is_over_panel(event.position):
+		if hud.overlay.rescue_route.is_empty() and hud.overlay.fall_preview.is_empty():
+			return
+		_hovered = Defs.NO_POS
+		_on_hover()
 
 
 func _on_hover() -> void:
+	hud.overlay.fall_preview.clear()
+	hud.overlay.rescue_route.clear()
+	hud.overlay.rescue_threats.clear()
+	highlights.clear("route")
 	highlights.clear("hover")
 	highlights.clear("landing")
 	highlights.clear("intent")
@@ -720,9 +1915,33 @@ func _on_hover() -> void:
 	highlights.show_frame("hover", [_hovered], Color(1, 1, 0.85))
 	var at := state.unit_at(_hovered)
 	var info: Array[String] = []
+	var forecast := ""
+	var inspected: UnitState
+	var inspected_intent := ""
+	var preview_events: Array = []
+	var preview_caption := "行动预览　·　左键确认"
 	var terrain_names := ["平地", "林地", "浅水", "深水", "沼泽", "燃烧", "冥河"]
 	info.append("[color=#c8b48a]格子 (%d, %d)　高度 %d　%s[/color]" % [_hovered.x, _hovered.y,
 		state.grid.height_at(_hovered), terrain_names[state.grid.terrain_at(_hovered)]])
+
+	if map_view.woodland and _mode == Mode.IDLE and state.phase == Defs.Phase.PLAYER and at != null and at.def_id == "refugee":
+		var plan := state.query({"op":"rescue_preview","unit":at.id})
+		hud.overlay.rescue_route.append(at.pos)
+		hud.overlay.rescue_route.append_array(GoEngine.cells(plan.path))
+		hud.overlay.rescue_threats.assign(plan.threats)
+		var intent := "本回合抵达西口" if plan.escapes else ("本回合原地等待" if plan.path.is_empty() else "本回合向西撤离")
+		if not plan.threats.is_empty():
+			intent += "　·　%d 名敌人可攻击停留格" % plan.threats.size()
+		hud.show_unit_inspection(at,state.unit_height(at),intent)
+		return
+
+	if _mode == Mode.IDLE and at == null and _reachable.has(_hovered):
+		var preview := Rules.preview(state,{"type":"move","unit":_selected,"to":_hovered})
+		for event in preview["events"]:
+			if event["type"] == "move":
+				highlights.show_frame("route",event["path"],Color("#afe1ca"),9)
+				break
+		info.append("移动消耗  %d　·　左键前往" % _reachable[_hovered]["cost"])
 
 	if _mode == Mode.TARGET and _needs_landing():
 		info.append("[b]选择落点[/b]（3 格内，最多高 3 层）")
@@ -733,20 +1952,30 @@ func _on_hover() -> void:
 		var err := Rules.validate(state, act)
 		if err == "":
 			var p := Rules.preview(state, act)
-			info.append("[b]预览[/b]")
-			info.append_array(EventText.describe(state, p["events"]))
+			info.append("[b]行动预览[/b]　·　左键确认")
+			preview_events = p["events"]
+			var landed := {}
 			for e in p["events"]:
+				if e["type"] in ["damage","heal"] and at != null and e["target"] == at.id:
+					forecast = "%s　生命 %d → %d" % [at.display_name,at.hp,maxi(0,e["hp"])]
 				if e["type"] == "knockback":
-					highlights.show_frame("landing", state.unit(e["target"]).footprint(e["to"]), Color(1, 1, 1), 11)
+					landed[e.target] = map_view.anchor_world(state,e.to,state.unit(e.target).size)
+					highlights.show_frame("landing", state.unit(e.target).footprint(e.to), Color("#ffcb8c"), 11)
+				if e.type == "fall" and landed.has(e.target):
+					hud.overlay.fall_preview = {"world":landed[e.target],"levels":e.levels}
+				if e.type == "damage" and e.source == "fall" and not hud.overlay.fall_preview.is_empty():
+					hud.overlay.fall_preview.damage = e.amount
 		else:
 			info.append("[color=#e88]不能对其使用：%s[/color]" % EventText.error_text(err))
-	elif at != null and at.team == Defs.Team.ENEMY and _mode != Mode.BUSY:
-		info.append(_unit_text(at))
+	elif at != null and at.team == Defs.Team.ENEMY and _mode != Mode.BUSY and hud.enemy_numbers.has(at.id):
+		inspected = at
 		var sim := EnemyAI.simulate(state, at)
 		info.append("[b]意图（若现在轮到它）[/b]")
-		var lines := EventText.describe(state, sim["events"])
-		info.append_array(lines if not lines.is_empty() else ["  待机"] as Array[String])
-		highlights.show_cells("intent", EnemyAI.threat_cells(state, at), Color(0.95, 0.55, 0.2), 0, 1)
+		preview_events = sim["events"]
+		preview_caption = "%s　·　预计行动" % at.display_name
+		if preview_events.is_empty():
+			inspected_intent = "待机"
+		highlights.show_threat("intent",EnemyAI.threat_cells(state,at))
 		var act: Dictionary = sim["plan"]["action"]
 		if act.get("type", "") == "skill":
 			var from: Vector2i = sim["plan"].get("move_to", at.pos)
@@ -754,8 +1983,13 @@ func _on_hover() -> void:
 			var tgt := state.unit_at(act["target"])
 			hud.overlay.intent_to = (unit_views[tgt.id] as UnitView).position + Vector3(0, 0.3, 0)
 	elif at != null and at.id != _selected:
-		info.append(_unit_text(at))
-	hud.set_info_text("\n".join(info))
+		inspected = at
+	if not preview_events.is_empty():
+		hud.preview_records(state,preview_events,preview_caption,_mode == Mode.TARGET)
+	elif inspected != null:
+		hud.show_unit_inspection(inspected,state.unit_height(inspected),inspected_intent)
+	else:
+		hud.set_info_text("\n".join(info),forecast)
 
 
 # --- Scripted captures (for automated screenshots) -------------------------------
@@ -765,6 +1999,93 @@ func _run_capture() -> void:
 	match _demo:
 		"build":
 			pass
+		"motion", "material", "material_side", "material_close", "material_far":
+			cam_rig.focus(map_view.to_global(Vector3(2.7,1.05,5.7)))
+			if _demo == "material_side":
+				cam_rig.set_quadrant(1)
+			if _demo in ["material_close","motion"]:
+				cam_rig.zoom_step(1)
+			if _demo == "material_far":
+				cam_rig.zoom_step(-1)
+			if _demo == "motion":
+				_select("hero")
+			await get_tree().create_timer(0.55).timeout
+			await _perform({"type":"move","unit":"hero","to":Vector2i(3,5)})
+			if _demo == "motion":
+				_pending = {"type":"skill","skill":"spear"}
+				_mode = Mode.TARGET
+				_hovered = Vector2i(3,6)
+				_refresh()
+				_on_hover()
+				await get_tree().create_timer(0.65).timeout
+				_hovered = Defs.NO_POS
+			await _perform({"type":"skill","unit":"hero","skill":"spear","target":Vector2i(3,6)})
+			await _end_turn()
+			if _demo == "motion":
+				await get_tree().create_timer(0.8).timeout
+		"field_wind":
+			cam_rig.focus(map_view.to_global(Vector3(1.4,.8,5.8)))
+			await get_tree().create_timer(6.5).timeout
+		"workshop_entry":
+			cam_rig.focus(map_view.to_global(Vector3(11.0,.8,5.8)))
+			cam_rig.set_quadrant(1)
+			cam_rig.zoom_step(1)
+		"workshop", "village_ruin":
+			var workshop := _demo == "workshop"
+			cam_rig.focus(map_view.to_global(Vector3(-2.1,.45,5.1) if workshop else Vector3(-2.15,.60,6.65)))
+			cam_rig.set_quadrant(0 if workshop else 2)
+			cam_rig.zoom_step(1)
+		"art_side":
+			cam_rig.set_quadrant(1)
+		"escape", "escape_far":
+			if _demo == "escape_far":
+				cam_rig.zoom_step(-1)
+			_select("hero")
+			await get_tree().create_timer(.95).timeout
+			await _perform({"type":"move","unit":"hero","to":Vector2i(3,5)})
+			await _perform({"type":"skill","unit":"hero","skill":"spear","target":Vector2i(3,6)})
+			await _end_turn()
+			if _demo == "escape_far":
+				cam_rig.rotate_step(1)
+			_select("hero")
+			await get_tree().create_timer(.48).timeout
+			await _perform({"type":"move","unit":"hero","to":Vector2i(6,4)})
+			await _end_turn()
+			if _demo == "escape_far":
+				cam_rig.rotate_step(1)
+			_select("hero")
+			await get_tree().create_timer(.48).timeout
+			await _perform({"type":"move","unit":"hero","to":Vector2i(8,2)})
+			_select("atalanta")
+			await get_tree().create_timer(.48).timeout
+			await _perform({"type":"move","unit":"atalanta","to":Vector2i(9,0)})
+			await _end_turn()
+			_select("hero")
+			await get_tree().create_timer(.48).timeout
+			await _perform({"type":"move","unit":"hero","to":Vector2i(8,0)})
+			print("village escape: ",state.village_result)
+			await get_tree().create_timer(0.75).timeout
+		"pounce":
+			# A fixed legal exchange from the ordinary 1-5 starting state.
+			await _perform({"type":"move","unit":"hero","to":Vector2i(6,8)})
+			cam_rig.focus(map_view.to_global(Vector3(6,0.85,7.8)))
+			cam_rig.zoom_step(1)
+			await _advance_phase()
+			_refresh()
+			await get_tree().create_timer(0.45).timeout
+			await _perform({"type":"skill","unit":"lion","skill":"pounce","target":Vector2i(6,8),"to":Vector2i(5,6)})
+			await _advance_phase()
+			_refresh()
+			await get_tree().create_timer(0.4).timeout
+			await _perform({"type":"skill","unit":"hero","skill":"spear","target":Vector2i(5,6)})
+			await get_tree().create_timer(0.55).timeout
+		"skirmish":
+			# Advance a legal opening move and let the battle AI answer.
+			_select("hero")
+			await get_tree().create_timer(0.5).timeout
+			await _perform({"type":"move", "unit":"hero", "to":Vector2i(6, 8)})
+			await _end_turn()
+			await get_tree().create_timer(0.5).timeout
 		"move":
 			_select("hero")
 			_hovered = Vector2i(3, 6)
@@ -780,8 +2101,7 @@ func _run_capture() -> void:
 			_hovered = Vector2i(6, 4)
 		"threat":
 			_show_threat = true
-			tactical = true
-			map_view.set_tactical(true)
+			_set_tactical(true)
 			_hovered = Vector2i(9, 5)
 			_refresh()
 		"leap":
@@ -812,7 +2132,8 @@ func _run_capture() -> void:
 			print("demo finished (headless, no image): build panel")
 	else:
 		await RenderingServer.frame_post_draw
-		get_viewport().get_texture().get_image().save_png(_capture_path)
+		var source := _viewport if _demo in ["art", "art_side","workshop","village_ruin","workshop_entry"] or _demo.begins_with("material") else get_viewport()
+		source.get_texture().get_image().save_png(_capture_path)
 		print("captured ", _capture_path)
 	GoEngine.shutdown()
 	get_tree().quit()

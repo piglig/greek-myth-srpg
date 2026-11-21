@@ -102,6 +102,7 @@ func Do(s *BattleState, a Action, ev *[]Event) string {
 		doMove(s, u, a.To, ev)
 	case ActUndoMove:
 		emit(ev, Event{Type: EvUndoMove, Unit: u.ID, From: u.Pos, To: u.undoPos})
+		u.chargeDir = Cell{}
 		u.Pos = u.undoPos
 		u.Facing = u.undoFacing
 		u.HasMoved = false
@@ -132,6 +133,16 @@ func Do(s *BattleState, a Action, ev *[]Event) string {
 	case ActRelease:
 		EndGrapple(s, u, ev, "released")
 	case ActWait:
+		if u.Team == TeamEnemy && u.Traits.Has("turn_on_guard") && !u.Hidden && u.GrapplingID == "" && u.GrappledByID == "" {
+			facing := guardFacing(s, u)
+			if u.Facing != facing {
+				u.Facing = facing
+				emit(ev, Event{Type: EvFace, Unit: u.ID, Facing: facing})
+			}
+		}
+		if s.Reward.Charms["olive"] == u.ID {
+			u.HP = min(u.MaxHP, u.HP+4)
+		}
 		u.SetStatus("guard", 1)
 		u.HasActed = true
 		emit(ev, Event{Type: EvStatus, Target: u.ID, Status: "guard", Rounds: 1})
@@ -146,7 +157,7 @@ func Do(s *BattleState, a Action, ev *[]Event) string {
 		doEmerge(s, u, a.Entrance, ev)
 	case ActMark:
 		t := s.UnitAt(a.Target)
-		s.MarkedID = t.ID
+		s.setMark(t.ID)
 		u.MarkUsed = true
 		emit(ev, Event{Type: EvMark, Unit: u.ID, Target: t.ID})
 	}
@@ -163,6 +174,12 @@ func Validate(s *BattleState, a Action) string {
 	u := s.Unit(a.Unit)
 	if u == nil || !u.Alive {
 		return "no such unit"
+	}
+	if u.ID == "wounded_chiron" {
+		return "wounded ally"
+	}
+	if u.DefID == "refugee" {
+		return "civilian follows escape route"
 	}
 	if !isUnitsPhase(s, u) {
 		return "not this unit's phase"
@@ -273,6 +290,9 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if u.GrapplingID != "" {
 		return "grappling"
 	}
+	if sk.SelfStatus != "" {
+		return ""
+	}
 	if sk.IsArea() {
 		if u.GrappledByID != "" {
 			return "grappled"
@@ -357,7 +377,14 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 	if s.Grid.InBounds(cell) {
 		target = s.UnitAt(cell)
 	}
-	if target == nil || target.Team == u.Team {
+	if sk.ID == "purify_arrow" {
+		if target == nil || target.Team != u.Team || target.DefID == "chiron" {
+			return "need healable ally"
+		}
+		if target.HP == target.MaxHP && cleanseTarget(target) == "" {
+			return "unhurt ally"
+		}
+	} else if target == nil || target.Team == u.Team {
 		return "no enemy there"
 	}
 	ranged := sk.Ranged
@@ -370,7 +397,7 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		if s.UnitHeight(u)-s.UnitHeight(target) >= HighGroundRangeLevel {
 			maxR++
 		}
-		if u.Traits.HunterMark && s.MarkedID == target.ID {
+		if u.Traits.HunterMark && s.IsMarked(target.ID) {
 			maxR += MarkRangeBonus
 		}
 		if u.Traits.CannotAttackAdjacent {
@@ -433,12 +460,32 @@ func doMove(s *BattleState, u *UnitState, to Cell, ev *[]Event) {
 	if ev != nil {
 		emit(ev, Event{Type: EvMove, Unit: u.ID, From: u.Pos, To: to, Path: reach.PathTo(to)})
 	}
+	if u.DefID == "centaur" {
+		u.chargeDir = straightRun(u.Pos, reach.PathTo(to))
+	}
 	u.Pos = to
 	u.HasMoved = true
 }
 
+func cleanseTarget(target *UnitState) string {
+	for _, status := range []string{"burning", "poisoned", "feared"} {
+		if target.HasStatus(status) {
+			return status
+		}
+	}
+	return ""
+}
+
 func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 	sk := u.Skill(a.Skill)
+	if sk.SelfStatus != "" {
+		u.HasActed = true
+		u.SetCooldown(sk.ID, sk.Cooldown)
+		u.SetStatus(sk.SelfStatus, sk.Rounds)
+		s.Reward.Divinity += 2
+		emit(ev, Event{Type: EvStatus, Target: u.ID, Status: sk.SelfStatus, Rounds: sk.Rounds})
+		return
+	}
 	if sk.IsArea() {
 		u.HasActed = true
 		if sk.Cooldown > 0 {
@@ -455,7 +502,39 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		u.Pos = a.To
 		u.HasMoved = true
 	}
-	target := interceptor(s, u, s.UnitAt(a.Target), ev)
+	target := s.UnitAt(a.Target)
+	if sk.ID == "purify_arrow" {
+		u.Facing = dirToward(u, target)
+		u.HasActed = true
+		u.SetCooldown(sk.ID, sk.Cooldown)
+		gain := 8
+		if u.Traits.Has("field_medicine") && target.HP*2 < target.MaxHP {
+			gain = 12
+		}
+		if u.Traits.Has("herb_pouch") {
+			gain += 3
+		}
+		gain = min(gain, target.MaxHP-target.HP)
+		target.HP += gain
+		emit(ev, Event{Type: EvHeal, Unit: u.ID, Target: target.ID, Skill: sk.ID, Amount: gain, HP: target.HP})
+		if u.Traits.Has("triage") {
+			target.Shield += 4
+		}
+		cleanses := 1
+		if u.Traits.Has("antidote") {
+			cleanses++
+		}
+		for i := 0; i < cleanses; i++ {
+			status := cleanseTarget(target)
+			if status == "" {
+				break
+			}
+			target.EraseStatus(status)
+			emit(ev, Event{Type: EvStatusEnd, Target: target.ID, Status: status})
+		}
+		return
+	}
+	target = interceptor(s, u, target, ev)
 	ranged := sk.Ranged
 	u.Facing = dirToward(u, target)
 	u.HasActed = true
@@ -467,9 +546,38 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 	emit(ev, Event{Type: EvAttack, Unit: u.ID, Target: target.ID, Skill: sk.ID, Relation: hit.Relation, Notes: hit.Notes})
 	dodged := target.HasStatus("dodge")
 	Deal(s, target, hit.Amount, sk.Type, sk.ID, ev, true)
+	if !dodged && target.Alive {
+		switch sk.ID {
+		case "witch_fire", "solar_flame", "cinder_lance":
+			rounds := 2
+			if u.Traits.Has("long_flame") {
+				rounds++
+			}
+			AddStatus(s, target, "burning", rounds, ev, false)
+		case "pin_shot", "bind_hex":
+			AddStatus(s, target, "rooted", 1, ev, false)
+		case "night_hex":
+			AddStatus(s, target, "feared", 1, ev, false)
+		case "weak_point":
+			rounds := 2
+			if u.Traits.Has("keen_eye") {
+				rounds++
+			}
+			AddStatus(s, target, "exposed", rounds, ev, false)
+		case "frailty":
+			rounds := 2
+			if u.Traits.Has("lingering_hex") {
+				rounds++
+			}
+			AddStatus(s, target, "weakened", rounds, ev, false)
+		}
+	}
 	if !dodged {
 		stagger := StaggerFromRelation(hit.Relation) + sk.StaggerBonus
-		if s.MarkedID == target.ID && hit.Relation != Front {
+		if sk.ID == "weak_point" && u.Traits.Has("mentor_stagger") {
+			stagger += 20
+		}
+		if s.IsMarked(target.ID) && hit.Relation != Front {
 			stagger += sk.MarkedFlankStagger
 		}
 		AddStagger(target, stagger, ev)
@@ -482,7 +590,11 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		assist(s, u, target, ev)
 	}
 	if sk.Knockback > 0 && target.Alive && !dodged {
-		Knockback(s, target, dirToward(u, target), sk.Knockback, sk.ID, ev)
+		distance := sk.Knockback
+		if s.Reward.Charms["wrist"] == u.ID {
+			distance++
+		}
+		Knockback(s, target, dirToward(u, target), distance, sk.ID, ev)
 	}
 }
 
@@ -529,9 +641,7 @@ func doRetreat(s *BattleState, u *UnitState, ev *[]Event) {
 	u.HasActed = true
 	u.ActionsLeft = 1 // 回合到此结束
 	s.Cave.Last = "retreat"
-	if s.MarkedID == u.ID {
-		s.MarkedID = ""
-	}
+	s.removeMark(u.ID)
 	emit(ev, Event{Type: EvRetreat, Unit: u.ID})
 }
 
@@ -618,7 +728,7 @@ func doSlam(s *BattleState, u *UnitState, cell Cell, ev *[]Event) {
 // 一个相邻的同伴（按单位顺序的第一个）追加 30% 的援护攻击，每人每回合一次。
 func assist(s *BattleState, attacker, target *UnitState, ev *[]Event) {
 	for _, ally := range s.Units {
-		if !ally.Alive || ally.Team != attacker.Team {
+		if !ally.Alive || ally.Hidden || ally.DefID == "refugee" || ally.ID == "wounded_chiron" || ally.Team != attacker.Team {
 			continue
 		}
 		if ally == attacker || ally.AssistUsed || ally.HasStatus("stunned") {
@@ -658,6 +768,7 @@ func doGrapple(u, t *UnitState, ev *[]Event) {
 func StartBattle(s *BattleState) {
 	s.ClearMoveCache()
 	s.Round = 1
+	s.ignite()
 	beginPhase(s, PhasePlayer, nil)
 }
 
@@ -666,11 +777,25 @@ func StartBattle(s *BattleState) {
 func EndPhase(s *BattleState) []Event {
 	events := []Event{}
 	if s.Phase == PhasePlayer {
+		chironVolley(s, &events)
+		s.evacuate(&events)
 		beginPhase(s, PhaseEnemy, &events)
 	} else {
 		SettleRound(s, &events)
+		if s.Round == 1 && s.Reward.Boon == "swift_boots" {
+			for _, u := range s.Units {
+				if u.Team == TeamPlayer {
+					u.Move -= 2
+				}
+			}
+		}
 		s.Round++
+		s.ignite()
+		archer := s.arrivals(&events)
 		beginPhase(s, PhasePlayer, &events)
+		if archer != nil {
+			s.ridgeShot(archer, &events)
+		}
 	}
 	return events
 }
@@ -697,6 +822,7 @@ func beginPhase(s *BattleState, phase Phase, ev *[]Event) {
 		team = TeamPlayer
 	}
 	for _, u := range s.Units {
+		u.chargeDir = Cell{}
 		u.undoOK = false
 		if !u.Alive {
 			continue

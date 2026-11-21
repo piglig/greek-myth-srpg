@@ -2,15 +2,18 @@ class_name CameraRig
 extends Node3D
 ## Orthographic tactics camera: fixed pitch, 90° yaw steps, three zoom levels, pixel-snapped.
 
-const PITCH_DEG := 33.0
+const PITCH_DEG := 30.0
 const DISTANCE := 40.0
 const BASE_YAW := 45.0
-const ZOOM_PPU := [24.0, 32.0, 48.0]  ## low-res pixels per world unit
+const ZOOM_PPU := [21.213203, 28.284271, 42.426407]  ## low-res pixels per world unit
 const ROTATE_SPEED := 600.0  ## degrees per second
 const PAN_SPEED := 7.0  ## world units per second at the middle zoom
 
+var tactical := false
+var painted := false
 var camera: Camera3D
 var post: MeshInstance3D
+var _glide: Tween
 var pivot := Vector3.ZERO
 var bounds := AABB()
 var zoom_index := 1
@@ -30,6 +33,7 @@ func _ready() -> void:
 	quad.size = Vector2(2, 2)
 	post = MeshInstance3D.new()
 	post.mesh = quad
+	post.position.z = -1.0
 	post.extra_cull_margin = 16384.0
 	post.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mat := ShaderMaterial.new()
@@ -39,11 +43,27 @@ func _ready() -> void:
 
 
 func ppu() -> float:
-	return ZOOM_PPU[zoom_index]
+	var density := float(ZOOM_PPU[zoom_index])
+	if painted:
+		density *= get_viewport().get_visible_rect().size.y / 360.0
+	return density
 
 
 func focus(point: Vector3) -> void:
 	pivot = point
+	_apply()
+
+
+func glide_to(point: Vector3) -> void:
+	if _glide:
+		_glide.kill()
+	_glide = create_tween()
+	_glide.tween_property(self,"pivot",point,0.32).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func set_quadrant(turn: int) -> void:
+	_target_yaw = (-15.0 if painted else BASE_YAW) + 90.0 * turn
+	_yaw = _target_yaw
 
 
 func rotate_step(dir: int) -> void:
@@ -52,7 +72,7 @@ func rotate_step(dir: int) -> void:
 
 ## 0..3, the current quarter-turn (for mapping screen directions to the grid).
 func yaw_quadrant() -> int:
-	return posmod(roundi((_target_yaw - BASE_YAW) / 90.0), 4)
+	return posmod(roundi((_target_yaw - (-15.0 if painted else BASE_YAW)) / 90.0), 4)
 
 
 func zoom_step(dir: int) -> void:
@@ -65,9 +85,11 @@ func set_post_enabled(on: bool) -> void:
 
 ## Pans by a screen-space vector expressed in low-res pixels.
 func pan_pixels(delta: Vector2) -> void:
+	if _glide:
+		_glide.kill()
 	var right := _ground_right()
 	var fwd := _ground_forward()
-	pivot -= right * (delta.x / ppu()) - fwd * (delta.y / (ppu() * sin(deg_to_rad(PITCH_DEG))))
+	pivot -= right * (delta.x / ppu()) - fwd * (delta.y / (ppu() * sin(deg_to_rad(_pitch_degrees()))))
 	_clamp_pivot()
 
 
@@ -76,18 +98,24 @@ func _process(dt: float) -> void:
 		Input.get_axis("ui_left", "ui_right") + _key_axis(KEY_A, KEY_D),
 		Input.get_axis("ui_up", "ui_down") + _key_axis(KEY_W, KEY_S))
 	if move != Vector2.ZERO:
-		var speed := PAN_SPEED * (32.0 / ppu()) * dt
+		if _glide:
+			_glide.kill()
+		var speed := PAN_SPEED * (32.0 / float(ZOOM_PPU[zoom_index])) * dt
 		pivot += (_ground_right() * move.x - _ground_forward() * move.y).normalized() * speed * move.length()
 		_clamp_pivot()
 	_yaw = move_toward(_yaw, _target_yaw, ROTATE_SPEED * dt)
 	_apply()
 
 
+func _pitch_degrees() -> float:
+	return 56.0 if tactical else (45.0 if painted else PITCH_DEG)
+
+
 func _apply() -> void:
 	var vh := float(get_viewport().get_visible_rect().size.y)
 	camera.size = vh / ppu()
 	var yaw := deg_to_rad(_yaw)
-	var pitch := deg_to_rad(PITCH_DEG)
+	var pitch := deg_to_rad(_pitch_degrees())
 	var dir := Vector3(sin(yaw) * cos(pitch), sin(pitch), cos(yaw) * cos(pitch))
 	var pos := pivot + dir * DISTANCE
 	camera.global_transform = Transform3D(Basis(), pos).looking_at(pivot, Vector3.UP)

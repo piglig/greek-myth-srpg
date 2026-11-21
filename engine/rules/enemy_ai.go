@@ -43,6 +43,11 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 		return Plan{Action: Simple(ActStruggle, su.ID)}
 	}
 
+	if su.DefID == "centaur" {
+		if p, ok := feastLane(sim, su); ok {
+			return p
+		}
+	}
 	if lair, ok := CaveAction(sim, su); ok {
 		return Plan{Action: lair}
 	}
@@ -71,6 +76,9 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 	for _, anchor := range anchors {
 		// 原地校验；只有确实打得到的攻击才复制状态去试
 		su.Pos = anchor
+		if su.DefID == "centaur" && reach != nil {
+			su.chargeDir = straightRun(home, reach.PathTo(anchor))
+		}
 		su.HasMoved = true
 		for _, sk := range su.Skills {
 			if sk.IsArea() {
@@ -375,6 +383,23 @@ func kills(o Outcome, targetID string) bool {
 		}
 	}
 	return false
+}
+
+// At the end of its activation a guarding enemy watches the nearest opponent.
+func guardFacing(s *BattleState, u *UnitState) Cell {
+	facing := u.Facing
+	best := math.MaxInt
+	for _, target := range s.Units {
+		if !isOpponent(u, target) {
+			continue
+		}
+		distance := FootprintDistance(u, u.Pos, target)
+		direction := dirToward(u, target)
+		if distance < best || (distance == best && direction == u.Facing) {
+			best, facing = distance, direction
+		}
+	}
+	return facing
 }
 
 func isOpponent(u, o *UnitState) bool {

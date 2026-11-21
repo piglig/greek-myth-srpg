@@ -3,7 +3,8 @@ extends RefCounted
 ## Turns rule events into Chinese lines for the preview panel and battle log.
 
 const STATUS_NAMES := {
-	"guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"exposed":"破绽","weakened":"衰弱",
+	"impervious_hide":"不坏之皮","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"feared": "恐惧", "rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
@@ -12,14 +13,16 @@ const SOURCE_NAMES := {
 	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河",
 }
 const NOTE_NAMES := {
-	"block": "格挡", "high_ground": "高处", "cover": "掩体", "marked": "标记",
+	"kindling":"助燃",
+	"charge":"冲锋","block": "格挡", "high_ground": "高处", "cover": "掩体", "marked": "标记",
 	"flanked": "包夹", "guard": "防御姿态", "broken": "破势中", "grappled": "被擒抱",
 	"physical_immune": "物理免疫", "patience": "猎人耐心", "iron_arm": "铁臂", "shield_wall": "盾墙",
 }
 const RELATION_NAMES := ["正面", "侧面", "背面"]
 const ENTRANCE_NAMES := {"west": "西侧", "east": "东侧", "north": "北侧", "south": "南侧"}
 const ERRORS := {
-	"no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
+	"need healable ally":"请选择可治疗的同伴","unhurt ally":"同伴无需救治",
+	"wounded ally":"负伤的喀戎会自行射击","no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
 	"grappled": "正被擒抱", "grappling": "正在擒抱", "cannot move now": "现在不能移动",
 	"unreachable": "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
 	"on cooldown": "冷却中", "feared": "恐惧中，不能攻击", "no enemy there": "那里没有敌人",
@@ -61,6 +64,10 @@ static func describe(state: BattleState, events: Array) -> Array[String]:
 
 static func _line(s: BattleState, e: Dictionary) -> String:
 	match e["type"]:
+		"rescued":
+			return "村民已从西侧山道撤离"
+		"arrival":
+			return s.unit(e["unit"]).display_name + " 进入战场"
 		"attack":
 			var notes: Array[String] = []
 			for n in e["notes"]:
@@ -68,6 +75,8 @@ static func _line(s: BattleState, e: Dictionary) -> String:
 			var extra := "" if notes.is_empty() else "，" + "、".join(notes)
 			return "%s 对 %s 使用「%s」（%s%s）" % [name_of(s, e["unit"]), name_of(s, e["target"]),
 				skill_name(e["skill"]), RELATION_NAMES[e["relation"]], extra]
+		"heal":
+			return "%s 的净化箭为 %s 恢复 %d 点生命（现有 %d）"%[name_of(s,e.unit),name_of(s,e.target),e.amount,e.hp]
 		"damage":
 			var src: String = SOURCE_NAMES.get(e["source"], "")
 			var label := "" if src == "" else src + " "
@@ -124,6 +133,8 @@ static func _line(s: BattleState, e: Dictionary) -> String:
 			return "%s 推动巨石（%d/2）" % [name_of(s, e["unit"]), mini(int(e["progress"]), 2)]
 		"sealed":
 			return "  巨石封住了%s入口" % ENTRANCE_NAMES.get(e["entrance"], e["entrance"])
+		"flee":
+			return s.unit(e.unit).display_name + " 撤出宴地"
 		"retreat":
 			return "%s 退回洞内" % name_of(s, e["unit"])
 		"emerge":

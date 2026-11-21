@@ -72,11 +72,14 @@ func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmg
 	fx, fy := attacker.CenterAt(fromAnchor)
 	rel := RelationOf(fx, fy, target)
 	broken := target.HasStatus("staggered")
-	if dmgType == Physical && target.Traits.PhysicalImmune && !broken {
+	if dmgType == Physical && (target.Traits.PhysicalImmune && !broken || target.HasStatus("impervious_hide")) {
 		return Hit{Amount: 0, Relation: rel, Immune: true, Notes: NotePhysicalImmune}
 	}
 
 	stat := attacker.Strength
+	if attacker.HasStatus("weakened") {
+		stat = max(0, stat-3)
+	}
 	if dmgType == Divine {
 		stat = attacker.Divinity
 	}
@@ -84,6 +87,9 @@ func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmg
 	mitigation := 0
 	if dmgType == Physical {
 		mitigation = target.Defense
+		if target.HasStatus("exposed") {
+			mitigation = max(0, mitigation-3)
+		}
 	} else if dmgType == Divine {
 		mitigation = target.Will
 	}
@@ -91,6 +97,25 @@ func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmg
 
 	var notes Notes
 	m := relationMult(rel)
+	if attacker.Traits.Has("beast_hunter") && target.Size > 1 {
+		m *= 1.2
+	}
+	if dmgType == Divine && attacker.Traits.Has("kindling") && target.HasStatus("burning") {
+		m *= 1.25
+		notes |= NoteKindling
+	}
+	if target.ID == "hero" && s.Reward.EquippedRelic == "lion_pelt" {
+		if dmgType == Physical {
+			base = max(1, base-3)
+		}
+		if rel == Back {
+			m = 1.25
+		}
+	}
+	if attacker.DefID == "centaur" && attacker.chargeDir != (Cell{}) && target.Pos.Sub(fromAnchor) == attacker.chargeDir {
+		m *= 1.5
+		notes |= NoteCharge
+	}
 	if rel == Front && target.Traits.Block {
 		m *= BlockMult
 		notes |= NoteBlock
@@ -105,7 +130,7 @@ func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmg
 		m *= CoverMult
 		notes |= NoteCover
 	}
-	if s.MarkedID == target.ID && attacker.Team == TeamPlayer {
+	if s.IsMarked(target.ID) && attacker.Team == TeamPlayer {
 		m *= MarkMult
 		notes |= NoteMarked
 	}

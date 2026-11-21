@@ -1,0 +1,183 @@
+{
+  "id": "1-2",
+  "title": "1-2 林间劫掠者",
+  "order": 1,
+  "heights": [
+    "333332222233",
+    "322222111122",
+    "222221111112",
+    "222221111111",
+    "222221111111",
+    "222221111111",
+    "222220001111",
+    "222211001111",
+    "222211001112",
+    "222211111122",
+    "332222222223",
+    "333222222233"
+  ],
+  "terrain": [
+    "fffff...ffff",
+    "ffff.....fff",
+    "ff.....fffff",
+    "fff.....ffff",
+    ".......f...f",
+    "............",
+    "............",
+    "f..........f",
+    "ff.....f...f",
+    "fff..fffffff",
+    "ffff..ffffff",
+    "fff..fffffff"
+  ],
+  "rescue_exits": [
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ]
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        2,
+        6
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        3,
+        7
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "traveler_a",
+      "def": "refugee",
+      "team": "player",
+      "pos": [
+        4,
+        5
+      ],
+      "facing": "W",
+      "name": "陶工"
+    },
+    {
+      "id": "traveler_b",
+      "def": "refugee",
+      "team": "player",
+      "pos": [
+        8,
+        5
+      ],
+      "facing": "W",
+      "name": "采药人"
+    },
+    {
+      "id": "traveler_c",
+      "def": "refugee",
+      "team": "player",
+      "pos": [
+        8,
+        7
+      ],
+      "facing": "W",
+      "name": "牧羊人"
+    },
+    {
+      "id": "scout",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        4,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "raider",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        10,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bow",
+      "def": "bandit_archer",
+      "team": "enemy",
+      "pos": [
+        9,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "north_raider",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        9,
+        1
+      ],
+      "facing": "W",
+      "round": 4
+    },
+    {
+      "id": "south_raider",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        10,
+        10
+      ],
+      "facing": "W",
+      "round": 4
+    },
+    {
+      "id": "chief",
+      "def": "bandit_chief",
+      "team": "enemy",
+      "pos": [
+        11,
+        5
+      ],
+      "facing": "W",
+      "round": 6
+    },
+    {
+      "id": "guard",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        11,
+        7
+      ],
+      "facing": "W",
+      "round": 6
+    },
+    {
+      "id": "ridge_bow",
+      "def": "bandit_archer",
+      "team": "enemy",
+      "pos": [
+        10,
+        2
+      ],
+      "facing": "W",
+      "round": 6
+    }
+  ]
+}
