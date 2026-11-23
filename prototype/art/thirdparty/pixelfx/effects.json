@@ -1,0 +1,46 @@
+{
+ "hit": {
+  "source": "impacts/hit-spark",
+  "frames": 11,
+  "fps": 20,
+  "frame": 184,
+  "seconds": 0.55,
+  "pivot": [
+   44,
+   64
+  ]
+ },
+ "slash": {
+  "source": "melee/sword-slash",
+  "frames": 16,
+  "fps": 20,
+  "frame": 190,
+  "seconds": 0.8,
+  "pivot": [
+   44,
+   92
+  ]
+ },
+ "dust": {
+  "source": "impacts/heavy-landing",
+  "frames": 25,
+  "fps": 15,
+  "frame": 176,
+  "seconds": 1.667,
+  "pivot": [
+   88,
+   60
+  ]
+ },
+ "flame": {
+  "source": "fire/campfire",
+  "frames": 36,
+  "fps": 12,
+  "frame": 128,
+  "seconds": 3.0,
+  "pivot": [
+   64,
+   112
+  ]
+ }
+}

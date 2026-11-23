@@ -340,15 +340,15 @@ def branch(start,end,r0,r1,color):
         face([rings[0][a],rings[0][b],rings[1][b],rings[1][a]],color,'wood')
 
 
-def foliage(center,radii,palette):
+def foliage(center,radii,palette,leaves=27):
     # Each spray is a layered fan of bent leaf clusters around a single twig.
-    # Open spaces between the fans preserve the branching silhouette at game scale.
+    # A few of them break the outline of the rounded masses built by canopy().
     x,y,z = center
     w,h,d = radii
     twist = rng.uniform(0,2*pi)
-    for i in range(27):
+    for i in range(leaves):
         phase = twist+i*2.4
-        radius = sqrt((i+.5)/27)
+        radius = sqrt((i+.5)/leaves)
         dx,dz = cos(phase),sin(phase)
         cx = x+w*radius*dx*.86
         cz = z+d*radius*dz*.86
@@ -368,6 +368,54 @@ def foliage(center,radii,palette):
             face(pts[::-1],palette[0],"leaf")
 
 
+def canopy(center,radii,palette,sides=10,crown=None):
+    # A rounded mass of leaves; the shader paints leaf strokes on it and frays its outline.
+    # Normals lean toward the whole crown (centre, radii) so a tree is lit as one soft form
+    # with its clumps showing inside it, instead of as a bunch of separate balls.
+    x,y,z = center
+    w,h,d = radii
+    dark,light = [[(int(c[i:i+2],16)/255)**2.2 for i in (0,2,4)] for c in palette]
+    lobes = [(rng.uniform(0,2*pi),rng.uniform(.06,.15)) for _ in range(3)]
+    levels = [-1,-.72,-.32,.10,.50,.82,1]
+    grid = []
+    for level in levels:
+        ring = []
+        for i in range(sides):
+            theta = 2*pi*(i+.5*(len(grid)%2))/sides
+            girth = sqrt(max(0,1-level*level))
+            swell = 1+sum(a*cos(theta*(k+2)+p+level*1.7) for k,(p,a) in enumerate(lobes))
+            r = girth*swell*rng.uniform(.93,1.07)
+            ring.append((x+w*r*cos(theta),y+h*level*rng.uniform(.95,1.05),z+d*r*sin(theta)))
+        grid.append(ring)
+
+    def emit(points):
+        wash = rng.uniform(.93,1.06)
+        for p in points:
+            away = [(p[0]-x)/w,(p[1]-y)/h,(p[2]-z)/d]
+            length = sqrt(sum(i*i for i in away)) or 1
+            away = [i/length for i in away]
+            if crown:
+                (ox,oy,oz),(ow,oh,od) = crown
+                whole = [(p[0]-ox)/ow,(p[1]-oy)/oh,(p[2]-oz)/od]
+                span = sqrt(sum(i*i for i in whole)) or 1
+                away = [.42*away[k]+.58*whole[k]/span for k in range(3)]
+                length = sqrt(sum(i*i for i in away)) or 1
+                away = [i/length for i in away]
+            # Painted light: the underside stays in the dark pigment, the crown takes the light one.
+            lift = min(1,max(0,.5+.62*away[1]))
+            positions.append(p)
+            normals.append(tuple(away))
+            colors.append(tuple(min(1,(dark[k]*.78+(light[k]-dark[k]*.78)*lift*lift)*wash) for k in range(3)))
+            grain_uv.append((7.25+.3*(.5+.5*away[0]),.5+.5*away[1]))
+
+    for lower,upper in zip(grid,grid[1:]):
+        for i in range(sides):
+            j = (i+1)%sides
+            emit([lower[i],upper[i],lower[j]])
+            emit([lower[j],upper[i],upper[j]])
+
+
+OLIVE_CROWN = ((0,.50,0),(.52,.34,.48))
 fork = (-.045,.32,.01)
 branch((0,-.025,0),fork,.072,.054,'675E4C')
 for i in range(5):
@@ -376,29 +424,30 @@ for i in range(5):
     elbow = (end[0]*.62,.37+.034*(i%2),end[2]*.58)
     branch(fork,elbow,.046,.034,'706651')
     branch(elbow,end,.035,.018,'817760')
-    for j in range(2):
-        a = angle+(.65 if j else -.48)
-        crown = (end[0]+.083*cos(a),end[1]+.06*j,end[2]+.09*sin(a))
-        foliage(crown,(.149,.18+.034*j,.14),rng.choice([
-            ('6F795A','939B76'),('758264','A0A887'),('697557','879273')]))
-foliage((-.04,.66,.04),(.17,.18,.14),('82906E','A4AC88'))
+    tones = rng.choice([('46563C','8C9A68'),('4C5C42','96A272'),('425238','828F5E')])
+    canopy((end[0]*1.06,end[1]+.075,end[2]*1.06),(.178,.118,.168),tones,crown=OLIVE_CROWN)
+    a = angle+.9
+    canopy((end[0]*.80+.09*cos(a),end[1]+.15+.02*(i%2),end[2]*.80+.09*sin(a)),(.132,.094,.126),tones,crown=OLIVE_CROWN)
+    foliage((end[0]*1.34,end[1]+.02,end[2]*1.34),(.10,.12,.10),(tones[0],tones[1]),6)
+canopy((-.03,.70,.03),(.215,.128,.20),('4C5C42','9CA878'),crown=OLIVE_CROWN)
 # One folded, loose olive leaf. The shader carries it from this branch to the ground.
 drifting = [(0.27,.57,.10),(.307,.588,.085),(.361,.578,.097),(.30,.567,.113)]
 for tri in ([drifting[0],drifting[1],drifting[2]],[drifting[0],drifting[2],drifting[3]]):
     face(tri,'A99C69','falling_leaf')
     face(tri[::-1],'91885E','falling_leaf')
 save('olive')
-branch((0,-.02,0),(.012,.91,0),.051,.014,'695F49')
-for i in range(7):
-    radius = .175-i*.018
-    for j in range(3):
-        a = i*1.91+j*2*pi/3
-        foliage((.57*radius*cos(a),.23+i*.106,.57*radius*sin(a)),
-                (radius*.72,.27-i*.015,radius*.71),('5D694F','798467'))
-foliage((.014,.95,-.012),(.039,.17,.045),('707E5D','859271'))
+branch((0,-.02,0),(.012,.30,0),.051,.040,'695F49')
+for i in range(6):
+    t = i/5
+    radius = .168*(1-t)**.72+.035
+    lean = .016*sin(i*1.9)
+    canopy((lean,.26+t*.60,.014*cos(i*2.3)),(radius,.135-.03*t,radius*.94),('2F3F30','5F7150'),9,crown=((0,.52,0),(.20,.52,.19)))
+canopy((.012,.985,-.006),(.04,.085,.04),('354636','677957'),7)
+foliage((.0,.24,.0),(.17,.10,.16),('43523D','6B7A58'),7)
 save('cypress')
 
 for i in range(5):
     a = i*2.4
-    foliage((.17*cos(a),.015,.13*sin(a)),(.13,.18,.11),('72714D','999362'))
+    canopy((.15*cos(a),.085+.02*(i%2),.12*sin(a)),(.125,.082,.112),('454A34','737452'),8,crown=((0,.0,0),(.30,.19,.26)))
+    foliage((.20*cos(a),.03,.16*sin(a)),(.10,.14,.09),('72714D','999362'),5)
 save('scrub')

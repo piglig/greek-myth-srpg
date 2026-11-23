@@ -1,0 +1,9 @@
+Icons from https://game-icons.net, used under CC BY 3.0
+https://creativecommons.org/licenses/by/3.0/
+
+Cathelineau: medusa-head
+Delapouite: animal-hide, biceps, bracer, brass-knuckles, caduceus, check-mark, deer-track, eye-target, forearm, gloves, greaves, greek-temple, hammer-break, herbs-bundle, jump-across, medicines, olive, position-marker, ring, rope-coil, sagittarius, sandal, sewing-string, shield-bash, shield-opposition, skills, sleeveless-jacket, spartan-helmet, three-friends, two-coins
+HeavenlyDog: defensive-wall
+Lorc: armor-vest, arrow-cluster, arrow-flights, awareness, bandage-roll, boar-tusks, boar-tusks, bone-knife, boots, bordered-shield, breastplate, broken-shield, burning-embers, campfire, chained-heart, chalice-drops, claw-slashes, cloak-dagger, cog, conversation, cursed-star, evil-moon, feather, fire-ray, flaming-arrow, flying-flag, foot-trip, footprint, gem-chain, gem-necklace, gem-pendant, heavy-fall, high-shot, horse-head, inner-self, knapsack, laurel-crown, laurels, leather-vest, lion, lion, magic-shield, mailed-fist, mailed-fist, manacles, meditation, metal-bar, nailed-foot, on-target, owl, padlock, peaks, pine-tree, rune-stone, sands-of-time, scale-mail, sharp-smile, small-fire, spears, sprint, striking-arrows, sun-radiations, sunbeams, swap-bag, target-arrows, tooth, trade, walking-boot, wine-glass, winged-leg, wingfoot, wolf-head
+Lucas: belt
+Skoll: blood, hearts

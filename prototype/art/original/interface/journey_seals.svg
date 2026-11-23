@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="32" viewBox="0 0 160 32">
-<g fill="#fff1cd">
-<path d="M2 18l13-10 13 10-2 2-2-1v10h-6v-8h-5v8H6V19l-2 1zm16-8c-3-4 3-6 2-10 6 4 3 7 6 9l-2 4z"/>
-<path transform="translate(32)" d="M11 2l8 13h-4l5 7h-7v7H9v-7H2l5-7H3zm11 8 8 12h-4l4 5H19l-2-3h6l-5-7z"/>
-<path transform="translate(64)" d="M10 2h12v3h-2v4c0 3 4 5 4 9 0 5-3 8-6 9v2h4v2H10v-2h4v-2c-3-1-6-4-6-9 0-4 4-6 4-9V5h-2z"/>
-<path transform="translate(64)" fill="none" stroke="#fff1cd" stroke-width="2" d="M12 9C0 3 4 19 11 19m9-10c12-6 8 10 1 10"/>
-<path transform="translate(96)" fill-rule="evenodd" d="M1 26L12 7l6 10 4-7 10 16zm8-11-4 8h12l-5-9-1 4zm10 5 3 3h5l-5-9z"/>
-<path transform="translate(128)" fill-rule="evenodd" d="M1 27l3-11 7-10 11-2 6 9 3 14zm6-1h7v-7l-2-4-3 3zm11 0h8l-2-10-3-3-3 5z"/>
-</g></svg>
