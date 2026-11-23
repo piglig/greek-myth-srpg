@@ -83,7 +83,7 @@ func _draw() -> void:
 	if sectors.is_empty():
 		return
 	draw_set_transform(size*.5,0,Vector2.ONE*ui_scale)
-	var font := get_theme_default_font()
+	var font := Px.font(20)
 	for i in 4:
 		var entry: Dictionary = sectors[i]
 		if entry.is_empty():
@@ -103,6 +103,6 @@ func _draw() -> void:
 		draw_polyline(polygon,Color("#f2c595") if hot else Color("#ad8261"),1.5,true)
 		var at := Vector2.from_angle(angle)*72
 		draw_texture_rect(entry.icon,Rect2(at-Vector2(14,22),Vector2(28,28)),false,ink)
-		draw_string(font,at+Vector2(-44,25),entry.label,HORIZONTAL_ALIGNMENT_CENTER,88,16,ink)
+		draw_string(font,at+Vector2(-44,25),entry.label,HORIZONTAL_ALIGNMENT_CENTER,88,20,ink)
 		if entry.cooldown > 0:
-			draw_string(font,at+Vector2(16,-4),str(entry.cooldown),HORIZONTAL_ALIGNMENT_LEFT,-1,14,ink)
+			draw_string(font,at+Vector2(16,-4),str(entry.cooldown),HORIZONTAL_ALIGNMENT_LEFT,-1,20,ink)

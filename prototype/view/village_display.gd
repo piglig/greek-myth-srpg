@@ -4,7 +4,7 @@ extends Node3D
 var gate: Node3D
 var known_fire := {}
 var fire_material := ShaderMaterial.new()
-var char_material := StandardMaterial3D.new()
+var char_material := ShaderMaterial.new()
 var map_view: MapView
 var plume_mesh: ArrayMesh
 var flame_quad := QuadMesh.new()
@@ -13,13 +13,11 @@ var flame_quad := QuadMesh.new()
 func setup(view: MapView) -> void:
 	map_view = view
 	var field := view.field
-	fire_material.shader = preload("res://view/village_flame.gdshader")
-	fire_material.set_shader_parameter("atlas",preload("res://art/original/fire.png"))
+	fire_material.shader = preload("res://view/pixel_flame.gdshader")
+	fire_material.set_shader_parameter("atlas",preload("res://art/thirdparty/pixelfx/flame.png"))
 	plume_mesh = _make_plume()
-	flame_quad.size = Vector2(1.18,1.18)
-	char_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	char_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	char_material.albedo_color = Color(0.17,0.10,0.08,0.36)
+	flame_quad.size = Vector2(2.5,2.5)
+	char_material.shader = preload("res://view/scorch.gdshader")
 	var house := preload("res://art/landmarks/ruin.glb")
 	var workshop := preload("res://art/landmarks/workshop.glb")
 	var debris := preload("res://art/landmarks/debris.glb")
@@ -183,7 +181,7 @@ func sync_fire(grid: BattleGrid) -> void:
 			var flame := MeshInstance3D.new()
 			flame.mesh = flame_quad
 			flame.material_override = fire_material
-			flame.position = floor_point + Vector3(0,0.47,0)
+			flame.position = floor_point + Vector3(0,2.5*.375,0)
 			add_child(flame)
 			var plume := MeshInstance3D.new()
 			plume.mesh = plume_mesh

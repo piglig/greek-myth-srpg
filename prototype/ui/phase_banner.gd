@@ -26,7 +26,7 @@ func present(number: int, friendly: bool, icon: Texture2D) -> void:
 
 
 func _draw() -> void:
-	var lettering := get_theme_default_font()
+	var lettering := Px.font(24)
 	var accent := Color("#87c8bb") if player_turn else Color("#ff9372")
 	var glaze := Color("#31564f") if player_turn else Color("#813e32")
 	var rim := PackedVector2Array([Vector2(9,1),Vector2(325,1),Vector2(333,9),
@@ -41,7 +41,7 @@ func _draw() -> void:
 	if emblem:
 		draw_texture_rect(emblem, Rect2(24,18,36,36), false, IVORY)
 	draw_string(lettering, Vector2(74,47), "我方行动" if player_turn else "敌方行动",
-		HORIZONTAL_ALIGNMENT_CENTER, 135, 31, IVORY)
+		HORIZONTAL_ALIGNMENT_CENTER, 135, 24, IVORY)
 	draw_line(Vector2(222,18), Vector2(222,54), BRONZE, 1)
-	draw_string(lettering, Vector2(229,44), "第 %d 回合" % round_number,
+	draw_string(Px.font(20), Vector2(229,44), "第 %d 回合" % round_number,
 		HORIZONTAL_ALIGNMENT_CENTER, 90, 20, accent)

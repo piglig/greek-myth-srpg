@@ -11,8 +11,13 @@ const PAN_SPEED := 7.0  ## world units per second at the middle zoom
 
 var tactical := false
 var painted := false
+## False for menu dioramas: the keyboard belongs to the menu, not the camera.
+var steered := true
 var camera: Camera3D
 var post: MeshInstance3D
+## Key light for the painted battlefields. It turns with the camera so rock faces toward the
+## viewer stay a step darker than the ground above them from every quadrant.
+var sun: DirectionalLight3D
 var _glide: Tween
 var pivot := Vector3.ZERO
 var bounds := AABB()
@@ -51,6 +56,39 @@ func ppu() -> float:
 
 func focus(point: Vector3) -> void:
 	pivot = point
+	_apply()
+
+
+## Whether the points' vertical spread fits the given band of the screen at the current zoom.
+func spans(points: Array[Vector3], top_fraction: float, bottom_fraction: float) -> bool:
+	var up := camera.global_transform.basis.y
+	var highest := -INF
+	var lowest := INF
+	for point in points:
+		highest = maxf(highest,point.dot(up))
+		lowest = minf(lowest,point.dot(up))
+	return (highest-lowest)*ppu() <= get_viewport().get_visible_rect().size.y*(bottom_fraction-top_fraction)
+
+
+## Slide the view just far enough along the ground that every given point sits inside the
+## band of the screen left clear by the top bar and the command panel.
+func keep_in_view(points: Array[Vector3], top_fraction: float, bottom_fraction: float) -> void:
+	if points.is_empty():
+		return
+	var height := float(get_viewport().get_visible_rect().size.y)
+	var up := camera.global_transform.basis.y
+	var highest := -INF
+	var lowest := INF
+	for point in points:
+		var row := height*.5 - (point-pivot).dot(up)*ppu()
+		highest = maxf(highest,row)
+		lowest = minf(lowest,row)
+	var shift := 0.0
+	if highest > height*bottom_fraction:
+		shift = minf(highest-height*bottom_fraction,maxf(0.0,lowest-height*top_fraction))
+	elif lowest < height*top_fraction:
+		shift = -minf(height*top_fraction-lowest,maxf(0.0,height*bottom_fraction-highest))
+	pivot -= _ground_forward()*shift/(ppu()*sin(deg_to_rad(_pitch_degrees())))
 	_apply()
 
 
@@ -97,7 +135,7 @@ func _process(dt: float) -> void:
 	var move := Vector2(
 		Input.get_axis("ui_left", "ui_right") + _key_axis(KEY_A, KEY_D),
 		Input.get_axis("ui_up", "ui_down") + _key_axis(KEY_W, KEY_S))
-	if move != Vector2.ZERO:
+	if move != Vector2.ZERO and steered:
 		if _glide:
 			_glide.kill()
 		var speed := PAN_SPEED * (32.0 / float(ZOOM_PPU[zoom_index])) * dt
@@ -126,6 +164,9 @@ func _apply() -> void:
 	var y := snappedf(pos.dot(b.y), t)
 	var z := pos.dot(b.z)
 	camera.global_position = b.x * x + b.y * y + b.z * z
+	if sun != null and painted:
+		var to_light := -0.52*_ground_right() + 0.82*Vector3.UP - 0.24*_ground_forward()
+		sun.basis = Basis.looking_at(-to_light.normalized(),Vector3.UP)
 
 
 func _ground_right() -> Vector3:

@@ -263,9 +263,7 @@ func _ready() -> void:
 	_end_button.text = "结束回合"
 	_end_button.icon = _mark(12)
 	_end_button.focus_mode = Control.FOCUS_NONE
-	var primary := theme.get_stylebox("pressed","Button").duplicate() as StyleBoxFlat
-	primary.bg_color = Color("#984d33")
-	_end_button.add_theme_stylebox_override("normal",primary)
+	_end_button.add_theme_stylebox_override("normal",Px.big_box("button_primary",Vector2(14,6)))
 	_end_button.pressed.connect(func(): end_turn_pressed.emit())
 	add_child(_end_button)
 	_phase_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -348,19 +346,19 @@ func apply_scale(window: Vector2) -> void:
 	ui_scale = clampf(minf(window.y / 980.0,window.x / 1536.0), 0.58, 1.8)
 	var s := ui_scale
 	var m := Metrics.MARGIN*s
-	_condition.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*s))
-	theme.default_font_size = int(Metrics.BODY*s)
-	_help_label.add_theme_font_size_override("font_size", roundi(Metrics.CAPTION*s))
-	_phase_label.add_theme_font_size_override("font_size", roundi(Metrics.CAPTION*s))
-	_mission_title.add_theme_font_size_override("font_size", roundi(Metrics.TITLE*s))
-	_unit_name.add_theme_font_size_override("font_size", roundi(Metrics.TITLE*s))
-	_forecast.add_theme_font_size_override("font_size",roundi(Metrics.TITLE*s))
-	_action_title.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*s))
-	_vitals.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*s))
-	_objective.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*s))
-	_banner.add_theme_font_size_override("font_size", int(40*s))
+	Px.fit(_condition,roundi(Metrics.CAPTION*s))
+	theme.default_font_size = 24
+	Px.fit(_help_label,roundi(Metrics.CAPTION*s))
+	Px.fit(_phase_label,roundi(Metrics.CAPTION*s))
+	Px.fit(_mission_title,roundi(Metrics.TITLE*s))
+	Px.fit(_unit_name,roundi(Metrics.TITLE*s))
+	Px.fit(_forecast,roundi(Metrics.TITLE*s))
+	Px.fit(_action_title,roundi(Metrics.CAPTION*s))
+	Px.fit(_vitals,roundi(Metrics.CAPTION*s))
+	Px.fit(_objective,roundi(Metrics.CAPTION*s))
+	Px.fit(_banner,int(40*s))
 	for panel in [_top,_bottom]:
-		(panel.get_theme_stylebox("panel") as StyleBoxFlat).set_content_margin_all(Metrics.PADDING*s)
+		panel.get_theme_stylebox("panel").set_content_margin_all(Metrics.PADDING*s)
 	_top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_top.offset_left = m
 	_top.offset_right = -m
@@ -378,8 +376,8 @@ func apply_scale(window: Vector2) -> void:
 	_end_button.add_theme_constant_override("icon_max_width",roundi(28*s))
 	for control: Control in [_ready_units,_order_toggle,_mission_title,_end_button]:
 		control.custom_minimum_size.y = Metrics.CONTROL*s
-	_order_toggle.add_theme_font_size_override("font_size",roundi(Metrics.BODY*s))
-	_order_toggle.custom_minimum_size.x = 332*s
+	Px.fit(_order_toggle,roundi(Metrics.BODY*s))
+	_order_toggle.custom_minimum_size.x = 420*s
 	var gap := roundi(Metrics.GAP*s)
 	for container in ["HBoxContainer","VBoxContainer"]:
 		theme.set_constant("separation",container,gap)
@@ -387,7 +385,7 @@ func apply_scale(window: Vector2) -> void:
 		theme.set_constant("h_separation",container,gap)
 		theme.set_constant("v_separation",container,gap)
 	for key in ["normal","hover","pressed","disabled"]:
-		var button_box := theme.get_stylebox(key,"Button") as StyleBoxFlat
+		var button_box := theme.get_stylebox(key,"Button")
 		button_box.content_margin_left = Metrics.PADDING*s
 		button_box.content_margin_right = Metrics.PADDING*s
 		button_box.content_margin_top = 4*s
@@ -399,7 +397,7 @@ func apply_scale(window: Vector2) -> void:
 	(_portrait.material as ShaderMaterial).set_shader_parameter("diameter",98*s)
 	_health.custom_minimum_size.y = 5*s
 	_unit_panel.custom_minimum_size.x = 215*s
-	_action_box.custom_minimum_size.x = minf(610*s,window.x*.42)
+	_action_box.custom_minimum_size.x = minf(700*s,window.x*.46)
 	_info_panel.custom_minimum_size.x = 340*s
 	_info_text.custom_minimum_size.x = 310*s
 	_end_button.custom_minimum_size = Vector2(152,Metrics.CONTROL)*s
@@ -472,7 +470,7 @@ func set_enemy_order(state: BattleState, active: String, finished: bool) -> void
 		chip.clip_text = true
 		chip.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		chip.custom_minimum_size = Vector2(Metrics.CARD_WIDTH,Metrics.CONTROL)*ui_scale
-		chip.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+		Px.fit(chip,roundi(Metrics.CAPTION*ui_scale))
 		var count := unit.actions_left if enemy_phase else unit.actions_per_turn
 		if count > 1:
 			chip.text += " · %d动" % count
@@ -488,9 +486,7 @@ func set_enemy_order(state: BattleState, active: String, finished: bool) -> void
 			found_next = true
 			lead_name = unit_name
 			chip.text += "　行动中" if not active.is_empty() else "　下一位"
-			var selected_style := theme.get_stylebox("normal","Button").duplicate() as StyleBoxFlat
-			selected_style.bg_color = Color("#704532")
-			chip.add_theme_stylebox_override("normal",selected_style)
+			chip.add_theme_stylebox_override("normal",Px.big_box("card_chosen",Vector2(14,6)))
 		chip.tooltip_text = "第 %d 位 · %s" % [index,unit_name]
 		if count > 1:
 			chip.tooltip_text += " · 本回合 %d 次行动" % count
@@ -622,7 +618,7 @@ func _badge(text_value: String, accent: Color) -> Label:
 	backing.content_margin_left = 10*ui_scale
 	backing.content_margin_right = 10*ui_scale
 	label.add_theme_stylebox_override("normal",backing)
-	label.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+	Px.fit(label,roundi(Metrics.CAPTION*ui_scale))
 	return label
 
 
@@ -640,7 +636,7 @@ func _stat_group(parent: Container, title: String, items: Array) -> void:
 	var heading := Label.new()
 	heading.text = title
 	heading.modulate = Color("#d9b790")
-	heading.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+	Px.fit(heading,roundi(Metrics.CAPTION*ui_scale))
 	group.add_child(heading)
 	var row := HBoxContainer.new()
 	group.add_child(row)
@@ -660,12 +656,12 @@ func _stat_group(parent: Container, title: String, items: Array) -> void:
 		measure.add_child(icon)
 		var number := Label.new()
 		number.text = str(item[2])
-		number.add_theme_font_size_override("font_size",roundi(Metrics.TITLE*ui_scale))
+		Px.fit(number,roundi(Metrics.TITLE*ui_scale))
 		measure.add_child(number)
 		var label := Label.new()
 		label.text = item[0]
 		label.modulate = Color("#d7c6af")
-		label.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+		Px.fit(label,roundi(Metrics.CAPTION*ui_scale))
 		field.add_child(label)
 
 
@@ -706,7 +702,7 @@ func show_unit_inspection(u: UnitState, height: int, intent: String) -> void:
 	header.add_child(vital)
 	var hp := Label.new()
 	hp.text = "生命  %d / %d" % [maxi(0,u.hp),u.max_hp]
-	hp.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+	Px.fit(hp,roundi(Metrics.CAPTION*ui_scale))
 	vital.add_child(hp)
 	var meter := ProgressBar.new()
 	meter.show_percentage = false
@@ -815,7 +811,7 @@ func set_actions(actions: Array) -> void:
 		_action_box.remove_child(c)
 		c.queue_free()
 	_action_panel.visible = not actions.is_empty()
-	_action_box.custom_minimum_size.x = minf(610.0,actions.size()*88.0)*ui_scale
+	_action_box.custom_minimum_size.x = minf(700.0,actions.size()*104.0)*ui_scale
 	for i in actions.size():
 		var a: Dictionary = actions[i]
 		var b := Button.new()
@@ -840,7 +836,7 @@ func set_actions(actions: Array) -> void:
 		caption.text = a["label"]
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		caption.add_theme_font_size_override("font_size",roundi(Metrics.CAPTION*ui_scale))
+		Px.fit(caption,roundi(Metrics.CAPTION*ui_scale))
 		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(caption)
 		caption.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -857,7 +853,7 @@ func set_actions(actions: Array) -> void:
 			timer.text = str(cooldown)
 			timer.modulate = Color("#e5a580")
 			timer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			timer.add_theme_font_size_override("font_size",roundi(13*ui_scale))
+			Px.fit(timer,roundi(13*ui_scale))
 			b.add_child(timer)
 			timer.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 			timer.offset_left = -23*ui_scale
@@ -868,14 +864,14 @@ func set_actions(actions: Array) -> void:
 			shortcut.text = str(i+1)
 			shortcut.position = Vector2(5,1)*ui_scale
 			shortcut.modulate = Color("#cfad89")
-			shortcut.add_theme_font_size_override("font_size",roundi(13*ui_scale))
+			Px.fit(shortcut,roundi(13*ui_scale))
 			shortcut.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			b.add_child(shortcut)
 		b.disabled = not a.get("enabled", true)
 		b.toggle_mode = true
 		b.button_pressed = a.get("active", false)
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(80,Metrics.ACTION) * ui_scale
+		b.custom_minimum_size = Vector2(96,Metrics.ACTION) * ui_scale
 		b.pressed.connect(func(): action_pressed.emit(i))
 		_action_box.add_child(b)
 
@@ -1088,7 +1084,7 @@ func show_rescue_result(state: BattleState, retry: Callable, travel: Callable, c
 	body.add_theme_constant_override("separation", roundi(9 * ui_scale))
 	var title := Label.new()
 	title.text = "林道已肃清"
-	title.add_theme_font_size_override("font_size",roundi(34*ui_scale))
+	Px.fit(title,roundi(34*ui_scale))
 	body.add_child(title)
 	var travelers: Array[UnitState] = []
 	var safe := 0
@@ -1150,7 +1146,7 @@ func _travel_button(body: VBoxContainer, caption: String, battle: String, travel
 
 func _panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", (theme.get_stylebox("panel", "PanelContainer") as StyleBoxFlat).duplicate())
+	p.add_theme_stylebox_override("panel", theme.get_stylebox("panel", "PanelContainer").duplicate())
 	p.draw.connect(func():
 		if p != _top and p != _bottom:
 			return
@@ -1195,37 +1191,15 @@ static func _fill(color: Color) -> StyleBoxFlat:
 
 static func _make_theme() -> Theme:
 	var t := Theme.new()
-	var font := SystemFont.new()
-	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Hiragino Sans GB",
-		"PingFang SC", "Heiti SC",
-		"Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC"])
-	t.default_font = font
-	t.default_font_size = Metrics.BODY
-	var panel := StyleBoxFlat.new()
-	panel.bg_color = Color("#241d1cf7")
-	panel.border_color = Color(0.72, 0.58, 0.34)
-	panel.set_border_width_all(1)
-	panel.border_width_top = 3
-	panel.shadow_size = 4
-	panel.shadow_color = Color("#20130e60")
-	panel.set_corner_radius_all(4)
-	panel.set_content_margin_all(12)
-	t.set_stylebox("panel", "PanelContainer", panel)
-	var states := {
-		"normal": Color("#392c26"), "hover": Color("#674333"),
-		"pressed": Color("#a35336"), "disabled": Color(0.13, 0.12, 0.11),
-	}
-	for st in states:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = states[st]
-		sb.border_color = Color(0.72, 0.58, 0.34) if st != "disabled" else Color(0.3, 0.27, 0.22)
-		sb.set_border_width_all(1)
-		sb.set_corner_radius_all(3)
-		sb.content_margin_left = 14
-		sb.content_margin_right = 14
-		sb.content_margin_top = 6
-		sb.content_margin_bottom = 6
-		t.set_stylebox(st, "Button", sb)
+	t.default_font = Px.font(24)
+	t.default_font_size = 24
+	t.set_stylebox("panel", "PanelContainer", Px.big_box("panel",Vector2(14,12)))
+	for state in ["normal","hover","pressed","disabled"]:
+		t.set_stylebox(state, "Button", Px.big_box("button" if state == "normal" else "button_"+state,Vector2(14,6)))
+	t.set_stylebox("focus", "Button", Px.big_box("focus",Vector2(14,6)))
+	t.set_color("font_color", "Button", Px.IVORY)
+	t.set_color("font_hover_color", "Button", Px.IVORY)
+	t.set_color("font_color", "Label", Px.IVORY)
 	t.set_stylebox("hover_pressed", "Button", t.get_stylebox("pressed", "Button"))
 	t.set_color("font_disabled_color", "Button", Color(0.5, 0.48, 0.44))
 	t.set_color("font_pressed_color", "Button", Color(1, 0.95, 0.8))

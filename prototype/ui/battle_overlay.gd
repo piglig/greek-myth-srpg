@@ -60,8 +60,8 @@ func _draw() -> void:
 	if controller == null or controller.state == null:
 		return
 	var s: float = controller.ui_scale
-	var font := get_theme_default_font()
-	var fs := int(16 * s)
+	var font := Px.font(20)
+	var fs := 20
 	var state: BattleState = controller.state
 
 	for holder_id in holds:
@@ -223,7 +223,7 @@ func _draw() -> void:
 			draw_circle(center,radius+1.5*s,Color("#f2d4a7"),true,-1,true)
 			draw_circle(center,radius,Color("#a95235") if chosen else Color("#31231f"),true,-1,true)
 			var numeral := str(hud.enemy_numbers[id])
-			draw_string(font,center+Vector2(-radius,5*s),numeral,HORIZONTAL_ALIGNMENT_CENTER,radius*2,int(15*s),Color("#ffebc9"))
+			draw_string(font,center+Vector2(-radius,5*s),numeral,HORIZONTAL_ALIGNMENT_CENTER,radius*2,20,Color("#ffebc9"))
 			if chosen:
 				var foot: Vector2 = controller.world_to_screen(view.position)
 				draw_arc(foot,20*s,0,TAU,32,Color("#ffdfa0"),2*s,true)

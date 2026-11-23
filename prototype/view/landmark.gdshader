@@ -4,6 +4,11 @@ render_mode specular_disabled;
 #include "res://view/pixel_pigment.gdshaderinc"
 uniform bool pixel_pigment = true;
 instance uniform float flexibility = 0.0;
+// 1 for boulders and cave arches: bedded limestone that matches the cliff faces.
+instance uniform float limestone = 0.0;
+uniform sampler2D cliff : source_color, repeat_enable, filter_linear_mipmap;
+// Leaf strokes for the rounded tree masses (finish 7).
+uniform sampler2D leaf_strokes : repeat_enable, filter_linear_mipmap;
 varying float daylight;
 uniform sampler2D grain : source_color, repeat_enable, filter_linear_mipmap;
 varying vec3 point;
@@ -66,6 +71,37 @@ void fragment() {
 			paint = mix(vec3(.023,.019,.017),paint,.42);
 		}
 		surface = pigment_bands(paint,20.);
+	}
+	if (finish == 7.) {
+		vec3 spread = mat3(MODEL_MATRIX)*point/1.3;
+		// Explicit LOD: the stepped coordinates would otherwise pick a blurred mip.
+		vec3 dabs = vec3(textureLod(leaf_strokes,pigment_cell(spread.yz,52.),0.).r,
+			textureLod(leaf_strokes,pigment_cell(spread.xz,52.),0.).r,
+			textureLod(leaf_strokes,pigment_cell(spread.xy,52.),0.).r);
+		float dab = dot(weights,dabs);
+		surface = COLOR.rgb*(.34+1.40*dab);
+		if (pixel_pigment) {
+			surface = pigment_bands(surface,20.);
+		}
+		// Fray the outline into leaves where the mass turns away from the viewer.
+		if (normalize(NORMAL).z < .04+.62*dab*dab) {
+			discard;
+		}
+	}
+	if (limestone > 0.) {
+		vec3 world = (MODEL_MATRIX*vec4(point,1.)).xyz;
+		vec3 away = normalize(mat3(MODEL_MATRIX)*facing);
+		vec3 blend = abs(away);
+		blend /= blend.x+blend.y+blend.z;
+		vec2 side = pixel_pigment ? pigment_cell(vec2((world.x+world.z)*.19,-world.y*.62),88.) : vec2((world.x+world.z)*.19,-world.y*.62);
+		vec2 cap = pixel_pigment ? pigment_cell(world.xz*.16,88.) : world.xz*.16;
+		vec3 bed = mix(texture(cliff,side).rgb,texture(cliff,cap).rgb*vec3(1.05,1.02,.96),blend.y);
+		// Darken the foot so each stone sits in the ground.
+		bed *= mix(.70,1.,smoothstep(0.,.42,point.y));
+		surface = pixel_pigment ? pigment_bands(bed,20.) : bed;
+		// Round off the facets: light the stone as a lump as well as by its planes.
+		vec3 lump = normalize(mat3(VIEW_MATRIX)*mat3(MODEL_MATRIX)*normalize(point-vec3(0.,.12,0.)));
+		NORMAL = normalize(mix(NORMAL,lump,.62));
 	}
 	ALBEDO = surface*daylight;
 	ROUGHNESS = 1.0;

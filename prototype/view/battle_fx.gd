@@ -2,6 +2,11 @@ class_name BattleFX
 extends Sprite3D
 ## One-shot, opaque pixel effects on the same world layer as combatants.
 
+## Effects baked from pixelfx by art/tools/bake_pixelfx.py, with how long each one runs.
+const KIT := "res://art/thirdparty/pixelfx/"
+const KIT_SECONDS := {"hit.png":.55,"slash.png":.8,"dust.png":1.667}
+
+
 static func _sprite(parent: Node3D, effect: Texture2D) -> BattleFX:
 	var fx := BattleFX.new()
 	fx.texture = effect
@@ -11,8 +16,10 @@ static func _sprite(parent: Node3D, effect: Texture2D) -> BattleFX:
 	fx.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	fx.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	fx.pixel_size = 0.036
-	if effect in [preload("res://art/original/fx/impact.png"), preload("res://art/original/fx/slash.png")]:
-		fx.pixel_size = 0.022
+	if effect.resource_path.begins_with(KIT):
+		# pixelfx sheets carry soft glow and smoke, so they blend instead of cutting out.
+		fx.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		fx.pixel_size = 0.026
 	parent.add_child(fx)
 	return fx
 
@@ -20,6 +27,10 @@ static func _sprite(parent: Node3D, effect: Texture2D) -> BattleFX:
 static func spawn(parent: Node3D, effect: Texture2D, origin: Vector3, duration: float) -> Tween:
 	var fx := _sprite(parent,effect)
 	fx.position = origin
+	if effect.resource_path.begins_with(KIT):
+		duration = maxf(duration,KIT_SECONDS[effect.resource_path.get_file()])
+		# Lift the card toward the camera so its lower half is not buried in the ground.
+		fx.position += parent.get_viewport().get_camera_3d().global_basis.z*effect.get_height()*fx.pixel_size*.5
 	var animation := fx.create_tween()
 	if fx.hframes > 1:
 		animation.tween_property(fx, "frame", fx.hframes-1, duration)

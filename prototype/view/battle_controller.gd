@@ -9,9 +9,11 @@ extends Node
 ##   --capture=<png>   save a screenshot after the scripted demo and quit
 ##   --demo=<name>     build | idle | move | target | threat | rotate | enemy  (scripted captures)
 
-const DUST := preload("res://art/original/fx/dust.png")
-const IMPACT := preload("res://art/original/fx/impact.png")
-const SLASH := preload("res://art/original/fx/slash.png")
+const DUST := preload("res://art/thirdparty/pixelfx/dust.png")
+## A small scuff for ordinary footfalls. DUST is a hard landing with rings and pebbles.
+const STEP_DUST := preload("res://art/original/fx/dust.png")
+const IMPACT := preload("res://art/thirdparty/pixelfx/hit.png")
+const SLASH := preload("res://art/thirdparty/pixelfx/slash.png")
 const ARROW := preload("res://art/original/fx/arrow.png")
 const ROAR := preload("res://art/original/fx/roar.png")
 const LOW_RES := Vector2(640, 360)
@@ -63,6 +65,13 @@ var _camp_stop := {}
 var _saved_orders: Array = []
 var rescued_count := 0
 var _chiron_joined := false
+## Carried through from the camp so a battle never loses them: who has been hired, who was
+## picked to march, and the marching list in the form the engine takes (null = not chosen).
+var _roster: Array = []
+var _deploy: Array = []
+var _party: Variant = null
+var _xp: Variant = null  ## each member's experience, carried through untouched
+var _loadout: Variant = null  ## techniques each member carries, chosen at the camp
 var _build_panel: BuildPanel
 
 
@@ -92,6 +101,11 @@ func _ready() -> void:
 			for key in ["equipped_relic","boon","divinity"]: _campaign_reward[key]=entry[key]
 		_saved_orders=entry.get("orders",[])
 		_chiron_joined = entry.get("chiron_joined",false)
+		_roster = entry.get("roster",[])
+		_deploy = entry.get("deploy",[])
+		_party = entry.get("party")
+		_loadout = entry.get("loadout")
+		_xp = entry.get("xp")
 		_start_battle(entry.id,entry.picks)
 	elif _demo == "build" or (_battle_id == "" and _capture_path == ""):
 		Soundscape.score("jar")
@@ -118,7 +132,7 @@ func _engine_missing() -> void:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", 28)
+	Px.fit(label,28)
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	layer.add_child(label)
@@ -137,8 +151,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	_mission_name = Battles.title(battle_id)
 	hud.set_battle_controls_visible(true)
 	var gear:=_campaign_reward.duplicate()
-	gear["charms"]=_purse.get("equipped",{})
-	state = Battles.build(battle_id, picks, _chiron_joined,gear)
+	Checkpoint.settle_purse(_purse)
+	gear["charms"]=Checkpoint.charms(_purse)
+	state = Battles.build(battle_id, picks, _chiron_joined,gear,_party,_loadout,Checkpoint.gear_mods(_purse))
 	if state == null:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
@@ -217,6 +232,23 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		cart.position = map_view.to_global(Vector3(-.55,map_view.cell_top(state.rescue_exits[0]),4.45))
 		cart.rotation.y = -.48
 		_units_root.add_child(cart)
+	if cam_rig.painted and _demo in ["","idle"]:
+		# Open with both sides between the top bar and the command panel. Pull back one
+		# zoom step when the map is too deep for that; failing that, favour the party.
+		var party: Array[Vector3] = []
+		var everyone: Array[Vector3] = []
+		for id in state.order:
+			var member := state.unit(id)
+			if not member.alive:
+				continue
+			var feet: Vector3 = unit_views[id].global_position
+			everyone.append_array([feet,feet+Vector3.UP*1.9])
+			if member.team == Defs.Team.PLAYER:
+				party.append_array([feet,feet+Vector3.UP*1.9])
+		if not cam_rig.spans(everyone,.12,.82) and cam_rig.zoom_index > 0:
+			cam_rig.zoom_step(-1)
+			cam_rig.focus(cam_rig.pivot)
+		cam_rig.keep_in_view(everyone if cam_rig.spans(everyone,.12,.82) else party,.12,.82)
 	hud.set_help_visible(true, cam_rig.painted)
 	_refresh()
 	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
@@ -258,6 +290,8 @@ func _build_scene() -> void:
 	sun.directional_shadow_max_distance = 70.0
 	sun.light_energy = 1.05
 	sun.shadow_enabled = true
+	sun.shadow_opacity = 0.72
+	sun.shadow_blur = 1.6
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	world.add_child(sun)
 
@@ -269,6 +303,7 @@ func _build_scene() -> void:
 	_units_root = Node3D.new()
 	world.add_child(_units_root)
 	cam_rig = CameraRig.new()
+	cam_rig.sun = sun
 	world.add_child(cam_rig)
 
 	var layer := CanvasLayer.new()
@@ -392,7 +427,10 @@ func _on_key(k: InputEventKey) -> void:
 
 
 func _entry(id: String) -> Dictionary:
-	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate()}
+	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate(),"roster":_roster,"deploy":_deploy}
+	if _party != null: entry.party = _party
+	if _loadout != null: entry.loadout = _loadout
+	if _xp != null: entry.xp = _xp
 	if id=="2-1":
 		entry.merge(_campaign_reward)
 		entry.stage="battle"
@@ -416,8 +454,8 @@ func _load_battle(id: String) -> void:
 		if id == "1-2": entry.rescued = []
 		if _campaign and id != _battle_id:
 			entry.choose_route = _battle_id=="1-2" and _rescued.size()>=2
-			get_tree().set_meta("journey_entry",entry)
-			get_tree().change_scene_to_file("res://journey.tscn")
+			get_tree().set_meta("camp_entry",entry)
+			get_tree().change_scene_to_file("res://camp.tscn")
 			return
 		if id == _battle_id:
 			entry.outcomes.erase(id)
@@ -1050,7 +1088,7 @@ func _animate_path(id: String, path: Array) -> void:
 		var wet := state.grid.terrain_at(cell) in [Defs.Terrain.SHALLOW, Defs.Terrain.DEEP, Defs.Terrain.SWAMP, Defs.Terrain.STYX]
 		var footfall := "paw" if u.def_id in ["wolf","lion"] else "step"
 		tw.tween_callback(Soundscape.cue.bind("splash" if wet else footfall))
-		tw.tween_callback(BattleFX.spawn.bind(_units_root, DUST, to + Vector3.UP * 0.12, 0.18))
+		tw.tween_callback(BattleFX.spawn.bind(_units_root, STEP_DUST, to + Vector3.UP * 0.12, 0.18))
 		prev = to
 	await tw.finished
 	v.walking = false
@@ -1098,7 +1136,7 @@ func _walk_planted(view: UnitView, path: Array, kind: String) -> void:
 			steps.tween_interval(plant_seconds+.06 if n == 0 else step_seconds)
 			steps.tween_callback(Soundscape.cue.bind("splash" if wet else footfall))
 			if kind != "heracles":
-				steps.tween_callback(func(): BattleFX.spawn(_units_root,DUST,view.position+Vector3.UP*.12,.18))
+				steps.tween_callback(func(): BattleFX.spawn(_units_root,STEP_DUST,view.position+Vector3.UP*.12,.18))
 		await run.finished
 		view.walking = false
 		index += count
@@ -1152,7 +1190,7 @@ func _leap(view: UnitView, landing: Vector3, heavy: bool) -> void:
 	await leap.finished
 	if heavy:
 		Soundscape.cue("paw")
-	BattleFX.spawn(_units_root,DUST,landing + Vector3.UP*0.12,0.32)
+	BattleFX.spawn(_units_root,DUST if heavy else STEP_DUST,landing + Vector3.UP*0.12,0.32)
 
 
 func _cover_step(hero: PixelUnit, ally: UnitView, source: UnitView) -> Tween:
@@ -1511,13 +1549,46 @@ func _plug_position(anchor: Vector2i) -> Vector3:
 
 # --- Turn flow -------------------------------------------------------------------
 
+## What the camp reports when the party walks back in: how the battle went, what it paid,
+## and whether the party went up a level. Compared against the save from before the battle.
+func _news(after: Dictionary, summary: String) -> Dictionary:
+	var before: Dictionary = Checkpoint.read_entry()
+	var won: bool = _outcomes.get(_battle_id,"")=="已通关"
+	var news := {"battle":_battle_id,"won":won,"result":summary}
+	var earned: int = int(_purse.get("coins",0))-int(before.get("purse",{}).get("coins",_purse.get("coins",0)))
+	if earned > 0: news.coins = earned
+	if won and before.get("outcomes",{}).get(_battle_id,"")!="已通关": news.xp = Checkpoint.xp_for(_battle_id)
+	if won:
+		# What the beaten leave behind goes into the bag (both the one being saved and ours).
+		var beaten := []
+		for id: String in state.order:
+			var foe := state.unit(id)
+			if foe != null and foe.team == Defs.Team.ENEMY and not foe.alive: beaten.append(foe.def_id)
+		var dice := RandomNumberGenerator.new()
+		dice.randomize()
+		var haul := Checkpoint.roll_loot(beaten,dice)
+		for purse: Dictionary in [_purse,after.get("purse",{})]:
+			Checkpoint.settle_purse(purse)
+			for thing: String in haul: purse.bag[thing] = int(purse.bag.get(thing,0))+int(haul[thing])
+		if not haul.is_empty(): news.loot = haul
+	# Who marched, and who was down when it ended. The camp shares out the experience.
+	var fielded := []
+	var fallen := []
+	for id: String in ["hero","atalanta"]+_deploy:
+		var fighter := state.unit(id)
+		if fighter == null: continue
+		fielded.append(id)
+		if not fighter.alive: fallen.append(id)
+	news.fielded = fielded
+	news.fallen = fallen
+	return news
+
 func _settle_at_camp(destination: String, summary: String, fork := false):
 	_camp_stop=_entry(destination)
 	_camp_stop.stage="camp"
 	_camp_stop.choose_route=fork
-	if _outcomes.get(_battle_id,"")=="已通关" and Checkpoint.read_entry().get("outcomes",{}).get(_battle_id,"")!="已通关":
-		summary+="　全队升至 %d 级，各得 1 技能点。"%SkillTree.campaign_level(_camp_stop)
-	_camp_stop.camp_summary=summary
+	_camp_stop.news=_news(_camp_stop,summary)
+	_camp_stop.camp_summary=summary  # the drillmaster reads this to know how the last battle went
 	_camp_stop.erase("orders")
 	if _battle_id=="2-1" and state.escort_result=="win":
 		_camp_stop.divinity=state.reward.divinity
@@ -1533,16 +1604,16 @@ func _end_turn() -> void:
 		if Checkpoint.write_entry(_camp_stop)!=OK:
 			hud.banner("保存失败，请重试。",0.)
 			return
-		get_tree().set_meta("return_to_camp",true)
-		get_tree().change_scene_to_file("res://title.tscn")
+		get_tree().change_scene_to_file("res://camp.tscn")
 		return
 	if _next_battle=="corinth_map":
 		var next:=_finish_escort()
 		if _campaign and Checkpoint.write_entry(next)!=OK:
 			hud.banner("护送结果保存失败，请重试。",0.)
 			return
-		get_tree().set_meta("journey_entry",next)
-		get_tree().change_scene_to_file("res://journey.tscn")
+		next.campaign = _campaign
+		get_tree().set_meta("camp_entry",next)
+		get_tree().change_scene_to_file("res://camp.tscn")
 		return
 	if _next_battle == "reward":
 		_open_chapter_reward()
@@ -1599,12 +1670,14 @@ func _finish_escort() -> Dictionary:
 
 func _open_chapter_reward() -> void:
 	var entry := Checkpoint.chapter_reward(_entry("1-5"))
+	entry.news = _news(entry,"涅墨亚狮子已败")
 	if _campaign and Checkpoint.write_entry(entry) != OK:
 		hud.banner("章末进度保存失败，点击「领取狮皮」重试。",0.)
 		_next_battle = "reward"
 		return
-	get_tree().set_meta("chapter_reward_screen",{"entry":entry,"campaign":_campaign})
-	get_tree().change_scene_to_file.call_deferred("res://title.tscn")
+	entry.campaign = _campaign
+	get_tree().set_meta("camp_entry",entry)
+	get_tree().change_scene_to_file.call_deferred("res://camp.tscn")
 
 func _check_end() -> bool:
 	if _next_battle=="camp" and _mode==Mode.OVER:return true
@@ -2023,6 +2096,14 @@ func _run_capture() -> void:
 			await _end_turn()
 			if _demo == "motion":
 				await get_tree().create_timer(0.8).timeout
+		"fx":
+			# The three one-shot effects side by side, slowed so a still catches them mid-play.
+			var centre: Vector3 = unit_views["hero"].position
+			var side := cam_rig.camera.global_basis.x
+			BattleFX.spawn(_units_root,SLASH,centre+Vector3.UP*.9-side*2.6,6.0)
+			BattleFX.spawn(_units_root,IMPACT,centre+Vector3.UP*.9+side*2.2,9.0)
+			BattleFX.spawn(_units_root,DUST,centre+Vector3.UP*.08-side*.2+cam_rig.camera.global_basis.y*2.6,5.0)
+			await get_tree().create_timer(.25).timeout
 		"field_wind":
 			cam_rig.focus(map_view.to_global(Vector3(1.4,.8,5.8)))
 			await get_tree().create_timer(6.5).timeout

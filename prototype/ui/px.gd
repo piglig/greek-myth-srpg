@@ -1,0 +1,339 @@
+class_name Px
+## The interface kit. Menus are laid out on a 960x540 canvas shown at twice its size (the
+## project's 1920x1080 base). The look is spare: translucent ink sheets over the live
+## battlefield, hairline rules, one pixel typeface in whole multiples of its design size.
+
+const SIZE := Vector2(960,540)
+const ART := "res://art/pixel_ui/"
+const INK := Color("#14100d")
+const CLAY := Color("#c47a3e")
+const CLAY_DARK := Color("#7a4626")
+const OCHRE := Color("#e2ac60")
+const IVORY := Color("#f4e5c6")
+const MUTED := Color("#a8947a")
+const FAINT := Color("#6f6152")
+const RED := Color("#a8402a")
+const GREEN := Color("#9ec9a4")
+const BLUE := Color("#8fb6c9")
+## Text sizes on the canvas. SMALL uses the 10-pixel face, the rest the 12-pixel one.
+const SMALL := 10
+const BODY := 12
+const TITLE := 24
+const DISPLAY := 36
+
+static var _faces := {}
+static var _cache := {}
+
+
+static func font(points: int) -> FontFile:
+	var design := 10 if points % 10 == 0 and points % 12 != 0 else 12
+	if not _faces.has(design):
+		var face := load("res://art/thirdparty/fusion-pixel/fusion-pixel-%dpx-proportional-zh_hans.ttf" % design) as FontFile
+		face.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+		face.hinting = TextServer.HINTING_NONE
+		face.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+		_faces[design] = face
+	return _faces[design]
+
+
+static func art(name: String) -> Texture2D:
+	return load(ART+name+".png")
+
+
+## A canvas of SIZE centred in `host` and kept at a whole-number scale.
+static func stage(host: Control) -> Control:
+	var canvas := Control.new()
+	canvas.size = SIZE
+	canvas.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(canvas)
+	var fit_canvas := func():
+		var factor := maxf(1.0,floorf(minf(host.size.x/SIZE.x,host.size.y/SIZE.y)))
+		canvas.scale = Vector2.ONE*factor
+		canvas.position = ((host.size-SIZE*factor)*.5).floor()
+	host.resized.connect(fit_canvas)
+	fit_canvas.call()
+	return canvas
+
+
+static func flat(fill: Color, edge := Color.TRANSPARENT, sides := [0,0,0,0], pad := Vector2(8,2)) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = edge
+	style.border_width_left = sides[0]
+	style.border_width_top = sides[1]
+	style.border_width_right = sides[2]
+	style.border_width_bottom = sides[3]
+	style.content_margin_left = pad.x
+	style.content_margin_right = pad.x
+	style.content_margin_top = pad.y
+	style.content_margin_bottom = pad.y
+	style.anti_aliasing = false
+	return style
+
+
+static func block(parent: Control, rect: Rect2, tone: Color) -> ColorRect:
+	var fill := ColorRect.new()
+	fill.color = tone
+	fill.position = rect.position
+	fill.size = rect.size
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(fill)
+	return fill
+
+
+## A translucent ink sheet with a hairline along its top and bottom.
+static func sheet(parent: Control, rect: Rect2, weight := .80, lined := true) -> ColorRect:
+	var fill := block(parent,rect,Color(INK,weight))
+	if lined:
+		block(parent,Rect2(rect.position,Vector2(rect.size.x,1)),Color(OCHRE,.55))
+		block(parent,Rect2(rect.position.x,rect.end.y-1,rect.size.x,1),Color(OCHRE,.25))
+	return fill
+
+
+static func rule(parent: Control, at: Vector2, length: float, tone := Color(OCHRE,.4), upright := false) -> ColorRect:
+	return block(parent,Rect2(at,Vector2(1,length) if upright else Vector2(length,1)),tone)
+
+
+static func picture(parent: Control, texture: Texture2D, rect: Rect2) -> TextureRect:
+	var image := TextureRect.new()
+	image.texture = texture
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_SCALE
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	image.position = rect.position
+	image.size = rect.size
+	parent.add_child(image)
+	return image
+
+
+static func text(parent: Control, value: String, rect: Rect2, points := BODY, tone := IVORY, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var line := Label.new()
+	line.text = value
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.horizontal_alignment = align
+	# Wrapping has to be on before the width is set, or the label keeps its one-line width.
+	if rect.size.x > 0:
+		line.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	line.position = rect.position
+	line.size = rect.size
+	line.add_theme_font_override("font",font(points))
+	line.add_theme_font_size_override("font_size",points)
+	line.add_theme_color_override("font_color",tone)
+	line.add_theme_constant_override("line_spacing",3)
+	parent.add_child(line)
+	return line
+
+
+## Text set straight on the scene, with a one-pixel ink edge so it reads on any ground.
+static func caption(parent: Control, value: String, rect: Rect2, points := BODY, tone := IVORY, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var line := text(parent,value,rect,points,tone,align)
+	line.add_theme_color_override("font_outline_color",INK)
+	line.add_theme_constant_override("outline_size",4 if points >= TITLE else 2)
+	return line
+
+
+## Height of `value` set in `points` and wrapped to `width` canvas pixels.
+static func measure(value: String, points: int, width: float) -> float:
+	var face := font(points)
+	var lines := 0
+	for paragraph in value.split("\n"):
+		var run := face.get_string_size(paragraph,HORIZONTAL_ALIGNMENT_LEFT,-1,points).x
+		lines += maxi(1,ceili(run/maxf(1.0,width)))
+	return lines*(face.get_height(points)+3.0)
+
+
+static func width_of(value: String, points := BODY) -> float:
+	return font(points).get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,points).x
+
+
+static func _control(parent: Control, value: String, rect: Rect2, action: Callable, points: int) -> Button:
+	var control := Button.new()
+	control.text = value
+	control.position = rect.position
+	control.size = rect.size
+	control.clip_text = true
+	control.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	control.add_theme_font_override("font",font(points))
+	control.add_theme_font_size_override("font_size",points)
+	control.add_theme_color_override("font_disabled_color",FAINT)
+	parent.add_child(control)
+	control.pressed.connect(Soundscape.cue.bind("confirm"))
+	if action.is_valid():
+		control.pressed.connect(action)
+	control.focus_entered.connect(Soundscape.cue.bind("focus"))
+	control.mouse_entered.connect(func():
+		if not control.disabled:
+			control.grab_focus())
+	return control
+
+
+static func _paint(control: Button, rest: StyleBox, lit: StyleBox, off: StyleBox, ink_rest: Color, ink_lit: Color) -> void:
+	control.add_theme_stylebox_override("normal",rest)
+	control.add_theme_stylebox_override("hover",lit)
+	control.add_theme_stylebox_override("focus",lit)
+	control.add_theme_stylebox_override("pressed",lit)
+	control.add_theme_stylebox_override("disabled",off)
+	control.add_theme_color_override("font_color",ink_rest)
+	for state in ["font_hover_color","font_focus_color","font_pressed_color","font_hover_pressed_color"]:
+		control.add_theme_color_override(state,ink_lit)
+
+
+## The main action on a screen: a solid block.
+static func primary(parent: Control, value: String, rect: Rect2, action: Callable) -> Button:
+	var control := _control(parent,value,rect,action,BODY)
+	_paint(control,flat(RED,OCHRE,[0,0,0,1]),flat(RED.lightened(.14),IVORY,[1,1,1,1]),flat(Color(INK,.6),FAINT,[1,1,1,1]),IVORY,IVORY)
+	return control
+
+
+## An ordinary action: a hairline box that fills when pointed at.
+static func button(parent: Control, value: String, rect: Rect2, action: Callable) -> Button:
+	var control := _control(parent,value,rect,action,BODY)
+	_paint(control,flat(Color(INK,.55),Color(OCHRE,.5),[1,1,1,1]),flat(Color(CLAY_DARK,.9),OCHRE,[1,1,1,1]),flat(Color(INK,.4),Color(FAINT,.6),[1,1,1,1]),IVORY,IVORY)
+	return control
+
+
+## A page tab: plain words with a bar under the open one.
+static func tab(parent: Control, value: String, rect: Rect2, open: bool, action: Callable) -> Button:
+	var control := _control(parent,value,rect,action,BODY)
+	var bar := flat(Color.TRANSPARENT,OCHRE,[0,0,0,2],Vector2(4,2))
+	var none := flat(Color.TRANSPARENT,Color.TRANSPARENT,[0,0,0,2],Vector2(4,2))
+	_paint(control,bar if open else none,flat(Color(CLAY_DARK,.45),OCHRE if open else Color(OCHRE,.5),[0,0,0,2],Vector2(4,2)),none,IVORY if open else MUTED,IVORY)
+	return control
+
+
+## A line in a list: left-aligned, with a marker bar when chosen.
+static func row(parent: Control, value: String, rect: Rect2, chosen: bool, action: Callable, points := BODY) -> Button:
+	var control := _control(parent,value,rect,action,points)
+	control.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var rest := flat(Color(CLAY_DARK,.55) if chosen else Color.TRANSPARENT,OCHRE if chosen else Color.TRANSPARENT,[2,0,0,0],Vector2(10,2))
+	_paint(control,rest,flat(Color(CLAY_DARK,.8),IVORY,[2,0,0,0],Vector2(10,2)),flat(Color.TRANSPARENT,Color.TRANSPARENT,[2,0,0,0],Vector2(10,2)),IVORY if chosen else MUTED,IVORY)
+	return control
+
+
+## An invisible press area over something drawn underneath, outlined when focused.
+static func hotspot(parent: Control, rect: Rect2, action: Callable, hint := "") -> Button:
+	var control := _control(parent,"",rect,action,BODY)
+	control.tooltip_text = hint
+	var none := StyleBoxEmpty.new()
+	var ring := flat(Color(OCHRE,.10),OCHRE,[1,1,1,1])
+	_paint(control,none,ring,none,IVORY,IVORY)
+	return control
+
+
+## A scrolling window onto `height` pixels of content. Draw into the control it returns.
+## The bar is a thin ochre line; lists follow the keyboard focus.
+static func scroll(parent: Control, rect: Rect2, height: float) -> Control:
+	var area := ScrollContainer.new()
+	area.position = rect.position
+	area.size = rect.size
+	area.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	area.follow_focus = true
+	var bar := area.get_v_scroll_bar()
+	bar.custom_minimum_size.x = 3
+	bar.add_theme_stylebox_override("scroll",flat(Color(INK,.5),Color.TRANSPARENT,[0,0,0,0],Vector2.ZERO))
+	bar.add_theme_stylebox_override("grabber",flat(Color(OCHRE,.6),Color.TRANSPARENT,[0,0,0,0],Vector2.ZERO))
+	bar.add_theme_stylebox_override("grabber_highlight",flat(OCHRE,Color.TRANSPARENT,[0,0,0,0],Vector2.ZERO))
+	bar.add_theme_stylebox_override("grabber_pressed",flat(IVORY,Color.TRANSPARENT,[0,0,0,0],Vector2.ZERO))
+	parent.add_child(area)
+	var inner := Control.new()
+	inner.custom_minimum_size = Vector2(rect.size.x-6,height)
+	inner.mouse_filter = Control.MOUSE_FILTER_PASS
+	area.add_child(inner)
+	return inner
+
+
+## Arrow keys walk these controls in order and wrap at either end.
+static func chain(controls: Array, vertical := true) -> void:
+	var live := controls.filter(func(c): return c is Button and not c.disabled)
+	for i in live.size():
+		var here: Control = live[i]
+		var before: NodePath = here.get_path_to(live[posmod(i-1,live.size())])
+		var after: NodePath = here.get_path_to(live[(i+1)%live.size()])
+		if vertical:
+			here.focus_neighbor_top = before
+			here.focus_neighbor_bottom = after
+		else:
+			here.focus_neighbor_left = before
+			here.focus_neighbor_right = after
+
+
+static func clear(parent: Control) -> void:
+	for child in parent.get_children():
+		parent.remove_child(child)
+		child.queue_free()
+
+
+## A game-icons.net silhouette, redrawn at `size` pixels in one colour. Tint with `modulate`.
+static func icon(name: String, size := 16) -> Texture2D:
+	var key := "icon/%s/%d" % [name,size]
+	if not _cache.has(key):
+		var path := "res://art/thirdparty/game-icons/%s.svg" % name
+		var image: Image
+		if ResourceLoader.exists(path):
+			image = (load(path) as Texture2D).get_image()
+		else:
+			image = Image.create(size,size,false,Image.FORMAT_RGBA8)
+		image.convert(Image.FORMAT_RGBA8)
+		# The files are white drawings on a black square: brightness becomes the stamp.
+		image.resize(size,size,Image.INTERPOLATE_LANCZOS)
+		for y in size:
+			for x in size:
+				var value := image.get_pixel(x,y)
+				image.set_pixel(x,y,Color(1,1,1,1.0 if value.v*value.a > .5 else 0.0))
+		_cache[key] = ImageTexture.create_from_image(image)
+	return _cache[key]
+
+
+## The face of a unit, cut from the sprite it fights with.
+static func face(def_id: String, size := 32) -> Texture2D:
+	var key := "face/%s/%d" % [def_id,size]
+	if not _cache.has(key):
+		var sheet_image: Image = (load("res://art/pixel/%s/actors.png" % def_id) as Texture2D).get_image()
+		var first := sheet_image.get_region(Rect2i(0,0,160,128))
+		var used := first.get_used_rect()
+		# The head is the widest run of solid pixels near the top; a raised spear or bow is
+		# thin, so rows are judged by how many pixels they hold, not by where they start.
+		var side := roundi(used.size.y*.34)
+		var best := 0
+		var centre := used.position.x+used.size.x*.5
+		for y in range(used.position.y+roundi(used.size.y*.08),used.position.y+roundi(used.size.y*.30)):
+			var count := 0
+			var sum := 0.0
+			for x in range(used.position.x,used.end.x):
+				if first.get_pixel(x,y).a > .5:
+					count += 1
+					sum += x
+			if count > best:
+				best = count
+				centre = sum/count
+		var left := clampi(roundi(centre-side*.5),0,160-side)
+		var head := first.get_region(Rect2i(left,clampi(used.position.y+roundi(used.size.y*.02),0,128-side),side,side))
+		head.resize(size,size,Image.INTERPOLATE_NEAREST)
+		_cache[key] = ImageTexture.create_from_image(head)
+	return _cache[key]
+
+
+## Battle screens are laid out in window pixels, not on the canvas, so their text snaps to
+## the nearest size the faces draw cleanly at: 20 (the small face doubled), 24 or 36.
+static func snap(wanted: float) -> int:
+	return 20 if wanted <= 19.0 else (24 if wanted <= 30.0 else 36)
+
+
+static func fit(control: Control, wanted: float) -> void:
+	var points := snap(wanted)
+	control.add_theme_font_override("font",font(points))
+	control.add_theme_font_size_override("font_size",points)
+
+
+## The battle panels' boxes, in window pixels: the same sheet-and-hairline look as the menus.
+static func big_box(kind: String, pad := Vector2(18,8)) -> StyleBox:
+	match kind:
+		"panel": return flat(Color(INK,.86),Color(OCHRE,.6),[0,2,0,0],pad)
+		"button_hover": return flat(Color(CLAY_DARK,.95),OCHRE,[2,2,2,2],pad)
+		"button_pressed","button_primary": return flat(RED,OCHRE,[0,0,0,2],pad)
+		"button_disabled": return flat(Color(INK,.5),Color(FAINT,.6),[2,2,2,2],pad)
+		"card_chosen": return flat(Color(CLAY_DARK,.9),OCHRE,[2,2,2,2],pad)
+		"focus": return flat(Color.TRANSPARENT,IVORY,[2,2,2,2],pad)
+	return flat(Color(INK,.6),Color(OCHRE,.5),[2,2,2,2],pad)

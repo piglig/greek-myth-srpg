@@ -17,7 +17,7 @@ static func campaign_level(entry: Dictionary) -> int:
 	return mini(30,1+victories)
 
 static func budget(entry: Dictionary) -> int:
-	return points()+campaign_level(entry)-1
+	return campaign_level(entry)
 
 static func trees() -> Dictionary:
 	if _trees.is_empty():

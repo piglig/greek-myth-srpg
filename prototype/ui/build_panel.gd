@@ -33,13 +33,14 @@ func open(scale: float) -> void:
 func _rebuild(scale: float) -> void:
 	for c in get_children():
 		c.queue_free()
+	add_theme_stylebox_override("panel",Px.big_box("panel",Vector2(28,22)))
 	_body = VBoxContainer.new()
 	_body.add_theme_constant_override("separation", roundi(Metrics.PADDING * scale))
 	add_child(_body)
 
 	var title := Label.new()
 	title.text = ("营地整备　每人技能点 %d" if camp_mode else "战前编成　每人技能点 %d") % SkillTree.points()
-	title.add_theme_font_size_override("font_size", roundi(Metrics.TITLE * scale))
+	Px.fit(title,roundi(Metrics.TITLE * scale))
 	_body.add_child(title)
 
 	var battle_row := HBoxContainer.new()
@@ -99,7 +100,7 @@ func _rebuild(scale: float) -> void:
 	var back := Button.new()
 	back.text = "取消调整" if camp_mode else "返回地图" if campaign_start else "返回首页"
 	if camp_mode: back.pressed.connect(canceled.emit)
-	else: back.pressed.connect(func(): get_tree().change_scene_to_file("res://journey.tscn" if campaign_start else "res://title.tscn"))
+	else: back.pressed.connect(func(): get_tree().change_scene_to_file("res://title.tscn"))
 	navigation.add_child(back)
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -140,7 +141,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _label(text: String, scale: float) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", roundi(Metrics.BODY * scale))
+	Px.fit(l,roundi(Metrics.BODY * scale))
 	return l
 
 
