@@ -22,6 +22,10 @@ var _shot_path := ""
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if not in_battle and OS.get_cmdline_user_args().has("--flow") and not get_tree().root.has_node("CampaignFlow"):
+		# The whole journey, walked by a script: see tests/flow/campaign_flow.gd.
+		get_tree().root.add_child.call_deferred(load("res://tests/flow/campaign_flow.gd").new())
+		return
 	if not in_battle and not get_tree().has_meta("battle_entered"):
 		for arg in OS.get_cmdline_user_args():
 			if arg.begins_with("--ui="):

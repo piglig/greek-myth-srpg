@@ -1,6 +1,7 @@
 extends RefCounted
 ## The Corinth checkpoint also carries the resolved orders up to the last player decision.
-const PATH := "user://chapter-one.cfg"
+## Where the save lives. A variable so the flow test can use a file of its own.
+static var PATH := "user://chapter-one.cfg"
 const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1"]
 
 const STARTING_COINS := 60

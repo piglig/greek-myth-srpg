@@ -338,6 +338,9 @@ func build(battle_grid: BattleGrid, layer_height: float, village: bool = false, 
 
 
 # Identical triangles to the land beneath; UVs are local to the tactical cell.
+## How far a patch may follow the ground above or below the middle of its cell.
+const PATCH_GIVE := 0.10
+
 func patch(cell: Vector2i) -> ArrayMesh:
 	if patches.has(cell):
 		return patches[cell]
@@ -354,6 +357,11 @@ func patch(cell: Vector2i) -> ArrayMesh:
 	for z in side:
 		var row := start+z*stride
 		points.append_array(vertices.slice(row,row+side))
+	# A patch marks the cell's own floor. Where the ground breaks into a cliff at its edge,
+	# keep the rim level with the floor instead of running it up or down the rock face.
+	var floor_y := points[(side*side)/2].y
+	for i in points.size():
+		points[i].y = clampf(points[i].y,floor_y-PATCH_GIVE,floor_y+PATCH_GIVE)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = points

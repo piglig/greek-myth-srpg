@@ -2096,6 +2096,18 @@ func _run_capture() -> void:
 			await _end_turn()
 			if _demo == "motion":
 				await get_tree().create_timer(0.8).timeout
+		"edge":
+			# Selection overlays where the ground steps: the hero's reach, and a hover frame
+			# on each cell around him, so a still shows how they sit at a ledge.
+			_select("hero")
+			cam_rig.zoom_step(1)
+			cam_rig.focus(unit_views["hero"].position+Vector3(0,.6,-1.5))
+			var around: Array = []
+			for dz in range(-2,3):
+				for dx in range(-2,3):
+					if (dx+dz)%2 == 0: around.append(state.unit("hero").pos+Vector2i(dx,dz))
+			highlights.show_frame("edge_demo",around.filter(func(c): return state.grid.in_bounds(c)),Color(1,1,0.85))
+			await get_tree().create_timer(1.2).timeout
 		"fx":
 			# The three one-shot effects side by side, slowed so a still catches them mid-play.
 			var centre: Vector3 = unit_views["hero"].position
