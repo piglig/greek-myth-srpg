@@ -360,6 +360,146 @@
           }
         ]
       }
+    ],
+    "bandit_chief": [
+      {
+        "branch": "蛮力",
+        "nodes": [
+          {
+            "id": "idas_frame",
+            "name": "厚实筋骨",
+            "cost": 1,
+            "trait": "wrestler",
+            "desc": "永久增加 8 点生命上限。"
+          },
+          {
+            "id": "idas_knee",
+            "name": "扫膝",
+            "cost": 2,
+            "skill": "heel_strike",
+            "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
+            "parent": "idas_frame"
+          },
+          {
+            "id": "idas_hide",
+            "name": "铁石之躯",
+            "cost": 2,
+            "trait": "bulwark",
+            "desc": "永久增加 3 点防御。",
+            "parent": "idas_frame"
+          },
+          {
+            "id": "idas_break",
+            "name": "碎阵重击",
+            "cost": 4,
+            "skill": "breaker",
+            "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
+            "parent": "idas_knee"
+          },
+          {
+            "id": "idas_pride",
+            "name": "不服神意",
+            "cost": 3,
+            "trait": "hex_ward",
+            "desc": "永久增加 4 点意志。",
+            "parent": "idas_hide"
+          }
+        ]
+      },
+      {
+        "branch": "劫掠",
+        "nodes": [
+          {
+            "id": "idas_stride",
+            "name": "大步",
+            "cost": 1,
+            "trait": "fleet",
+            "desc": "永久增加 1 点移动。"
+          },
+          {
+            "id": "idas_shove",
+            "name": "蛮撞",
+            "cost": 2,
+            "skill": "brute_shove",
+            "desc": "撞开相邻敌人 2 格，0.6 倍物理伤害，冷却 3。",
+            "parent": "idas_stride"
+          },
+          {
+            "id": "idas_leap",
+            "name": "攀越",
+            "cost": 2,
+            "trait": "high_jump",
+            "desc": "永久增加 2 点跳跃。",
+            "parent": "idas_stride"
+          }
+        ]
+      }
+    ],
+    "centaur": [
+      {
+        "branch": "冲锋",
+        "nodes": [
+          {
+            "id": "eury_gallop",
+            "name": "疾蹄",
+            "cost": 1,
+            "trait": "fleet",
+            "desc": "永久增加 1 点移动。"
+          },
+          {
+            "id": "eury_lance",
+            "name": "冲锋贯刺",
+            "cost": 3,
+            "skill": "lance_charge",
+            "desc": "沿直线 1–3 格刺出 1.55 倍物理伤害，冷却 3。",
+            "parent": "eury_gallop"
+          },
+          {
+            "id": "eury_vault",
+            "name": "跃涧",
+            "cost": 2,
+            "trait": "high_jump",
+            "desc": "永久增加 2 点跳跃。",
+            "parent": "eury_gallop"
+          }
+        ]
+      },
+      {
+        "branch": "狂野",
+        "nodes": [
+          {
+            "id": "eury_bulk",
+            "name": "马身",
+            "cost": 1,
+            "trait": "wrestler",
+            "desc": "永久增加 8 点生命上限。"
+          },
+          {
+            "id": "eury_stomp",
+            "name": "蹄踏",
+            "cost": 2,
+            "skill": "hoof_stomp",
+            "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
+            "parent": "eury_bulk"
+          },
+          {
+            "id": "eury_hide",
+            "name": "粗皮",
+            "cost": 2,
+            "trait": "bulwark",
+            "desc": "永久增加 3 点防御。",
+            "parent": "eury_bulk"
+          },
+          {
+            "id": "eury_break",
+            "name": "碎阵重击",
+            "cost": 4,
+            "skill": "breaker",
+            "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
+            "parent": "eury_stomp"
+          }
+        ]
+      }
     ]
   },
   "default_picks": {

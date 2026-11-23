@@ -47,7 +47,7 @@ func TestBattleRoundTrip(t *testing.T) {
 		t.Fatalf("protocol %v", p)
 	}
 	data := ask(t, s, `{"op":"data"}`)
-	if len(data["battles"].([]any)) < 3 || len(data["skills"].([]any)) == 0 || len(data["trees"].([]any)) != 4 {
+	if len(data["battles"].([]any)) < 3 || len(data["skills"].([]any)) == 0 || len(data["trees"].([]any)) < 4 {
 		t.Fatalf("data tables incomplete")
 	}
 	b := ask(t, s, `{"op":"build","battle":"test","picks":{}}`)
@@ -194,5 +194,97 @@ func TestFraming(t *testing.T) {
 	client.Close()
 	if err := <-done; err != nil {
 		t.Errorf("Serve after disconnect: %v", err)
+	}
+}
+
+func TestPartyDeploys(t *testing.T) {
+	s := newServer(t)
+	st := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"chiron","def":"chiron"},{"id":"r1","def":"bandit","name":"佣兵剑士"}]}`)["state"].(map[string]any)
+	hero := unitOf(st, "hero")
+	for _, id := range []string{"chiron", "r1"} {
+		u := unitOf(st, id)
+		if u == nil {
+			t.Fatalf("%s 没有上场", id)
+		}
+		if u["team"] != hero["team"] {
+			t.Errorf("%s 不在我方: %v", id, u["team"])
+		}
+	}
+	if name := unitOf(st, "r1")["name"]; name != "佣兵剑士" {
+		t.Errorf("招募者的名字没有带上: %v", name)
+	}
+	// 给了空名单就没有额外的人，即使旧的开关还开着。
+	st = ask(t, s, `{"op":"build","battle":"1-4","party":[],"chiron_joined":true}`)["state"].(map[string]any)
+	if unitOf(st, "chiron") != nil {
+		t.Errorf("空名单不应该带上喀戎")
+	}
+	var dup map[string]any
+	json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","party":[{"id":"hero","def":"bandit"}]}`)), &dup)
+	if dup["fail"] == nil {
+		t.Errorf("和场上单位重名应该报错")
+	}
+}
+
+// 招募来的人按自己的单位定义学技能：加点以出战名单里的 id 为键。
+func TestPartyLearnsItsOwnTree(t *testing.T) {
+	s := newServer(t)
+	plain := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r2","def":"bandit_chief","name":"伊达斯"}]}`)["state"].(map[string]any)
+	trained := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r2","def":"bandit_chief","name":"伊达斯"}],"picks":{"r2":["idas_frame","idas_knee"]}}`)["state"].(map[string]any)
+	before, after := unitOf(plain, "r2"), unitOf(trained, "r2")
+	if after["max_hp"].(float64) != before["max_hp"].(float64)+8 {
+		t.Errorf("厚实筋骨应该加 8 点生命上限: %v -> %v", before["max_hp"], after["max_hp"])
+	}
+	if len(after["skills"].([]any)) != len(before["skills"].([]any))+1 {
+		t.Errorf("扫膝应该多出一个招式: %v -> %v", before["skills"], after["skills"])
+	}
+	check := ask(t, s, `{"op":"picks_check","def":"bandit_chief","nodes":["idas_knee"]}`)
+	if check["error"] == "" {
+		t.Errorf("没学前置就学扫膝应该不合法")
+	}
+}
+
+// 出战招式：只带列出的那几个，超过四个不让开战；没列出的单位照旧带全部。
+func TestLoadoutLimitsSkills(t *testing.T) {
+	s := newServer(t)
+	picks := `"picks":{"hero":["shield_wall","shield_drive","slam","heel_strike"]}`
+	all := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`}`)["state"].(map[string]any), "hero")
+	if len(all["skills"].([]any)) != 4 {
+		t.Fatalf("主角应有 4 个招式: %v", all["skills"])
+	}
+	some := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["heel_strike","spear","breaker"]}}`)["state"].(map[string]any), "hero")
+	if len(some["skills"].([]any)) != 2 {
+		t.Errorf("只该带上扫膝和矛刺（碎阵重击没学）: %v", some["skills"])
+	}
+	var over map[string]any
+	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["spear","shield_bash","shield_drive","heel_strike","breaker"]}}`)), &over)
+	if over["fail"] == nil {
+		t.Errorf("带五个招式应该被拒绝")
+	}
+}
+
+// 招募来的人带着自己的起始招式进场。
+func TestPartyBringsStarterSkill(t *testing.T) {
+	s := newServer(t)
+	st := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r1","def":"bandit","name":"吕科斯","skills":["heavy_cut"]}]}`)["state"].(map[string]any)
+	if got := unitOf(st, "r1")["skills"].([]any); len(got) != 2 {
+		t.Errorf("佣兵应有劈砍和重劈两招: %v", got)
+	}
+}
+
+// 装备的属性增减照数加到单位身上；不认识的属性不让开战。
+func TestGearModsApply(t *testing.T) {
+	s := newServer(t)
+	plain := unitOf(ask(t, s, `{"op":"build","battle":"1-4"}`)["state"].(map[string]any), "hero")
+	geared := unitOf(ask(t, s, `{"op":"build","battle":"1-4","mods":{"hero":{"hp":5,"def":2,"move":-1}}}`)["state"].(map[string]any), "hero")
+	if geared["max_hp"].(float64) != plain["max_hp"].(float64)+5 || geared["hp"].(float64) != geared["max_hp"].(float64) {
+		t.Errorf("生命上限应 +5 且满血: %v -> %v / %v", plain["max_hp"], geared["max_hp"], geared["hp"])
+	}
+	if geared["move"].(float64) != plain["move"].(float64)-1 {
+		t.Errorf("移动应 −1: %v -> %v", plain["move"], geared["move"])
+	}
+	var bad map[string]any
+	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","mods":{"hero":{"luck":1}}}`)), &bad)
+	if bad["fail"] == nil {
+		t.Errorf("不认识的属性应该被拒绝")
 	}
 }

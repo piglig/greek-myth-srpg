@@ -1,5 +1,7 @@
 package rules
 
+import "fmt"
+
 // KV 是有序小表的一项（状态 → 剩余回合，技能 → 冷却）。保持插入顺序，和原版字典一致。
 type KV struct {
 	Key string
@@ -193,6 +195,54 @@ func (u *UnitState) AddSkill(sk *Skill) {
 	if !u.HasSkill(sk.ID) {
 		u.Skills = append(u.Skills[:len(u.Skills):len(u.Skills)], sk)
 	}
+}
+
+// Adjust 把装备带来的属性增减加到单位身上。生命、移动、跳跃不会被减到 1 以下。
+func (u *UnitState) Adjust(changes map[string]int) error {
+	for stat, by := range changes {
+		switch stat {
+		case "hp":
+			u.MaxHP = max(1, u.MaxHP+by)
+			u.HP = u.MaxHP
+		case "str":
+			u.Strength += by
+		case "def":
+			u.Defense += by
+		case "wil":
+			u.Will += by
+		case "div":
+			u.Divinity += by
+		case "move":
+			u.Move = max(1, u.Move+by)
+		case "jump":
+			u.Jump = max(1, u.Jump+by)
+		default:
+			return fmt.Errorf("%s 的装备改了不认识的属性 %s", u.ID, stat)
+		}
+	}
+	return nil
+}
+
+// LoadoutSlots 是一个单位能带进战斗的招式数。特性不占格。
+const LoadoutSlots = 4
+
+// Carry 只留下 ids 里列出的招式，按 ids 的顺序。没学会的 id 略过；超过 LoadoutSlots 个算错。
+func (u *UnitState) Carry(ids []string) error {
+	if len(ids) > LoadoutSlots {
+		return fmt.Errorf("%s 带了 %d 个招式，最多 %d 个", u.ID, len(ids), LoadoutSlots)
+	}
+	kept := make([]*Skill, 0, len(ids))
+	seen := map[string]bool{}
+	for _, id := range ids {
+		for _, sk := range u.Skills {
+			if sk.ID == id && !seen[id] {
+				kept = append(kept, sk)
+				seen[id] = true
+			}
+		}
+	}
+	u.Skills = kept
+	return nil
 }
 
 // Footprint 列出站在 anchor 时占的格子（先行后列）。

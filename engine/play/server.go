@@ -102,13 +102,28 @@ type actionJSON struct {
 	Entrance string `json:"entrance"`
 }
 
+// partyMember 是营地里选中出战、但关卡文件里没有写的我方单位（剧情加入的同伴或招募来的人）。
+type partyMember struct {
+	ID   string `json:"id"`
+	Def  string `json:"def"`
+	Name string `json:"name"`
+	// Skills 是这个人自带、单位定义里没有的招式（招募来的人的起始技能）。
+	Skills []string `json:"skills"`
+}
+
 type request struct {
+	// Party 不为 nil 时由它决定额外出战的人，ChironJoined 不再起作用。
+	Party        []partyMember       `json:"party"`
 	Reward       rules.ChapterReward `json:"reward"`
 	ChironJoined bool                `json:"chiron_joined"`
 	Op           string              `json:"op"`
 	SID          int                 `json:"sid"`
 	Battle       string              `json:"battle"`
 	Picks        map[string][]string `json:"picks"`
+	// Loadout 按单位 id 给出带进战斗的招式（最多 rules.LoadoutSlots 个）。没列出的单位带上全部招式。
+	Loadout map[string][]string `json:"loadout"`
+	// Mods 按单位 id 给出装备带来的属性增减（hp/str/def/wil/div/move/jump）。
+	Mods map[string]map[string]int `json:"mods"`
 	Action       *actionJSON         `json:"action"`
 	Unit         string              `json:"unit"`
 	Budget       *int                `json:"budget"`
@@ -168,6 +183,66 @@ func toAction(a *actionJSON) rules.Action {
 	return act
 }
 
+// deploy 把额外出战的人放到主角身边：从主角所在格向外一圈圈找，站到最近的空地上。
+// 只用和主角高差不超过 1、不是深水也不在燃烧的格子，免得开场就被困住。
+func (s *Server) deploy(st *rules.BattleState, party []partyMember, picks map[string][]string) error {
+	hero := st.Unit("hero")
+	if hero == nil || len(party) == 0 {
+		return nil
+	}
+	seen := map[rules.Cell]bool{hero.Pos: true}
+	ring := []rules.Cell{hero.Pos}
+	next := 0
+	for len(ring) > 0 && next < len(party) {
+		var outer []rules.Cell
+		for _, from := range ring {
+			for _, dir := range rules.Dirs {
+				c := from.Add(dir)
+				if seen[c] || !st.Grid.InBounds(c) {
+					continue
+				}
+				seen[c] = true
+				drop := st.Grid.HeightAt(c) - st.Grid.HeightAt(hero.Pos)
+				terrain := st.Grid.TerrainAt(c)
+				if drop > 1 || drop < -1 || terrain == rules.Deep || terrain == rules.Burning {
+					continue
+				}
+				outer = append(outer, c)
+				if st.UnitAt(c) != nil || next >= len(party) {
+					continue
+				}
+				member := party[next]
+				if st.Unit(member.ID) != nil {
+					return fmt.Errorf("出战名单里的 %s 已经在场上", member.ID)
+				}
+				u, err := s.data.MakeUnit(member.Def, member.ID, rules.TeamPlayer, c, hero.Facing)
+				if err != nil {
+					return err
+				}
+				if member.Name != "" {
+					u.Name = member.Name
+				}
+				for _, id := range member.Skills {
+					sk := s.data.Skill(id)
+					if sk == nil {
+						return fmt.Errorf("出战名单里的 %s 带了不存在的招式 %s", member.ID, id)
+					}
+					u.AddSkill(sk)
+				}
+				s.data.ApplyPicks(u, picks[member.ID])
+				u.HP = u.MaxHP
+				st.AddUnit(u)
+				next++
+			}
+		}
+		ring = outer
+	}
+	if next < len(party) {
+		return fmt.Errorf("主角身边没有足够的空地放下 %d 名出战者", len(party))
+	}
+	return nil
+}
+
 func (s *Server) dispatch(req *request) obj {
 	switch req.Op {
 	case "hello":
@@ -185,21 +260,25 @@ func (s *Server) dispatch(req *request) obj {
 		if err != nil {
 			return fail("%v", err)
 		}
-		if req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {
-			hero := st.Unit("hero")
-			for _, dir := range rules.Dirs {
-				c := hero.Pos.Add(dir)
-				if !st.Grid.InBounds(c) || st.UnitAt(c) != nil {
-					continue
-				}
-				u, err := s.data.MakeUnit("chiron", "chiron", rules.TeamPlayer, c, hero.Facing)
-				if err != nil {
+		party := req.Party
+		if party == nil && req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {
+			party = []partyMember{{ID: "chiron", Def: "chiron"}}
+		}
+		if err := s.deploy(st, party, req.Picks); err != nil {
+			return fail("%v", err)
+		}
+		for id, carried := range req.Loadout {
+			if u := st.Unit(id); u != nil {
+				if err := u.Carry(carried); err != nil {
 					return fail("%v", err)
 				}
-				s.data.ApplyPicks(u, req.Picks["chiron"])
-				u.HP = u.MaxHP
-				st.AddUnit(u)
-				break
+			}
+		}
+		for id, changes := range req.Mods {
+			if u := st.Unit(id); u != nil {
+				if err := u.Adjust(changes); err != nil {
+					return fail("%v", err)
+				}
 			}
 		}
 		st.EquipReward(s.data, req.Reward)
