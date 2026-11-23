@@ -44,7 +44,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 			"id": u.ID, "def": u.DefID, "name": u.Name, "team": int(u.Team), "pos": xy(u.Pos), "size": u.Size,
 			"facing": xy(u.Facing), "max_hp": u.MaxHP, "hp": u.HP, "str": u.Strength, "div": u.Divinity,
 			"defense": u.Defense, "wil": u.Will, "move": u.Move, "jump": u.Jump, "skills": skills, "traits": traits,
-			"statuses": kvJSON(u.Statuses), "cooldowns": kvJSON(u.Cooldowns), "shield": u.Shield,
+			"statuses": kvJSON(u.Statuses), "cooldowns": kvJSON(u.Cooldowns), "items": kvJSON(u.Charges), "shield": u.Shield,
 			"stagger": u.Stagger, "stagger_max": u.StaggerMax, "boss": u.IsBoss(),
 			"actions_per_turn": u.ActionsPerTurn, "actions_left": u.ActionsLeft,
 			"has_moved": u.HasMoved, "has_acted": u.HasActed, "assist_used": u.AssistUsed, "mark_used": u.MarkUsed,
@@ -234,6 +234,17 @@ func (s *Server) dataJSON() obj {
 		}
 		if sk.HasLeap {
 			m["leap"], m["leap_rise"] = sk.Leap, sk.LeapRise
+		}
+		if sk.Item {
+			m["item"] = true
+		}
+		for k, v := range map[string]int{"heal": sk.Heal, "cleanse": sk.Cleanse} {
+			if v != 0 {
+				m[k] = v
+			}
+		}
+		if sk.Status != "" {
+			m["status"], m["rounds"] = sk.Status, sk.Rounds
 		}
 		if sk.SelfStatus != "" {
 			m["self_status"], m["rounds"] = sk.SelfStatus, sk.Rounds

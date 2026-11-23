@@ -3,6 +3,7 @@ package play
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"testing"
@@ -251,14 +252,18 @@ func TestLoadoutLimitsSkills(t *testing.T) {
 	if len(all["skills"].([]any)) != 4 {
 		t.Fatalf("主角应有 4 个招式: %v", all["skills"])
 	}
-	some := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["heel_strike","spear","breaker"]}}`)["state"].(map[string]any), "hero")
-	if len(some["skills"].([]any)) != 2 {
-		t.Errorf("只该带上扫膝和矛刺（碎阵重击没学）: %v", some["skills"])
+	some := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["heel_strike","breaker"]}}`)["state"].(map[string]any), "hero")
+	if got := some["skills"].([]any); len(got) != 2 || got[0] != "spear" {
+		t.Errorf("基础攻击总在，再加上扫膝（碎阵重击没学）: %v", some["skills"])
+	}
+	none := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":[]}}`)["state"].(map[string]any), "hero")
+	if got := none["skills"].([]any); len(got) != 1 || got[0] != "spear" {
+		t.Errorf("什么技能都不带时只剩基础攻击: %v", none["skills"])
 	}
 	var over map[string]any
-	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["spear","shield_bash","shield_drive","heel_strike","breaker"]}}`)), &over)
+	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4",`+picks+`,"picks":{"hero":["shield_wall","shield_drive","phalanx_thrust","slam","heel_strike","breaker"]},"loadout":{"hero":["shield_bash","shield_drive","phalanx_thrust","heel_strike","breaker"]}}`)), &over)
 	if over["fail"] == nil {
-		t.Errorf("带五个招式应该被拒绝")
+		t.Errorf("基础攻击之外带五个技能应该被拒绝")
 	}
 }
 
@@ -286,5 +291,57 @@ func TestGearModsApply(t *testing.T) {
 	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","mods":{"hero":{"luck":1}}}`)), &bad)
 	if bad["fail"] == nil {
 		t.Errorf("不认识的属性应该被拒绝")
+	}
+}
+
+// 随身物品：用一件少一件，用完就没有了；最多带两件；回复药只能用在受伤的己方身上。
+func TestItemsAreUsedUp(t *testing.T) {
+	s := newServer(t)
+	b := ask(t, s, `{"op":"build","battle":"1-4","items":{"hero":["item_potion","item_stone"]}}`)
+	sid := int(b["sid"].(float64))
+	hero := unitOf(b["state"].(map[string]any), "hero")
+	if len(hero["items"].([]any)) != 2 {
+		t.Fatalf("主角应带着两件物品: %v", hero["items"])
+	}
+	ask(t, s, fmt.Sprintf(`{"op":"start","sid":%d}`, sid))
+	pos := hero["pos"].([]any)
+	here := fmt.Sprintf(`[%v,%v]`, pos[0], pos[1])
+	full := ask(t, s, fmt.Sprintf(`{"op":"validate","sid":%d,"action":{"type":"skill","unit":"hero","skill":"item_potion","target":%s}}`, sid, here))
+	if full["error"] == "" {
+		t.Errorf("满血时不该能喝回复药")
+	}
+	var over map[string]any
+	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","items":{"hero":["item_potion","item_potion","item_stone"]}}`)), &over)
+	if over["fail"] == nil {
+		t.Errorf("带三件物品应该被拒绝")
+	}
+}
+
+// 物品的效果：回复药回血并用掉，火油罐点燃目标。
+func TestItemEffects(t *testing.T) {
+	d, err := rules.LoadData(rules.DataOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := d.Build("1-4", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hero := st.Unit("hero")
+	for _, id := range []string{"item_potion", "item_firepot"} {
+		if err := hero.Pack(d.Skill(id)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rules.StartBattle(st)
+	hero.HP = 10
+	if o := rules.Perform(st, rules.UseSkill("hero", "item_potion", hero.Pos)); !o.OK {
+		t.Fatalf("喝回复药: %s", o.Error)
+	}
+	if hero.HP != 22 || hero.Charge("item_potion") != 0 || hero.Skill("item_potion") != nil {
+		t.Errorf("回复药应回 12 点并用掉: hp %d, 剩 %d", hero.HP, hero.Charge("item_potion"))
+	}
+	if !hero.HasActed {
+		t.Errorf("用物品应算一次行动")
 	}
 }

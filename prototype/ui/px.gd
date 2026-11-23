@@ -286,6 +286,9 @@ static func icon(name: String, size := 16) -> Texture2D:
 	return _cache[key]
 
 
+## Units drawn on four legs, whose portrait is the whole animal.
+const BEASTS := ["wolf","boar","lion"]
+
 ## The face of a unit, cut from the sprite it fights with.
 static func face(def_id: String, size := 32) -> Texture2D:
 	var key := "face/%s/%d" % [def_id,size]
@@ -310,6 +313,11 @@ static func face(def_id: String, size := 32) -> Texture2D:
 				centre = sum/count
 		var left := clampi(roundi(centre-side*.5),0,160-side)
 		var head := first.get_region(Rect2i(left,clampi(used.position.y+roundi(used.size.y*.02),0,128-side),side,side))
+		if def_id in BEASTS:
+			# A beast on four legs has no head at the top of its frame: show the whole animal.
+			var whole := maxi(used.size.x,used.size.y)
+			head = Image.create(whole,whole,false,first.get_format())
+			head.blit_rect(first,used,Vector2i((whole-used.size.x)/2,(whole-used.size.y)/2))
 		head.resize(size,size,Image.INTERPOLATE_NEAREST)
 		_cache[key] = ImageTexture.create_from_image(head)
 	return _cache[key]

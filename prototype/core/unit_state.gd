@@ -25,6 +25,7 @@ var traits := {}  ## 特性名 -> 值
 var statuses := {}  ## 状态名 -> 剩余回合（保持获得顺序）
 var shield := 0
 var cooldowns := {}
+var items := {}  ## things carried: id -> how many are left
 
 var stagger := 0
 var stagger_max := 0
@@ -70,6 +71,7 @@ func apply(d: Dictionary) -> void:
 	statuses = GoEngine.pairs(d["statuses"])
 	shield = d["shield"]
 	cooldowns = GoEngine.pairs(d["cooldowns"])
+	items = GoEngine.pairs(d.get("items",[]))
 	stagger = d["stagger"]
 	stagger_max = d["stagger_max"]
 	boss = d["boss"]

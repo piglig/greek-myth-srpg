@@ -21,11 +21,12 @@ static func title(id: String) -> String:
 ## picks：单位定义 -> 技能树节点 id；传空用表里的默认加点。失败返回 null（原因在 GoEngine.error）。
 ## `party` lists the extra fighters chosen at the camp, as [{id, def, name}]. Leave it null
 ## for the old behaviour, where only Chiron tags along once he has joined.
-static func build(id: String, picks: Dictionary = {}, chiron_joined := false, reward := {}, party: Variant = null, loadout: Variant = null, mods: Variant = null) -> BattleState:
+static func build(id: String, picks: Dictionary = {}, chiron_joined := false, reward := {}, party: Variant = null, loadout: Variant = null, mods: Variant = null, items: Variant = null) -> BattleState:
 	var ask := {"op": "build", "battle": id, "picks": picks,"chiron_joined":chiron_joined,"reward":reward}
 	if party != null: ask["party"] = party
 	if loadout != null: ask["loadout"] = loadout
 	if mods != null: ask["mods"] = mods
+	if items != null: ask["items"] = items
 	var reply: Dictionary = GoEngine.request(ask)
 	if reply.has("fail"):
 		return null

@@ -43,6 +43,13 @@ type Skill struct {
 	HasLeap        bool
 	Leap, LeapRise int
 
+	// 物品：带进战斗的消耗品，用一次少一件（UnitState.Charges），没有冷却。
+	Item bool
+	// Heal > 0 或 Cleanse > 0 表示对己方使用：回复生命、解除若干种负面状态。
+	Heal, Cleanse int
+	// Status 非空表示命中后给目标加上这个状态，持续 Rounds 回合。
+	Status string
+
 	SelfStatus string
 	AreaStatus string // 非空表示以自身为中心的范围状态技能
 	Radius     int
@@ -51,6 +58,9 @@ type Skill struct {
 }
 
 func (sk *Skill) IsArea() bool { return sk.AreaStatus != "" }
+
+// Mends 表示这个招式或物品是用在己方身上的（回复或解除状态）。
+func (sk *Skill) Mends() bool { return sk.Heal > 0 || sk.Cleanse > 0 }
 
 // TraitValue 是单位定义里的一个特性（保持表里的顺序）。
 type TraitValue struct {
@@ -400,6 +410,10 @@ func (d *Data) loadSkills() error {
 		sk.MarkedFlankStagger = raw.int("marked_flank_stagger", 0)
 		sk.HasLeap, sk.Leap = raw.has("leap"), raw.int("leap", 0)
 		sk.LeapRise = raw.int("leap_rise", 0)
+		sk.Item, _ = raw.m["item"].(bool)
+		sk.Heal = raw.int("heal", 0)
+		sk.Cleanse = raw.int("cleanse", 0)
+		sk.Status = raw.str("status", "")
 		sk.SelfStatus = raw.str("self_status", "")
 		sk.AreaStatus = raw.str("area_status", "")
 		sk.HasRadius, sk.Radius = raw.has("radius"), raw.int("radius", 0)
@@ -407,6 +421,10 @@ func (d *Data) loadSkills() error {
 		if sk.IsArea() {
 			if !sk.HasRadius {
 				return fmt.Errorf("范围技能 %s 缺少 radius", id)
+			}
+		} else if sk.Mends() {
+			if err := raw.need("物品 "+id, "min_range", "max_range"); err != nil {
+				return err
 			}
 		} else if sk.SelfStatus == "" {
 			if err := raw.need("技能 "+id, "mult", "type", "min_range", "max_range"); err != nil {

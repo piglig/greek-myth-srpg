@@ -153,7 +153,7 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	var gear:=_campaign_reward.duplicate()
 	Checkpoint.settle_purse(_purse)
 	gear["charms"]=Checkpoint.charms(_purse)
-	state = Battles.build(battle_id, picks, _chiron_joined,gear,_party,_loadout,Checkpoint.gear_mods(_purse))
+	state = Battles.build(battle_id, picks, _chiron_joined,gear,_party,_loadout,Checkpoint.gear_mods(_purse),_purse.get("kit",{}))
 	if state == null:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
@@ -252,6 +252,7 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	hud.set_help_visible(true, cam_rig.painted)
 	_refresh()
 	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
+	_take_next()
 	_save_checkpoint(battle_id)
 	if battle_id=="2-1" and _saved_orders.is_empty():
 		hud.banner("美狄亚加入队伍　·　护送她抵达东门",3.5)
@@ -381,13 +382,10 @@ func _on_key(k: InputEventKey) -> void:
 		if k.keycode == KEY_ESCAPE:
 			hud.close_journal()
 		return
-	if k.keycode == KEY_ESCAPE and hud.wheel.visible:
-		hud.wheel.hide()
-		return
 	if k.keycode == KEY_ESCAPE and hud.close_order():
 		return
 	if k.keycode >= KEY_1 and k.keycode <= KEY_9:
-		_on_action(int(k.keycode-KEY_1))
+		hud.press_key(int(k.keycode-KEY_1))
 		return
 	match k.keycode:
 		KEY_Q:
@@ -429,6 +427,21 @@ func _on_key(k: InputEventKey) -> void:
 func _entry(id: String) -> Dictionary:
 	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate(),"roster":_roster,"deploy":_deploy}
 	if _party != null: entry.party = _party
+	# What was used in this battle is gone from the bag and from whoever carried it.
+	if state != null and entry.purse.has("kit"):
+		for who: String in entry.purse.kit:
+			var carrier := state.unit(who)
+			if carrier == null: continue
+			var left: Dictionary = carrier.items.duplicate()
+			var kept := []
+			for thing: String in entry.purse.kit[who]:
+				if int(left.get(thing,0)) > 0:
+					left[thing] = int(left[thing])-1
+					kept.append(thing)
+				else:
+					entry.purse.bag[thing] = int(entry.purse.bag.get(thing,1))-1
+					if int(entry.purse.bag[thing]) <= 0: entry.purse.bag.erase(thing)
+			entry.purse.kit[who] = kept
 	if _loadout != null: entry.loadout = _loadout
 	if _xp != null: entry.xp = _xp
 	if id=="2-1":
@@ -509,9 +522,6 @@ func _pick(screen: Vector2) -> Vector2i:
 func _click(cell: Vector2i) -> void:
 	if hud.journal_open():
 		return
-	if hud.wheel.visible:
-		hud.wheel.hide()
-		return
 	if _mode == Mode.BUSY or _mode == Mode.OVER or cell == Defs.NO_POS:
 		return
 	var at := state.unit_at(cell)
@@ -529,19 +539,19 @@ func _click(cell: Vector2i) -> void:
 			if Rules.validate(state, act) == "":
 				_perform(act)
 		Mode.FACING:
+			# Turn toward the cell clicked, then wait there.
 			var u := state.unit(_selected)
+			var who := _selected
 			var d := cell - u.pos
 			if d != Vector2i.ZERO:
 				var f := Vector2i(signi(d.x), 0) if absi(d.x) >= absi(d.y) else Vector2i(0, signi(d.y))
-				_perform({"type": "face", "unit": _selected, "facing": f})
-			_set_mode(Mode.IDLE)
+				if f != u.facing:
+					await _perform({"type": "face", "unit": who, "facing": f})
+			if _selected == who and _mode not in [Mode.BUSY,Mode.OVER]:
+				_perform({"type":"wait","unit":who})
 		_:
 			if at != null and at.team == Defs.Team.PLAYER and at.def_id != "refugee" and at.id != "wounded_chiron":
-				if at.id == _selected and state.phase == Defs.Phase.PLAYER:
-					var view: UnitView = unit_views[at.id]
-					hud.open_wheel(_actions,func(): return world_to_screen(view.position+Vector3.UP*view.sprite_height*.5))
-				else:
-					_select(at.id)
+				if at.id != _selected: _select(at.id)
 			elif _selected != "":
 				var mv := {"type": "move", "unit": _selected, "to": cell}
 				if Rules.validate(state, mv) == "":
@@ -551,13 +561,16 @@ func _click(cell: Vector2i) -> void:
 
 
 func _cancel() -> void:
-	if hud.wheel.visible:
-		hud.wheel.hide()
+	if hud.close_menu():
 		return
 	if _mode == Mode.TARGET or _mode == Mode.FACING:
 		_set_mode(Mode.IDLE)
 	elif _mode == Mode.IDLE:
-		_select("")
+		# Stepping back once more: a move just made is taken back before anyone is let go of.
+		if _selected != "" and state.phase == Defs.Phase.PLAYER and state.move_undo.has(_selected):
+			_perform({"type":"undo_move","unit":_selected})
+		else:
+			_select("")
 
 
 func _select(id: String) -> void:
@@ -569,6 +582,36 @@ func _select(id: String) -> void:
 	if id != "":
 		(unit_views[id] as UnitView).set_selected(true)
 	_set_mode(Mode.IDLE)
+
+
+## Hands the turn to whoever should act next, so the player is never left with nobody
+## selected: the hero when a turn begins, afterwards whoever stands nearest the one who has
+## just finished. With nobody left, the end-turn button asks for attention; the turn is not
+## ended for the player. Clicking anyone else at any time still works.
+func _take_next(after := "") -> void:
+	if state == null or state.phase != Defs.Phase.PLAYER or _mode in [Mode.BUSY,Mode.OVER] or not _demo in ["","idle","menu","facing","moved"]:
+		return
+	_refresh()
+	var fresh: Array = _available_units.filter(func(id): return not state.unit(id).has_acted)
+	var pool: Array = fresh if not fresh.is_empty() else _available_units.filter(func(id): return id != after)
+	if pool.is_empty():
+		_select("")
+		hud.nudge_end_turn()
+		return
+	var next: String = pool[0]
+	var from := state.unit(after) if after != "" else null
+	if from == null:
+		if pool.has("hero"): next = "hero"
+	else:
+		var nearest := 1 << 20
+		for id: String in pool:
+			var there := state.unit(id).pos
+			var away := absi(there.x-from.pos.x)+absi(there.y-from.pos.y)
+			if away < nearest:
+				nearest = away
+				next = id
+	_select(next)
+	_reveal_unit(next)
 
 
 func _next_unit() -> void:
@@ -610,8 +653,15 @@ func _on_action(index: int) -> void:
 				_pending = (a["action"] as Dictionary).duplicate()
 				_mode = Mode.TARGET
 				_refresh()
-		"facing":
-			_set_mode(Mode.FACING if _mode != Mode.FACING else Mode.IDLE)
+		"move":
+			_set_mode(Mode.IDLE)
+		"wait":
+			# Waiting ends with choosing which way to face. Pressing 待机 again keeps the
+			# facing as it is; someone held in a grapple has no choice to make.
+			if _mode == Mode.FACING or state.unit(_selected).grappled_by_id != "":
+				_perform({"type":"wait","unit":_selected})
+			else:
+				_set_mode(Mode.FACING)
 		"do":
 			var act: Dictionary = (a["action"] as Dictionary).duplicate()
 			act["unit"] = _selected
@@ -632,9 +682,13 @@ func _perform(action: Dictionary) -> void:
 	_set_mode(Mode.IDLE)
 	if _battle_id=="2-1": _save_checkpoint(_battle_id)
 	if action.unit == _selected:
-		if action.type == "move":
+		var actor := state.unit(_selected)
+		if actor == null or not actor.alive or (actor.has_acted and actor.post_move <= 0):
+			# Nothing left for this one to do: on to the next.
+			_take_next(action.unit)
+		elif action.type == "move":
 			_reveal_unit(_selected)
-		elif action.type == "skill" and state.unit(_selected).post_move > 0:
+		elif action.type == "skill" and actor.post_move > 0:
 			_reveal_unit(_selected)
 			unit_views[_selected].signal_post_move()
 
@@ -1659,6 +1713,7 @@ func _end_turn() -> void:
 		return
 	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
 	_set_mode(Mode.IDLE)
+	_take_next()
 	if _battle_id=="2-1": _save_checkpoint(_battle_id)
 
 func _finish_escort() -> Dictionary:
@@ -1769,7 +1824,6 @@ func _check_end() -> bool:
 # --- Presentation refresh --------------------------------------------------------
 
 func _refresh() -> void:
-	hud.wheel.hide()
 	if state == null:
 		return
 	var phase_text := "我方回合" if state.phase == Defs.Phase.PLAYER else "敌方回合"
@@ -1857,7 +1911,7 @@ func _refresh() -> void:
 					cells.append_array(u.footprint(a))
 			highlights.show_cells("move", cells, Color("#5b9995"), 1, 0)
 		_actions = _actions_for(u)
-	var prompt := "选择行动　·　再点角色展开"
+	var prompt := "选择行动"
 	if _mode == Mode.TARGET:
 		prompt = "选择落点" if _needs_landing() else "选择目标"
 		for action in _actions:
@@ -1865,8 +1919,18 @@ func _refresh() -> void:
 				prompt = "%s　·　%s" % [action["label"],prompt]
 				break
 	elif _mode == Mode.FACING:
-		prompt = "选择朝向"
-	hud.set_action_context(prompt,_mode in [Mode.TARGET,Mode.FACING])
+		prompt = "点亮起的格子选朝向"
+	hud.set_action_context(prompt,_mode in [Mode.TARGET,Mode.FACING],"aim" if _mode == Mode.TARGET else ("facing" if _mode == Mode.FACING else ""))
+	# Choosing a facing: the four cells around them light up to be clicked.
+	highlights.clear("facing")
+	if _mode == Mode.FACING and u != null:
+		var around: Array = []
+		for step: Vector2i in [Defs.NORTH,Defs.EAST,Defs.SOUTH,Defs.WEST]:
+			if state.grid.in_bounds(u.pos+step): around.append(u.pos+step)
+		highlights.show_cells("facing",around,Color("#f0cf8a"),3,2,.16)
+		highlights.show_frame("facing_now",[u.pos+u.facing] if state.grid.in_bounds(u.pos+u.facing) else [],Color("#fff3d0"),13)
+	else:
+		highlights.clear("facing_now")
 	hud.set_actions(_actions if _mode != Mode.BUSY else [])
 	hud.set_unit(u,state.unit_height(u) if u != null else 0,_mode == Mode.BUSY)
 	_on_hover()
@@ -1901,51 +1965,97 @@ func _show_targets(u: UnitState) -> void:
 	highlights.show_cells("valid", t["valid"], Color(1.0, 0.25, 0.2), 2, 2, 0.12)
 
 
+## What a technique or a carried thing does, in a sentence: the tree's own words where it
+## was learnt from the tree, the trader's for a thing, else its numbers.
+func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
+	if Checkpoint.GOODS.has(id): return Checkpoint.effect_of(id)
+	for branch: Dictionary in SkillTree.trees().get(u.def_id,[]):
+		for node: Dictionary in branch.nodes:
+			if str(node.get("skill","")) == id: return str(node.desc)
+	if def.has("self_status") or def.has("area_status"): return ""
+	var words := "%s 倍%s伤害" % [str(def.get("mult",1)),"神性" if int(def.get("type",0)) == Defs.DamageType.DIVINE else "物理"]
+	if int(def.get("knockback",0)) > 0: words += "，击退 %d 格" % int(def.knockback)
+	if int(def.get("stagger_bonus",0)) > 0: words += "，额外破势 %d" % int(def.stagger_bonus)
+	return words+"。"
+
+
+## Reach and waiting time of a technique or a thing, in a few words.
+func _brief(sk: Dictionary) -> String:
+	if sk.has("self_status") or sk.has("area_status"): return "自身"
+	var near := int(sk.get("min_range",1))
+	var far := int(sk.get("max_range",1))
+	return "射程 %d" % near if near == far else "射程 %d–%d" % [near,far]
+
+
+## Everything the selected unit can do, each command naming the group it belongs to on the
+## bar: move, attack (the plain attack every unit has), skill, item, wait.
 func _actions_for(u: UnitState) -> Array:
 	var out: Array = []
 	var my_phase := state.phase == Defs.Phase.PLAYER
 	var can_act := my_phase and not u.has_acted
-	for sk in u.skills:
+	if state.move_undo.has(u.id):
+		out.append({"group":"move","label":"撤销移动","art":"act_undo","kind":"do","action":{"type":"undo_move"},"enabled":true,"words":"回到移动前的位置，可以重新走。"})
+	else:
+		var can_move := my_phase and _reachable.size() > 1
+		out.append({"group":"move","label":"移动","art":"act_move","kind":"move","enabled":can_move,"active":can_move and _mode == Mode.IDLE})
+	for i in u.skills.size():
+		var sk: String = u.skills[i]
+		var def: Dictionary = SkillCatalog.get_skill(sk)
 		var cd := u.cooldown(sk)
-		var label: String = SkillCatalog.get_skill(sk)["name"]
 		var act := {"type": "skill", "skill": sk}
-		if SkillCatalog.get_skill(sk).has("self_status"):
-			out.append({"label":label,"cooldown":cd,"kind":"do","action":act,"enabled":can_act and cd==0 and u.grappling_id=="" and not u.has_status("feared")})
-			continue
-		out.append({"label": label, "cooldown": cd, "kind": "target", "action": act,
-			"enabled": can_act and cd == 0 and u.grappling_id == "",
-			"active": _is_pending(act)})
+		var carried: bool = def.get("item",false)
+		var entry := {"group":"item" if carried else ("attack" if i == 0 else "skill"),"label":"攻击" if i == 0 and not carried else str(def["name"]),
+			"title":str(def["name"]),"art":sk,"cooldown":cd,"brief":_brief(def),"kind":"target","action":act,
+			"enabled":can_act and cd == 0 and u.grappling_id == "","active":_is_pending(act)}
+		entry.words = _words_for(u,sk,def)
+		entry.recharge = int(def.get("cooldown",0))
+		if carried:
+			entry.count = int(u.items.get(sk,0))
+			entry.brief += "　·　剩 %d 件" % entry.count
+		if def.has("self_status"):
+			entry.kind = "do"
+			entry.enabled = can_act and cd == 0 and u.grappling_id == "" and not u.has_status("feared")
+			entry.erase("active")
+		out.append(entry)
 	if u.has_trait("grapple"):
 		if u.grappling_id == "":
 			var act := {"type": "grapple"}
-			out.append({"label": "擒抱", "kind": "target", "action": act, "enabled": can_act,
-				"active": _is_pending(act)})
+			out.append({"group":"skill","label":"擒抱","art":"grapple","brief":"射程 1","words":"擒住相邻的敌人，使其无法行动，每回合受窒息伤害。","kind":"target","action":act,"enabled":can_act,"active":_is_pending(act)})
 		else:
 			if u.has_trait("slam"):
 				var act := {"type": "slam"}
-				out.append({"label": "摔投", "kind": "target", "action": act, "enabled": can_act,
-					"active": _is_pending(act)})
-			out.append({"label": "加固", "kind": "do", "action": {"type": "reinforce"}, "enabled": can_act})
-			out.append({"label": "松开", "kind": "do", "action": {"type": "release"}, "enabled": my_phase})
+				out.append({"group":"skill","label":"摔投","art":"slam","brief":"射程 1","words":"把擒住的人向任一方向摔出 1 格，结算坠落。","kind":"target","action":act,"enabled":can_act,"active":_is_pending(act)})
+			out.append({"group":"skill","label":"加固","art":"reinforce","brief":"自身","words":"抓得更牢，对方更难挣脱。","kind":"do","action":{"type":"reinforce"},"enabled":can_act})
+			out.append({"group":"skill","label":"松开","art":"release","brief":"自身","words":"放开擒住的人。不耗行动。","kind":"do","action":{"type":"release"},"enabled":my_phase})
 	if u.grappled_by_id != "":
-		out.append({"label": "挣扎", "kind": "do", "action": {"type": "struggle"}, "enabled": can_act})
+		out.append({"group":"skill","label":"挣扎","art":"struggle","brief":"自身","words":"试着挣脱擒抱。","kind":"do","action":{"type":"struggle"},"enabled":can_act})
 	if u.has_trait("hunter_mark"):
 		var act := {"type": "mark"}
-		out.append({"label": "标记", "kind": "target", "action": act, "enabled": my_phase and not u.mark_used,
-			"active": _is_pending(act)})
+		out.append({"group":"skill","label":"标记","art":"mark","brief":"视野内","words":"标记一个敌人，对它的射击更远更准。不耗行动。","kind":"target","action":act,"enabled":my_phase and not u.mark_used,"active":_is_pending(act)})
 	if not state.cave.is_empty():
 		for id in state.cave["boulders"]:
 			var push := {"type": "push_boulder", "unit": u.id, "target": state.cave["boulders"][id]["pos"]}
 			var err := Rules.validate(state, push)
 			if err == "" or err == "cannot seal the last entrance":
-				out.append({"label": "推巨石", "kind": "do", "action": {"type": "push_boulder", "target": push["target"]},
-					"enabled": can_act and err == ""})
-	out.append({"label": "待机", "kind": "do", "action": {"type": "wait"}, "enabled": can_act})
-	out.append({"label": "朝向", "kind": "facing", "enabled": my_phase and u.grappled_by_id == "",
-		"active": _mode == Mode.FACING})
-	if state.move_undo.has(u.id):
-		out.append({"label": "撤销移动", "kind": "do", "action": {"type": "undo_move"}, "enabled": true})
+				out.append({"group":"skill","label":"推巨石","art":"push_boulder","brief":"相邻","words":"把巨石推进洞口，封住一个出口。","kind":"do","action":{"type":"push_boulder","target":push["target"]},"enabled":can_act and err == ""})
+	out.append({"group":"wait","label":"待机","art":"act_wait","kind":"wait","enabled":can_act,"active":_mode == Mode.FACING,
+		"words":"结束这个人的行动，进入防御姿态。点了之后选朝向。"})
 	return out
+
+
+## Draws an enemy's plan on the field: footsteps to where it means to stand, and an arrow
+## from there to whoever it means to strike.
+func _draw_intent(at: UnitState, sim: Dictionary) -> void:
+	var plan: Dictionary = sim["plan"]
+	var from: Vector2i = plan.get("move_to", at.pos)
+	if from != at.pos:
+		hud.overlay.intent_walk.assign([(unit_views[at.id] as UnitView).position+Vector3(0,.08,0),map_view.anchor_world(state,from,at.size)+Vector3(0,.08,0)])
+	var act: Dictionary = plan["action"]
+	if act.get("type", "") == "skill":
+		var tgt := state.unit_at(act["target"])
+		if tgt != null:
+			hud.overlay.intent_from = map_view.anchor_world(state, from, at.size) + Vector3(0, 0.3, 0)
+			hud.overlay.intent_to = (unit_views[tgt.id] as UnitView).position + Vector3(0, 0.3, 0)
 
 
 func _inspect_enemy_order(id: String) -> void:
@@ -1959,10 +2069,13 @@ func _inspect_enemy_order(id: String) -> void:
 		return
 	var sim := EnemyAI.simulate(state,u)
 	var caption := "%d · %s　当前局面推演" % [hud.enemy_numbers[id],u.display_name]
+	hud.overlay.intent_from = Vector3.INF
+	hud.overlay.intent_walk.clear()
 	if sim["events"].is_empty():
 		hud.set_info_text("待机",caption)
 	else:
-		hud.preview_records(state,sim["events"],caption)
+		hud.preview_records(state,sim["events"],caption,true)
+		_draw_intent(u,sim)
 
 
 func _input(event: InputEvent) -> void:
@@ -1982,6 +2095,7 @@ func _on_hover() -> void:
 	highlights.clear("landing")
 	highlights.clear("intent")
 	hud.overlay.intent_from = Vector3.INF
+	hud.overlay.intent_walk.clear()
 	if state == null or _hovered == Defs.NO_POS:
 		hud.set_info_text("")
 		return
@@ -2049,16 +2163,11 @@ func _on_hover() -> void:
 		if preview_events.is_empty():
 			inspected_intent = "待机"
 		highlights.show_threat("intent",EnemyAI.threat_cells(state,at))
-		var act: Dictionary = sim["plan"]["action"]
-		if act.get("type", "") == "skill":
-			var from: Vector2i = sim["plan"].get("move_to", at.pos)
-			hud.overlay.intent_from = map_view.anchor_world(state, from, at.size) + Vector3(0, 0.3, 0)
-			var tgt := state.unit_at(act["target"])
-			hud.overlay.intent_to = (unit_views[tgt.id] as UnitView).position + Vector3(0, 0.3, 0)
+		_draw_intent(at,sim)
 	elif at != null and at.id != _selected:
 		inspected = at
 	if not preview_events.is_empty():
-		hud.preview_records(state,preview_events,preview_caption,_mode == Mode.TARGET)
+		hud.preview_records(state,preview_events,preview_caption,_mode == Mode.TARGET or (inspected != null and inspected.team == Defs.Team.ENEMY))
 	elif inspected != null:
 		hud.show_unit_inspection(inspected,state.unit_height(inspected),inspected_intent)
 	else:
@@ -2096,6 +2205,62 @@ func _run_capture() -> void:
 			await _end_turn()
 			if _demo == "motion":
 				await get_tree().create_timer(0.8).timeout
+		"menu":
+			# The bar with the technique list open over it.
+			await get_tree().create_timer(.4).timeout
+			hud._toggle_group("skill")
+			await get_tree().create_timer(.5).timeout
+			for i in _actions.size():
+				if _actions[i].group == "skill":
+					hud._show_detail(i)
+					break
+			await get_tree().create_timer(.2).timeout
+		"facing":
+			# Waiting: the prompt to choose which way to face.
+			await get_tree().create_timer(.4).timeout
+			for i in _actions.size():
+				if _actions[i].group == "wait": _on_action(i)
+			await get_tree().create_timer(.3).timeout
+		"moved":
+			# After a move: the small diamond at the middle that takes it back.
+			await get_tree().create_timer(.4).timeout
+			for cell: Vector2i in _reachable:
+				if cell != state.unit("hero").pos:
+					await _perform({"type":"move","unit":"hero","to":cell})
+					break
+			for i in _actions.size():
+				if _actions[i].group == "move": hud._show_detail(i)
+			await get_tree().create_timer(.4).timeout
+		"guard":
+			# Two of ours brace: how the stance shows on the field.
+			await get_tree().create_timer(.4).timeout
+			await _perform({"type":"wait","unit":"hero"})
+			await _perform({"type":"wait","unit":"atalanta"})
+			await get_tree().create_timer(1.4).timeout
+		"intent":
+			# Point at the first enemy: its plan drawn on the field and summed up in the card.
+			await get_tree().create_timer(.5).timeout
+			for id: String in state.order:
+				var foe := state.unit(id)
+				if foe.alive and not foe.hidden and foe.team == Defs.Team.ENEMY:
+					cam_rig.focus(unit_views[id].position)
+					await get_tree().create_timer(.4).timeout
+					_hovered = foe.pos
+					_on_hover()
+					break
+			await get_tree().create_timer(.4).timeout
+		"inspect":
+			# Point at someone who is not ours to command: a traveller if there is one,
+			# else the first enemy. A still shows the card that comes up for them.
+			var subject: UnitState = null
+			for id: String in state.order:
+				var other := state.unit(id)
+				if other.alive and not other.hidden and (other.def_id == "refugee" or (subject == null and other.team == Defs.Team.ENEMY)): subject = other
+			cam_rig.focus(unit_views[subject.id].position)
+			await get_tree().create_timer(.5).timeout
+			_hovered = subject.pos
+			_on_hover()
+			await get_tree().create_timer(.4).timeout
 		"edge":
 			# Selection overlays where the ground steps: the hero's reach, and a hover frame
 			# on each cell around him, so a still shows how they sit at a ledge.

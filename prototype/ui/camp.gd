@@ -38,6 +38,8 @@ const CARRY := 4  ## techniques a member takes into battle; the engine enforces 
 var page := "info"  ## member sheet: "info" (numbers, gear, carried techniques) or "tree"
 var open := ""  ## what the foot of the info page shows: "" (who they are), "gear" (a place) or "skill" (a carried slot)
 var slot_at := 0  ## the carried slot open on the info page
+var kit_at := 0  ## the pocket open on the info page (open == "kit")
+var kit_pick := ""
 var skill_pick := ""  ## the technique being considered for that slot
 var member := "hero"
 var technique := ""
@@ -122,6 +124,13 @@ func _open_for_shot(which: String) -> void:
 			entry.divinity = 3
 			entry.boon = ""
 		"system": asking = "system"
+		"kit":
+			screen = "party"
+			entry.purse.bag["item_potion"] = 2
+			entry.purse.bag["item_javelin"] = 1
+			entry.purse.kit = {"hero":["item_potion"]}
+			open = "kit"
+			kit_at = 1
 		"shop": screen = "trader"
 		"sell":
 			screen = "trader"
@@ -366,7 +375,7 @@ func _rarity_word(item: String) -> String:
 
 ## Sorts things by place, then the rarer first, then by name.
 func _in_order(things: Array) -> Array:
-	var places := Save.SLOTS.map(func(slot): return slot[0])+["material"]
+	var places := Save.SLOTS.map(func(slot): return slot[0])+["item","material"]
 	var grades := ["epic","rare","common"]
 	var sorted := things.duplicate()
 	sorted.sort_custom(func(a,b):
@@ -851,9 +860,19 @@ func _would_change(who: String, item: String) -> Array:
 		lines.append([Save.STAT_NAMES[stat],plain+int(now.get(stat,0)),plain+int(then.get(stat,0))])
 	return lines
 
-## Every technique a member could take into battle: those they came with, then those learnt.
+## The plain attack every member has. It is always taken into battle.
+func _basic(who: String) -> String:
+	var innate: Array = UnitCatalog.unit_def(_def(who)).get("skills",[])
+	return str(innate[0]) if not innate.is_empty() else ""
+
+## What a member carries in their two pockets.
+func _kit(who: String) -> Array:
+	return _purse().kit.get(who,[])
+
+## Every technique a member could choose to take into battle: those they came with beyond
+## the plain attack, then those learnt.
 func _known(who: String) -> Array:
-	var known: Array = UnitCatalog.unit_def(_def(who)).get("skills",[]).duplicate()
+	var known: Array = UnitCatalog.unit_def(_def(who)).get("skills",[]).slice(1)
 	var own := str(_kind(who).get("skill",""))
 	if own != "": known.append(own)
 	var learned: Array = entry.get("picks",{}).get(who,[])
@@ -902,12 +921,36 @@ func _skill_words(who: String, id: String) -> String:
 	var node := _teacher(who,id)
 	if not node.is_empty(): return str(node.desc)
 	var skill: Dictionary = SkillCatalog.get_skill(id)
-	var words := "%s 倍%s伤害" % [str(skill.get("mult",1)),"神性" if skill.get("type","") == "divine" else "物理"]
+	var words := "%s 倍%s伤害" % [str(skill.get("mult",1)),"神性" if int(skill.get("type",0)) == Defs.DamageType.DIVINE else "物理"]
 	if int(skill.get("knockback",0)) > 0: words += "，击退 %d 格" % int(skill.knockback)
 	return words+"。随身的招式，不必修习。"
 
 func _pick_page(which: String) -> void:
 	page = which
+	_render()
+
+func _pick_pocket(index: int) -> void:
+	kit_at = index
+	open = "kit"
+	kit_pick = ""
+	_render()
+
+func _pick_kit(item: String) -> void:
+	kit_pick = item
+	_render()
+
+## Puts a thing in one of a member's pockets, or empties it when `item` is "".
+func _pocket(who: String, index: int, item: String) -> void:
+	if item != "" and Save.loose(_purse(),item) <= 0: return
+	var next: Dictionary = entry.duplicate(true)
+	var kit: Array = next.purse.kit.get(who,[])
+	if index < kit.size():
+		if item == "": kit.remove_at(index)
+		else: kit[index] = item
+	elif item != "" and kit.size() < Save.KIT_SLOTS:
+		kit.append(item)
+	next.purse.kit[who] = kit
+	if _keep(next): note = "%s带上了%s。" % [_name(who),Save.GOODS[item].name] if item != "" else "已放回行囊。"
 	_render()
 
 func _pick_slot(index: int) -> void:
@@ -1010,23 +1053,42 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		else:
 			Px.text(body,"空",Rect2(spot+Vector2(42,5),Vector2(88,0)),Px.BODY,Px.FAINT)
 		places.append(button)
+	# Two pockets for things used up in battle.
+	var kit := _kit(member)
+	for i in Save.KIT_SLOTS:
+		var spot := Vector2(x-6,y+16+(Save.SLOTS.size()+i)*25)
+		var button := Px.row(body,"",Rect2(spot,Vector2(150,23)),open == "kit" and kit_at == i,_pick_pocket.bind(i))
+		Px.text(body,"物品",Rect2(spot+Vector2(8,6),Vector2(34,0)),Px.SMALL,Px.OCHRE)
+		if i < kit.size():
+			Px.picture(body,Px.icon(Save.art(kit[i]),16),Rect2(spot+Vector2(42,3),Vector2(16,16))).modulate = _tint(kit[i])
+			Px.text(body,Save.GOODS[kit[i]].name,Rect2(spot+Vector2(62,5),Vector2(88,0)),Px.BODY,_tint(kit[i]))
+		else:
+			Px.text(body,"空",Rect2(spot+Vector2(42,5),Vector2(88,0)),Px.BODY,Px.FAINT)
+		places.append(button)
 	Px.chain(places)
 	places[0].focus_neighbor_top = places[0].get_path_to(leaves[0])
 	leaves[0].focus_neighbor_bottom = leaves[0].get_path_to(places[0])
 	leaves[1].focus_neighbor_bottom = leaves[1].get_path_to(places[0])
 	for button in places: button.focus_neighbor_left = button.get_path_to(whose)
-	Px.rule(body,Vector2(x+154,y),116,Color(Px.OCHRE,.2),true)
+	Px.rule(body,Vector2(x+154,y),166,Color(Px.OCHRE,.2),true)
 	# The techniques they take into battle, on the right.
 	var left := x+166
 	var known := _known(member)
 	var carried := _carried(member)
-	Px.text(body,"出战招式",Rect2(left,y,80,0),Px.SMALL,Px.OCHRE)
-	var count := "%d / %d" % [carried.size(),CARRY]
+	Px.text(body,"攻击与技能",Rect2(left,y,80,0),Px.SMALL,Px.OCHRE)
+	# The plain attack: always there, not one of the four.
+	var strike := _basic(member)
+	if strike != "":
+		var line := Vector2(left-6,y+16)
+		Px.picture(body,_skill_mark(member,strike,16),Rect2(line+Vector2(8,3),Vector2(16,16))).modulate = Px.MUTED
+		Px.text(body,"攻击",Rect2(line+Vector2(30,5),Vector2(40,0)),Px.BODY,Px.MUTED)
+		Px.text(body,str(SkillCatalog.get_skill(strike).get("name",strike))+" · "+_skill_brief(strike),Rect2(line+Vector2(wide-160-166,7),Vector2(158,0)),Px.SMALL,Px.FAINT,HORIZONTAL_ALIGNMENT_RIGHT)
+	var count := "技能 %d / %d" % [carried.size(),CARRY]
 	if known.size() > carried.size(): count = "另会 %d 招 · " % (known.size()-carried.size())+count
 	Px.text(body,count,Rect2(x+wide-140,y,140,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
 	var slots: Array[Button] = []
 	for i in CARRY:
-		var spot := Vector2(left-6,y+16+i*25)
+		var spot := Vector2(left-6,y+16+(i+1)*25)
 		var button := Px.row(body,"",Rect2(spot,Vector2(wide-160,23)),open == "skill" and slot_at == i,_pick_slot.bind(i))
 		if i < carried.size():
 			Px.picture(body,_skill_mark(member,carried[i],16),Rect2(spot+Vector2(8,3),Vector2(16,16))).modulate = Px.IVORY
@@ -1039,7 +1101,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 	for i in CARRY:
 		slots[i].focus_neighbor_left = slots[i].get_path_to(places[i])
 		places[i].focus_neighbor_right = places[i].get_path_to(slots[i])
-	y += 120
+	y += 170
 	# What is always on: traits learnt, and what the hero carries from the gods.
 	var always: Array = []
 	var learned: Array = entry.get("picks",{}).get(member,[])
@@ -1058,6 +1120,10 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 	var act: Button
 	var act_at := Rect2(DETAIL.end.x-20-136,DETAIL.end.y-40,136,28)
 	if open == "skill":
+		if known.is_empty():
+			Px.text(body,"除了攻击，还没有别的技能。到「技能树」里学。",Rect2(x,y+4,wide,0),Px.SMALL,Px.FAINT)
+			if asking == "": _focus(slots[slot_at])
+			return
 		if not known.has(skill_pick):
 			var spare: Array = known.filter(func(id): return not carried.has(id))
 			skill_pick = carried[slot_at] if slot_at < carried.size() else (spare[0] if not spare.is_empty() else known[0])
@@ -1078,8 +1144,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		var next := carried.duplicate()
 		if carried.has(skill_pick):
 			next.erase(skill_pick)
-			act = Px.button(body,"卸下" if carried.size() > 1 else "至少带一招",act_at,_carry.bind(next))
-			act.disabled = carried.size() <= 1
+			act = Px.button(body,"卸下",act_at,_carry.bind(next))
 		elif carried.size() < CARRY:
 			next.append(skill_pick)
 			act = Px.primary(body,"装上",act_at,_carry.bind(next))
@@ -1091,6 +1156,36 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		act.focus_neighbor_left = act.get_path_to(choices[known.find(skill_pick)])
 		slots[-1].focus_neighbor_bottom = slots[-1].get_path_to(choices[0])
 		if asking == "": _focus(choices[known.find(skill_pick)])
+	elif open == "kit":
+		# What could go in the open pocket: what is in it now, then whatever lies loose in the bag.
+		var holding: String = kit[kit_at] if kit_at < kit.size() else ""
+		var loose_things: Array = _in_order(purse.bag.keys().filter(func(item): return Save.GOODS[item].slot == "item" and Save.loose(purse,item) > 0))
+		var offered: Array = ([holding] if holding != "" else [])+loose_things.filter(func(item): return item != holding)
+		Px.text(body,"随身物品 · 每人 %d 件，用掉就没了" % Save.KIT_SLOTS,Rect2(x,y,260,0),Px.SMALL,Px.OCHRE)
+		if offered.is_empty():
+			Px.text(body,"行囊里没有能带的物品。阿齐尔那里有卖。",Rect2(x,y+22,wide,0),Px.SMALL,Px.FAINT)
+			if asking == "": _focus(places[Save.SLOTS.size()+kit_at])
+			return
+		if not offered.has(kit_pick): kit_pick = offered[0]
+		var inner := _scroll("kit/"+member,Rect2(x-6,y+16,206,DETAIL.end.y-y-26),offered.size()*24.0)
+		var choices: Array[Button] = []
+		for i in offered.size():
+			var item: String = offered[i]
+			var held: bool = item == holding
+			var choice := Px.row(inner,"",Rect2(0,i*24,198,22),kit_pick == item,_pick_kit.bind(item),Px.SMALL)
+			Px.picture(inner,Px.icon(Save.art(item),16),Rect2(8,i*24+3,16,16)).modulate = _tint(item)
+			Px.text(inner,Save.GOODS[item].name,Rect2(30,i*24+6,100,0),Px.SMALL,_tint(item))
+			Px.text(inner,"带着" if held else "×%d" % Save.loose(purse,item),Rect2(118,i*24+6,74,0),Px.SMALL,Px.GREEN if held else Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+			choices.append(choice)
+		Px.chain(choices)
+		Px.text(body,Save.effect_of(kit_pick),Rect2(x+212,y,wide-212,0),Px.SMALL,Px.IVORY)
+		if kit_pick == holding:
+			act = Px.button(body,"取下",act_at,_pocket.bind(member,kit_at,""))
+		else:
+			act = Px.primary(body,"带上" if holding == "" else "换上",act_at,_pocket.bind(member,kit_at,kit_pick))
+		for choice in choices: choice.focus_neighbor_right = choice.get_path_to(act)
+		act.focus_neighbor_left = act.get_path_to(choices[offered.find(kit_pick)])
+		if asking == "": _focus(choices[offered.find(kit_pick)])
 	elif open == "gear":
 		Px.text(body,"%s · %d 件可用" % [Save.slot_name(place),fitting.size()],Rect2(x,y,200,0),Px.SMALL,Px.OCHRE)
 		if fitting.is_empty():
@@ -1129,7 +1224,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		var kind := _kind(member)
 		Px.text(body,"身世",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
 		Px.text(body,str(kind.lore) if not kind.is_empty() else "随主线加入的同伴。",Rect2(x,y+18,wide,0),Px.BODY,Px.MUTED)
-		Px.text(body,"点一个部位或一格招式来更换。",Rect2(x,DETAIL.end.y-28,wide,0),Px.SMALL,Px.FAINT)
+		Px.text(body,"点一个部位、一格技能或一个物品格来更换。",Rect2(x,DETAIL.end.y-28,wide,0),Px.SMALL,Px.FAINT)
 		if asking == "": _focus(whose)
 
 ## Lays a branch out as a tree: tips spread left to right, each parent over the middle of
@@ -1297,9 +1392,9 @@ func _grid(key: String, area: Rect2, things: Array, chosen: String, pick: Callab
 ## The row of place filters over a grid of things.
 func _filters(at: Vector2, chosen: String, pick: Callable) -> Array[Button]:
 	var filters: Array[Button] = []
-	var names := [["","全部"]]+Save.SLOTS+[["material","材料"]]
+	var names := [["","全部"]]+Save.SLOTS+[["item","物品"],["material","材料"]]
 	for i in names.size():
-		filters.append(Px.tab(body,names[i][1],Rect2(at.x+i*54,at.y,50,24),chosen == names[i][0],pick.bind(names[i][0])))
+		filters.append(Px.tab(body,names[i][1],Rect2(at.x+i*50,at.y,46,24),chosen == names[i][0],pick.bind(names[i][0])))
 	return filters
 
 ## The head of the side panel for one thing: drawing, name, what it does. Returns the y below.
@@ -1308,7 +1403,7 @@ func _thing(item: String, side: Rect2) -> float:
 	var x := side.position.x+16
 	var wide := side.size.x-32
 	Px.picture(body,Px.icon(Save.art(item),48),Rect2(x,side.position.y+14,48,48)).modulate = _tint(item)
-	var kind := "材料" if goods.slot == "material" else Save.slot_name(goods.slot)
+	var kind: String = {"material":"材料","item":"物品"}.get(goods.slot,Save.slot_name(goods.slot))
 	Px.text(body,"%s · %s" % [kind,_rarity_word(item)],Rect2(x+58,side.position.y+16,wide-58,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,goods.name,Rect2(x+58,side.position.y+32,wide-58,0),Px.BODY,_tint(item))
 	var y := side.position.y+72
@@ -1358,8 +1453,8 @@ func _pack() -> void:
 	_price(body,Save.sell_price(pack_item),Vector2(x+wide,y),true)
 	y += 18
 	Px.rule(body,Vector2(x,y),wide,Color(Px.OCHRE,.2))
-	if goods.slot == "material":
-		Px.text(body,"材料只能卖。去找阿齐尔。",Rect2(x,y+10,wide,0),Px.SMALL,Px.FAINT)
+	if goods.slot in ["material","item"]:
+		Px.text(body,"材料只能卖。去找阿齐尔。" if goods.slot == "material" else "随身物品在成员的「信息」页里分配，每人两件。",Rect2(x,y+10,wide,0),Px.SMALL,Px.FAINT)
 		if asking == "": _focus(cells[shown.find(pack_item)])
 		return
 	Px.text(body,"交给谁",Rect2(x,y+8,wide,0),Px.SMALL,Px.OCHRE)
@@ -1486,7 +1581,7 @@ func _trader() -> void:
 	Px.text(body,"你有 %d 件" % have if have > 0 else "你还没有",Rect2(x,y,wide,0),Px.SMALL,Px.OCHRE if have > 0 else Px.FAINT)
 	y += 18
 	var faces: Array[Button] = []
-	if goods.slot != "material" and not selling:
+	if goods.slot not in ["material","item"] and not selling:
 		Px.rule(body,Vector2(x,y),wide,Color(Px.OCHRE,.2))
 		Px.text(body,"给谁试",Rect2(x,y+8,wide,0),Px.SMALL,Px.OCHRE)
 		var everyone := _everyone()

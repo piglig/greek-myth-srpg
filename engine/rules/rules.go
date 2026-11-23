@@ -284,6 +284,9 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if u.Cooldown(skillID) > 0 {
 		return "on cooldown"
 	}
+	if sk.Item && u.Charge(skillID) <= 0 {
+		return "none left"
+	}
 	if u.HasStatus("feared") {
 		return "feared"
 	}
@@ -377,11 +380,11 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 	if s.Grid.InBounds(cell) {
 		target = s.UnitAt(cell)
 	}
-	if sk.ID == "purify_arrow" {
-		if target == nil || target.Team != u.Team || target.DefID == "chiron" {
+	if sk.ID == "purify_arrow" || sk.Mends() {
+		if target == nil || target.Team != u.Team || (sk.ID == "purify_arrow" && target.DefID == "chiron") {
 			return "need healable ally"
 		}
-		if target.HP == target.MaxHP && cleanseTarget(target) == "" {
+		if (sk.Heal == 0 && sk.ID != "purify_arrow" || target.HP == target.MaxHP) && cleanseTarget(target) == "" {
 			return "unhurt ally"
 		}
 	} else if target == nil || target.Team == u.Team {
@@ -478,6 +481,14 @@ func cleanseTarget(target *UnitState) string {
 
 func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 	sk := u.Skill(a.Skill)
+	if sk.Item {
+		// 用一件少一件；用完就不再出现在可用的招式里。
+		left := u.Charge(sk.ID) - 1
+		u.Charges = kvSet(u.Charges, sk.ID, left)
+		if left <= 0 {
+			defer u.dropSkill(sk.ID)
+		}
+	}
 	if sk.SelfStatus != "" {
 		u.HasActed = true
 		u.SetCooldown(sk.ID, sk.Cooldown)
@@ -534,6 +545,24 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		}
 		return
 	}
+	if sk.Mends() {
+		if target != u {
+			u.Facing = dirToward(u, target)
+		}
+		u.HasActed = true
+		gain := min(sk.Heal, target.MaxHP-target.HP)
+		target.HP += gain
+		emit(ev, Event{Type: EvHeal, Unit: u.ID, Target: target.ID, Skill: sk.ID, Amount: gain, HP: target.HP})
+		for i := 0; i < sk.Cleanse; i++ {
+			status := cleanseTarget(target)
+			if status == "" {
+				break
+			}
+			target.EraseStatus(status)
+			emit(ev, Event{Type: EvStatusEnd, Target: target.ID, Status: status})
+		}
+		return
+	}
 	target = interceptor(s, u, target, ev)
 	ranged := sk.Ranged
 	u.Facing = dirToward(u, target)
@@ -570,6 +599,9 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 				rounds++
 			}
 			AddStatus(s, target, "weakened", rounds, ev, false)
+		}
+		if sk.Status != "" {
+			AddStatus(s, target, sk.Status, sk.Rounds, ev, false)
 		}
 	}
 	if !dodged {

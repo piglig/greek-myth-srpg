@@ -31,7 +31,7 @@
       },
       "min_range": {
         "type": "integer",
-        "minimum": 1,
+        "minimum": 0,
         "maximum": 10
       },
       "max_range": {
@@ -76,6 +76,10 @@
         "minimum": 0,
         "maximum": 5
       },
+      "item": {"type": "boolean"},
+      "heal": {"type": "integer", "minimum": 1, "maximum": 99},
+      "cleanse": {"type": "integer", "minimum": 1, "maximum": 5},
+      "status": {"enum": ["burning", "rooted", "feared", "weakened", "exposed", "poisoned"]},
       "self_status": {"enum": ["impervious_hide"]},
       "area_status": {
         "enum": [
@@ -110,6 +114,10 @@
           "area_status",
           "radius"
         ]
+      },
+      {
+        "required": ["heal", "min_range", "max_range"],
+        "not": {"required": ["mult"]}
       }
     ]
   }

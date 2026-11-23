@@ -51,6 +51,12 @@ const GOODS := {
 	"pendant": {"slot":"trinket","name":"青金坠","rarity":"rare","price":160,"art":"art_pendant","mods":{"div":2},"lore":"一小块青金石，颜色像黄昏以后的天。"},
 	"owl": {"slot":"trinket","name":"猫头鹰小像","rarity":"rare","price":170,"art":"art_owl","mods":{"wil":2,"div":1},"lore":"雅典娜的鸟。夜里守营的人喜欢带着它。"},
 	"amulet": {"slot":"trinket","name":"祭司护符","rarity":"epic","price":330,"art":"art_amulet","mods":{"div":3,"wil":2},"lore":"神庙里流出来的东西，阿齐尔不肯说是怎么到手的。","chapter":2},
+	"item_potion": {"slot":"item","name":"回复药","rarity":"common","price":40,"effect":"回复 12 点生命。给自己或身边的同伴。","lore":"蜂蜜、酒和几味草药熬成的浓浆，装在小陶瓶里。"},
+	"item_antidote": {"slot":"item","name":"解毒药","rarity":"common","price":50,"effect":"解除灼烧、中毒、恐惧中的两种，回复 4 点生命。","lore":"喀戎的方子，苦得让人忘了自己在怕什么。"},
+	"item_stone": {"slot":"item","name":"投石","rarity":"common","price":20,"effect":"射程 2–3。0.6 倍物理伤害，额外破势 15。","lore":"河滩上捡的卵石，一袋三枚，这里按一枚算。"},
+	"item_javelin": {"slot":"item","name":"标枪","rarity":"common","price":45,"effect":"射程 2–4。1.2 倍物理伤害。","lore":"轻木杆，铁尖头，扔出去就别指望捡回来。"},
+	"item_firepot": {"slot":"item","name":"火油罐","rarity":"rare","price":90,"effect":"射程 2–3。0.7 倍神性伤害，点燃目标 2 回合。","lore":"封着松脂和橄榄油的陶罐，罐口塞着浸过油的麻布。"},
+	"item_net": {"slot":"item","name":"捕网","rarity":"rare","price":80,"effect":"射程 1–3。0.3 倍物理伤害，目标 1 回合无法移动。","lore":"渔夫的手抛网，四角坠着铅块。"},
 	"wolf_hide": {"slot":"material","name":"狼皮","rarity":"common","price":30,"art":"art_pelt","lore":"剥得不算整齐，皮匠照样收。"},
 	"wolf_fang": {"slot":"material","name":"狼牙","rarity":"common","price":20,"art":"art_tooth"},
 	"bone": {"slot":"material","name":"兽骨","rarity":"common","price":12,"art":"art_bone"},
@@ -72,13 +78,17 @@ const STAT_NAMES := {"hp":"生命","str":"力量","def":"防御","wil":"意志",
 ## least one material (the first listed, if the dice give none).
 const LOOT := {
 	"wolf": [["wolf_hide",0.6],["wolf_fang",0.5],["bone",0.3],["fang_charm",0.06],["wolf_cape",0.03]],
-	"bandit": [["broken_shield",0.4],["coin_pouch",0.35],["rope",0.3],["fist_wrap",0.05],["leather",0.04]],
-	"bandit_archer": [["arrows",0.6],["rope",0.3],["coin_pouch",0.25],["feather",0.06]],
-	"bandit_chief": [["coin_pouch",1.0],["bronze_scrap",0.6],["belt_wide",0.15],["gauntlet",0.12]],
+	"bandit": [["broken_shield",0.4],["coin_pouch",0.35],["rope",0.3],["fist_wrap",0.05],["leather",0.04],["item_stone",0.15]],
+	"bandit_archer": [["arrows",0.6],["rope",0.3],["coin_pouch",0.25],["feather",0.06],["item_javelin",0.12]],
+	"bandit_chief": [["coin_pouch",1.0],["bronze_scrap",0.6],["belt_wide",0.15],["gauntlet",0.12],["item_potion",0.3]],
 	"boar": [["boar_hide",0.7],["boar_tusk",0.7],["bone",0.4]],
-	"centaur": [["horsehair",0.6],["wine_skin",0.5],["bronze_scrap",0.3],["trail_wraps",0.06]],
+	"centaur": [["horsehair",0.6],["wine_skin",0.5],["bronze_scrap",0.3],["trail_wraps",0.06],["item_potion",0.1]],
 	"lion": [["lion_mane",1.0],["claw",1.0]],
 }
+
+## How many things one member may carry into battle. The engine holds the same number
+## (rules.KitSlots).
+const KIT_SLOTS := 2
 
 ## The drawing for a thing.
 static func art(id: String) -> String:
@@ -89,6 +99,7 @@ static func effect_of(id: String) -> String:
 	var goods: Dictionary = GOODS[id]
 	if goods.has("effect"): return goods.effect
 	if goods.slot == "material": return "战利品。可以卖给行商。"
+	if goods.slot == "item": return "消耗品。"
 	var parts: Array = []
 	for stat: String in goods.get("mods",{}):
 		var change := int(goods.mods[stat])
@@ -98,12 +109,13 @@ static func effect_of(id: String) -> String:
 static func sell_price(id: String) -> int:
 	return int(GOODS[id].price)/2
 
-## A purse holds coins, `bag` ({thing: how many are owned, worn or not}) and `worn`
-## ({who: {place: thing}}). Older saves listed one of each thing and one wearer per thing.
+## A purse holds coins, `bag` ({thing: how many are owned, worn or not}), `worn`
+## ({who: {place: thing}}) and `kit` ({who: [things carried into battle, one entry each]}). Older saves listed one of each thing and one wearer per thing.
 static func settle_purse(purse: Dictionary) -> void:
 	if not purse.has("coins"): purse.coins = STARTING_COINS
 	if not purse.has("bag"): purse.bag = {}
 	if not purse.has("worn"): purse.worn = {}
+	if not purse.has("kit"): purse.kit = {}
 	for id in purse.get("owned",[]):
 		if GOODS.has(id): purse.bag[id] = maxi(1,int(purse.bag.get(id,0)))
 	for id in purse.get("equipped",{}):
@@ -120,6 +132,9 @@ static func in_use(purse: Dictionary, id: String) -> int:
 	for who in purse.get("worn",{}):
 		for place in purse.worn[who]:
 			if purse.worn[who][place] == id: count += 1
+	for who in purse.get("kit",{}):
+		for thing in purse.kit[who]:
+			if thing == id: count += 1
 	return count
 
 ## How many of a thing are lying in the bag, free to wear or sell.

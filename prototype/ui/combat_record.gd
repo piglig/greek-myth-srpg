@@ -52,7 +52,7 @@ static func collect(state: BattleState, events: Array, from_round := -1) -> Arra
 			rows.append(row)
 		var line := EventText._line(state,event).strip_edges()
 		if kind == "move":
-			line = "%s → %s" % [EventText._cell(event.from),EventText._cell(event.to)]
+			line = "移动 %d 格" % _steps(event)
 		if kind == "undo_move":
 			line = "返回移动前的位置"
 		if not line.is_empty():
@@ -65,7 +65,8 @@ static func collect(state: BattleState, events: Array, from_round := -1) -> Arra
 				row.outcome = "−%d 生命" % (row.before-row.after)
 			"ko": row.outcome = ("−%d · 倒下" % (row.before-row.after)) if row.after >= 0 else "倒下"
 			"knockback": row.outcome += " 击退"
-			"move","undo_move","leap": row.outcome = "%s → %s" % [EventText._cell(event.from),EventText._cell(event.to)]
+			"move","leap": row.outcome = "%s %d 格" % ["跃出" if kind == "leap" else "移动",_steps(event)]
+			"undo_move": row.outcome = "退回原位"
 			"attack","assist": row.direction = EventText.RELATION_NAMES[event.relation]
 			"resist": row.outcome = "抵抗"
 			"dodge": row.outcome = "闪避"
@@ -74,3 +75,11 @@ static func collect(state: BattleState, events: Array, from_round := -1) -> Arra
 				if row.after < 0:
 					row.outcome = EventText.STATUS_NAMES.get(event.status,event.status)
 	return rows
+
+
+## How far a move went, in cells. A player reads the path on the field, not coordinates.
+static func _steps(event: Dictionary) -> int:
+	if event.has("path") and event.path is Array and event.path.size() > 1: return event.path.size()-1
+	var from: Vector2i = event.from
+	var to: Vector2i = event.to
+	return absi(to.x-from.x)+absi(to.y-from.y)

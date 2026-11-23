@@ -14,6 +14,13 @@ const MARKS := preload("res://art/original/interface/ceramic_marks.svg")
 const ACTION_MARK := {"spear":0,"slash":0,"shield_bash":1,"grapple":2,"wait":3,"facing":4,
 	"move":18,"leap":18,"face":4,"undo_move":5,"shoot":6,"leap_shot":6,"heracles_bow":6,"bandit_bow":6,"vital_shot":7,
 	"mark":7,"club":13,"slam":13,"release":14,"struggle":14,"reinforce":2,"push_boulder":17}
+## The stamp for each command, from the same set the camp uses. A technique with a drawing
+## of its own (the tree's) uses that; these cover the rest.
+const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash","heavy_cut":"act_slash","shield_bash":"act_shield",
+	"grapple":"act_grapple","reinforce":"act_guard","release":"act_release","struggle":"act_release","wait":"act_wait",
+	"facing":"act_facing","face":"act_facing","undo_move":"act_undo","move":"boot","leap":"jump","mark":"act_mark",
+	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","aimed_shot":"act_shoot","witch_fire":"act_fire",
+	"push_boulder":"act_push","trample":"heel_strike","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}
 var enemy_numbers := {}
 var _round_numbers := {}
 var _queue_round := -1
@@ -47,7 +54,6 @@ var _help: Button
 var _seal: Control
 var _portrait: TextureRect
 var _unit_name: Button
-var wheel := preload("res://ui/action_wheel.gd").new()
 var _condition: Label
 var _vitals: Label
 var _health: ProgressBar
@@ -66,7 +72,19 @@ var _info_text: RichTextLabel
 var _log_panel: PanelContainer
 const CombatRecord := preload("res://ui/combat_record.gd")
 var _top: PanelContainer
-var _bottom: PanelContainer
+var _bottom: Control  ## holds the three things along the foot of the screen, and the journal
+var _card: PanelContainer  ## lower left: who is selected
+var _bar: PanelContainer  ## lower middle: what they can do
+var _side: PanelContainer  ## lower right: what is about to happen
+var _log: PanelContainer
+var _figures: HBoxContainer  ## the numbers on the card
+## The five things anyone can do, always in the same places: [group, word, drawing].
+const GROUPS := [["move","移动","act_move"],["attack","攻击","act_slash"],["skill","技能","skills"],["item","物品","act_item"],["wait","待机","act_wait"]]
+var _diamond: DiamondBar  ## the commands, as a diamond that grows facets
+var _menu: PanelContainer  ## the card that says what the facet under the mouse does
+var _menu_rows: VBoxContainer
+var _shown_actions: Array = []
+var _detail := -1  ## which command the card describes
 var _commands: HBoxContainer
 var _feed: VBoxContainer
 var _scroll: ScrollContainer
@@ -104,49 +122,50 @@ func _ready() -> void:
 	heading.add_child(_phase_label)
 	_objective = Label.new()
 	mission_body.add_child(_objective)
-	_mission_title.toggled.connect(func(on: bool): _objective.visible = on and not _objective.text.is_empty())
+	_mission_title.toggle_mode = false
+	_mission_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_objective.modulate = Color("#d8c499")
 
 	_order_panel = _panel()
 	_order_toggle = _toggle_button("","展开或收起敌方行动顺序")
 	_order_toggle.clip_text = true
 	_order_panel.add_child(_order_toggle)
-	_order_toggle.toggled.connect(func(_on: bool): wheel.hide(); _layout_order())
+	_order_toggle.hide()
 	_order_scroll = ScrollContainer.new()
-	_order_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_order_scroll.hide()
+	# The enemy's order of play stands in the bar as a row of faces, always in view.
 	_order_row = GridContainer.new()
-	_order_scroll.add_child(_order_row)
+	_order_row.columns = 12
+	_order_panel.add_child(_order_row)
 
 	_tools = HBoxContainer.new()
 	add_child(_tools)
 	_journal = _toggle_button("战报","查看最近的战斗记录")
 	_help = _toggle_button("操作","查看键鼠操作")
-	_threat = _toggle_button("威胁范围","显示敌方威胁范围（T）")
+	_threat = _toggle_button("威胁","显示敌方威胁范围（T）")
 	_tactical = _toggle_button("地形","切换战术地形视图（Tab）")
 	_threat.toggled.connect(func(on: bool): threat_changed.emit(on))
 	_tactical.toggled.connect(func(on: bool): tactical_changed.emit(on))
-	var tool_marks := { _threat:8, _tactical:9, _journal:10, _help:11 }
-	for button: Button in tool_marks:
-		button.icon = _mark(tool_marks[button])
-		button.text = "操作" if button == _help else ("战报" if button == _journal else "")
-		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT if button == _help or button == _journal else HORIZONTAL_ALIGNMENT_CENTER
-		button.accessibility_name = button.tooltip_text
-	_tools.add_child(_threat)
-	_tools.add_child(_tactical)
-	_tools.add_child(_journal)
-	_tools.add_child(_help)
 	menu_button = Button.new()
-	menu_button.text = "≡"
+	menu_button.text = "菜单"
 	menu_button.tooltip_text = "战斗菜单（Esc）"
 	menu_button.focus_mode = Control.FOCUS_NONE
 	menu_button.pressed.connect(func(): menu_pressed.emit())
-	_tools.add_child(menu_button)
+	# Every tool carries its stamp and its word.
+	var tool_art := { _threat:"ui_threat", _tactical:"ui_terrain", _journal:"ui_log", _help:"ui_keys", menu_button:"ui_menu" }
+	for button: Button in tool_art:
+		button.icon = Px.icon(tool_art[button],32)
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.add_theme_color_override("icon_normal_color",Px.OCHRE)
+		button.add_theme_color_override("icon_hover_color",Px.IVORY)
+		button.add_theme_color_override("icon_pressed_color",Px.IVORY)
+		button.accessibility_name = button.tooltip_text
+		_tools.add_child(button)
 	_help_label = Label.new()
 	_help_label.add_theme_stylebox_override("normal",theme.get_stylebox("panel","PanelContainer"))
 	add_child(_help_label)
 	_help_label.hide()
 	_help.toggled.connect(func(on: bool):
-		wheel.hide()
 		_help_label.visible = on
 		_info_panel.visible = not on and (not _info_text.text.is_empty() or not _last_record.is_empty() or _context.get_child_count()>0)
 	)
@@ -166,11 +185,7 @@ func _ready() -> void:
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_seal.add_child(_portrait)
 	_portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var mask := Shader.new()
-	mask.code = "shader_type canvas_item; varying vec2 pt; void vertex(){pt=VERTEX;} uniform float diameter; void fragment(){COLOR.a *= 1.0-smoothstep(.41,.43,length(pt/diameter-vec2(.5)));}"
-	var ink := ShaderMaterial.new()
-	ink.shader = mask
-	_portrait.material = ink
+	_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summary.add_child(identity)
@@ -186,6 +201,8 @@ func _ready() -> void:
 	_condition = Label.new()
 	_condition.modulate = Color("#dec39e")
 	identity.add_child(_condition)
+	_figures = HBoxContainer.new()
+	identity.add_child(_figures)
 	_unit_name.toggled.connect(func(_on: bool): _update_details())
 
 	_action_panel = _panel()
@@ -205,6 +222,7 @@ func _ready() -> void:
 	context.add_child(_cancel)
 	_action_box = HFlowContainer.new()
 	commands.add_child(_action_box)
+	_action_box.hide()
 	_info_panel = _panel()
 	_info_text = _rich()
 	var inspector := ScrollContainer.new()
@@ -214,7 +232,7 @@ func _ready() -> void:
 	assessment.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inspector.add_child(assessment)
 	assessment.minimum_size_changed.connect(func():
-		inspector.custom_minimum_size.y = minf(assessment.get_combined_minimum_size().y,210*ui_scale)
+		inspector.custom_minimum_size.y = minf(assessment.get_combined_minimum_size().y,get_viewport_rect().size.y*.46)
 	)
 	_forecast = Label.new()
 	_forecast.modulate = Color("#f2c597")
@@ -245,11 +263,8 @@ func _ready() -> void:
 	empty.text = "本场尚无行动记录"
 	_feed.add_child(empty)
 	_journal.toggled.connect(func(on: bool):
-		wheel.hide()
 		_log_panel.visible = on
-		_commands.visible = not on
 		_update_details()
-		_bottom.visible = on or _has_context()
 		_place_workspace.call_deferred()
 	)
 
@@ -261,7 +276,7 @@ func _ready() -> void:
 	add_child(_ready_units)
 	_end_button = Button.new()
 	_end_button.text = "结束回合"
-	_end_button.icon = _mark(12)
+	_end_button.icon = Px.icon("march",32)
 	_end_button.focus_mode = Control.FOCUS_NONE
 	_end_button.add_theme_stylebox_override("normal",Px.big_box("button_primary",Vector2(14,6)))
 	_end_button.pressed.connect(func(): end_turn_pressed.emit())
@@ -294,42 +309,78 @@ func _ready() -> void:
 	_order_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_tools.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_end_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_bottom = _panel()
-	_bottom.minimum_size_changed.connect(func(): _place_workspace.call_deferred())
-	var body := VBoxContainer.new()
-	_bottom.add_child(body)
-	_commands = HBoxContainer.new()
-	body.add_child(_commands)
-	body.add_child(_details)
+	# Along the foot of the screen, three separate things with the battlefield between them:
+	# who is selected, what they can do, and what is about to happen.
+	_bottom = Control.new()
+	_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_bottom)
+	_bottom.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_card = _panel()
+	var card_body := VBoxContainer.new()
+	_card.add_child(card_body)
+	_bar = _panel()
+	_side = _panel()
+	_log = _panel()
+	for box: PanelContainer in [_card,_bar,_side,_log]:
+		box.reparent(_bottom,false)
+		box.minimum_size_changed.connect(func(): _place_workspace.call_deferred())
+	_unit_panel.reparent(card_body,false)
+	card_body.add_child(_details)
 	_details.hide()
-	for node in [_unit_panel,_action_panel,_info_panel]:
-		node.reparent(_commands,false)
-	_action_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_info_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_log_panel.reparent(body,false)
+	_action_panel.reparent(_bar,false)
+	_info_panel.reparent(_side,false)
+	_log_panel.reparent(_log,false)
+	for content: Control in [_unit_panel,_action_panel,_info_panel,_log_panel]:
+		content.visibility_changed.connect(func(): _place_workspace.call_deferred())
 	_context = VBoxContainer.new()
 	assessment.add_child(_context)
-	add_child(wheel)
-	wheel.chosen.connect(func(index: int): action_pressed.emit(index))
+	_menu = _panel()
+	_menu.reparent(_bottom,false)
+	_menu_rows = VBoxContainer.new()
+	_menu.add_child(_menu_rows)
+	_menu.hide()
+	_menu.minimum_size_changed.connect(func(): _place_workspace.call_deferred())
+	_diamond = DiamondBar.new()
+	_bottom.add_child(_diamond)
+	_diamond.chosen.connect(func(index: int): action_pressed.emit(index))
+	_diamond.cancelled.connect(func(): cancel_pressed.emit())
+	_diamond.pointed.connect(_show_detail)
 	for section: PanelContainer in [_mission,_order_panel,_unit_panel,_action_panel,_info_panel,_log_panel]:
 		section.add_theme_stylebox_override("panel",StyleBoxEmpty.new())
 
 
+## Shows each of the foot's panels when it has something in it, and sets them in their
+## corners: the card at the left, the commands in the middle, the forecast at the right.
 func _place_workspace() -> void:
-	if not _bottom.visible:
+	if _bottom == null or _card == null:
 		return
+	var reading := journal_open()
+	_card.visible = _battle_visible and _unit_panel.visible and not reading
+	_diamond.visible = _battle_visible and _action_panel.visible and not reading
+	_bar.visible = _diamond.visible and _action_title.get_parent().visible
+	_side.visible = _battle_visible and _info_panel.visible and not reading
+	_log.visible = _battle_visible and reading
 	var margin := Metrics.MARGIN*ui_scale
 	var extent := get_viewport_rect().size
-	var needed := _bottom.get_combined_minimum_size()
-	var width := extent.x-2*margin
-	if journal_open():
-		width = minf(width,maxf(needed.x,850*ui_scale))
-	elif _hover_dossier and not _unit_panel.visible:
-		width = minf(width,maxf(needed.x,760*ui_scale))
-	elif _details.visible:
-		width = minf(width,maxf(needed.x,1300*ui_scale))
-	_bottom.size = Vector2(width,needed.y)
-	_bottom.position = Vector2(margin,extent.y-margin-_bottom.size.y)
+	for box: PanelContainer in [_card,_bar,_side,_log]:
+		box.size = box.get_combined_minimum_size()
+	_card.position = Vector2(margin,extent.y-margin-_card.size.y)
+	_side.position = Vector2(extent.x-margin-_side.size.x,extent.y-margin-_side.size.y)
+	# The commands are a diamond at the middle of the foot. What the facet under the mouse
+	# does, and the line that says what the next click will do, stand to its right.
+	_diamond.fit(extent,ui_scale,margin)
+	var cluster := _diamond.bounds()
+	_menu.visible = _diamond.visible and _detail >= 0
+	_menu.size = _menu.get_combined_minimum_size()
+	var beside := cluster.end.x+margin
+	_bar.position = Vector2(beside,extent.y-margin-_bar.size.y)
+	_menu.position = Vector2(beside,extent.y-margin-_menu.size.y)
+	for note: PanelContainer in [_bar,_menu]:
+		# Where the forecast already stands at the right, sit on top of it.
+		if _side.visible and note.position.x+note.size.x > _side.position.x-margin:
+			note.position = Vector2(minf(note.position.x,extent.x-margin-note.size.x),_side.position.y-note.size.y-margin*.5)
+	_log.size.x = minf(extent.x-2*margin,maxf(_log.size.x,850*ui_scale))
+	_log.position = Vector2((extent.x-_log.size.x)*.5,extent.y-margin-_log.size.y)
 
 
 func _fit_journal() -> void:
@@ -340,6 +391,13 @@ func _fit_journal() -> void:
 
 func _has_context() -> bool:
 	return _battle_visible and (_unit_panel.visible or _action_panel.visible or _info_panel.visible)
+
+
+## The drawing for a command, tinted by whoever draws it.
+static func _art(kind: String, size := 32) -> Texture2D:
+	var name: String = ACTION_ART.get(kind,kind)
+	if not ResourceLoader.exists("res://art/thirdparty/game-icons/%s.svg" % name): name = "skills"
+	return Px.icon(name,size)
 
 
 func apply_scale(window: Vector2) -> void:
@@ -357,27 +415,20 @@ func apply_scale(window: Vector2) -> void:
 	Px.fit(_vitals,roundi(Metrics.CAPTION*s))
 	Px.fit(_objective,roundi(Metrics.CAPTION*s))
 	Px.fit(_banner,int(40*s))
-	for panel in [_top,_bottom]:
-		panel.get_theme_stylebox("panel").set_content_margin_all(Metrics.PADDING*s)
+	_top.get_theme_stylebox("panel").set_content_margin_all(Metrics.PADDING*s)
 	_top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_top.offset_left = m
 	_top.offset_right = -m
 	_top.offset_top = m
-	_bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_bottom.offset_left = m
-	_bottom.offset_right = -m
-	_bottom.offset_bottom = -m
-	_commands.add_theme_constant_override("separation",roundi(Metrics.CAPTION*s))
 	_fit_journal()
 	for button: Button in _tools.get_children():
-		button.add_theme_constant_override("icon_max_width",roundi(30*s))
+		button.add_theme_constant_override("icon_max_width",roundi(22*s))
 		button.custom_minimum_size = Vector2(Metrics.CONTROL,Metrics.CONTROL)*s
+		Px.fit(button,roundi(Metrics.CAPTION*s))
 	_end_button.add_theme_constant_override("icon_max_width",roundi(28*s))
 	for control: Control in [_ready_units,_order_toggle,_mission_title,_end_button]:
 		control.custom_minimum_size.y = Metrics.CONTROL*s
 	Px.fit(_order_toggle,roundi(Metrics.BODY*s))
-	_order_toggle.custom_minimum_size.x = 420*s
 	var gap := roundi(Metrics.GAP*s)
 	for container in ["HBoxContainer","VBoxContainer"]:
 		theme.set_constant("separation",container,gap)
@@ -392,13 +443,13 @@ func apply_scale(window: Vector2) -> void:
 		button_box.content_margin_bottom = 4*s
 	_layout_order()
 	_dock(_help_label,Control.PRESET_TOP_RIGHT,Control.GROW_DIRECTION_BEGIN,Control.GROW_DIRECTION_END,Vector2(-m,128*s))
-	_seal.custom_minimum_size = Vector2(98,98)*s
+	_seal.custom_minimum_size = Vector2(84,84)*s
 	_seal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	(_portrait.material as ShaderMaterial).set_shader_parameter("diameter",98*s)
-	_health.custom_minimum_size.y = 5*s
-	_unit_panel.custom_minimum_size.x = 215*s
-	_action_box.custom_minimum_size.x = minf(700*s,window.x*.46)
+	_portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT,Control.PRESET_MODE_MINSIZE,roundi(5*s))
+	_health.custom_minimum_size = Vector2(190,6)*s
+	_unit_panel.custom_minimum_size.x = 300*s
 	_info_panel.custom_minimum_size.x = 340*s
+	_place_workspace.call_deferred()
 	_info_text.custom_minimum_size.x = 310*s
 	_end_button.custom_minimum_size = Vector2(152,Metrics.CONTROL)*s
 	_phase_banner.fit(window, s)
@@ -417,18 +468,11 @@ func _dock(c: Control, preset: int, grow_h: int, grow_v: int, offset: Vector2) -
 	c.offset_bottom = offset.y
 
 
+## The frame the selected unit's face sits in.
 func _draw_seal() -> void:
-	var center := _seal.size*.5
-	var r := minf(center.x,center.y)-2*ui_scale
-	_seal.draw_circle(center,r,Color("#ad7554"),true,-1,true)
-	_seal.draw_circle(center,r-2*ui_scale,Color("#322521"),true,-1,true)
-	_seal.draw_circle(center,r*.85,Color("#874c38"),true,-1,true)
-	for side: int in [-1,1]:
-		for i in 7:
-			var angle := PI*.48+i*.19*side
-			var tip := Vector2.from_angle(angle)
-			var leaf := center+tip*r*.92
-			_seal.draw_line(leaf,leaf+tip.rotated(.8*side)*ui_scale*3.4,Color("#e4be85"),2*ui_scale,true)
+	var frame := Rect2(Vector2.ZERO,_seal.size).grow(-1*ui_scale)
+	_seal.draw_rect(frame,Px.INK)
+	_seal.draw_rect(frame,Px.OCHRE,false,maxf(1.0,2*ui_scale))
 
 
 static func _mark(index: int) -> AtlasTexture:
@@ -464,30 +508,31 @@ func set_enemy_order(state: BattleState, active: String, finished: bool) -> void
 		chip.focus_mode = Control.FOCUS_NONE
 		chip.toggle_mode = true
 		chip.set_pressed_no_signal(unit.id == active)
-		chip.text = CombatRecord.participant(state,unit.id).name
-		var unit_name := chip.text
-		chip.text = "%02d   %s" % [index,unit_name]
-		chip.clip_text = true
-		chip.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		chip.custom_minimum_size = Vector2(Metrics.CARD_WIDTH,Metrics.CONTROL)*ui_scale
-		Px.fit(chip,roundi(Metrics.CAPTION*ui_scale))
+		var unit_name: String = CombatRecord.participant(state,unit.id).name
+		chip.custom_minimum_size = Vector2(Metrics.CONTROL,Metrics.CONTROL)*ui_scale
 		var count := unit.actions_left if enemy_phase else unit.actions_per_turn
-		if count > 1:
-			chip.text += " · %d动" % count
-		chip.icon = _mark(15 if unit.def_id == "wolf" else 16)
-		if unit.def_id != "wolf":
-			var portrait := AtlasTexture.new()
-			portrait.atlas = load("res://art/original/actors/%s.png" % unit.def_id)
-			portrait.region = Rect2(50,26,220,210)
-			chip.icon = portrait
-		chip.add_theme_constant_override("icon_max_width",roundi(30*ui_scale))
+		var face := TextureRect.new()
+		face.texture = Px.face(unit.def_id,32)
+		face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.add_child(face)
+		face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT,Control.PRESET_MODE_MINSIZE,roundi(4*ui_scale))
+		var order := Label.new()
+		order.text = str(index)
+		order.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		order.add_theme_color_override("font_outline_color",Px.INK)
+		order.add_theme_constant_override("outline_size",roundi(6*ui_scale))
+		Px.fit(order,roundi(13*ui_scale))
+		chip.add_child(order)
+		order.position = Vector2(4,0)*ui_scale
 		var leading := unit.id == active if not active.is_empty() else not found_next
 		if leading:
 			found_next = true
 			lead_name = unit_name
-			chip.text += "　行动中" if not active.is_empty() else "　下一位"
 			chip.add_theme_stylebox_override("normal",Px.big_box("card_chosen",Vector2(14,6)))
-		chip.tooltip_text = "第 %d 位 · %s" % [index,unit_name]
+		chip.tooltip_text = "第 %d 位 · %s%s" % [index,unit_name,("　行动中" if not active.is_empty() else "　下一位") if leading else ""]
 		if count > 1:
 			chip.tooltip_text += " · 本回合 %d 次行动" % count
 		chip.mouse_entered.connect(_inspect_enemy.bind(unit.id))
@@ -510,11 +555,10 @@ func set_enemy_order(state: BattleState, active: String, finished: bool) -> void
 
 
 func _layout_order() -> void:
-	var open := _order_toggle.button_pressed and _order_panel.visible
-	_order_toggle.text = _order_summary + ("　▴" if open else "　▾")
-	_order_scroll.visible = open
-	if not open:
+	_order_panel.tooltip_text = _order_summary
+	if true:
 		return
+	var open := false
 	var available := get_viewport_rect().size.x/ui_scale-2*(Metrics.MARGIN+Metrics.PADDING)-24
 	_order_row.columns = maxi(1,floori((available+Metrics.GAP)/(Metrics.CARD_WIDTH+Metrics.GAP)))
 	var rows := mini(3,ceili(float(_order_row.get_child_count())/_order_row.columns))
@@ -546,8 +590,12 @@ func set_mission(title: String, phase: String, objective: String) -> void:
 	_mission_title.disabled = objective.is_empty()
 	_phase_label.text = phase
 	_mission_title.tooltip_text = objective
-	_objective.text = objective
-	_objective.visible = _mission_title.button_pressed and not objective.is_empty()
+	# The bar carries the goal in one line; the rest is a hover away.
+	_objective.text = objective.get_slice("。",0).get_slice("
+",0)
+	_objective.tooltip_text = objective
+	_objective.mouse_filter = Control.MOUSE_FILTER_STOP
+	_objective.visible = not objective.is_empty()
 
 
 func set_help_visible(on: bool, painted := false) -> void:
@@ -567,12 +615,9 @@ func set_unit(u: UnitState, height: int, resolving: bool) -> void:
 		return
 	if _selected_id != u.id:
 		_selected_id = u.id
+		_diamond.open_group = ""
 		_unit_name.set_pressed_no_signal(false)
-		var atlas := AtlasTexture.new()
-		atlas.atlas = load("res://art/original/actors/%s.png" % u.def_id)
-		var top: int = {"hero":64,"atalanta":48,"heracles":82}.get(u.def_id,32)
-		atlas.region = Rect2(133,top+4,62,62)
-		_portrait.texture = atlas
+		_portrait.texture = Px.face(u.def_id,64)
 	_unit_name.flat = true
 	_unit_name.text = u.display_name + "  ▾"
 	_vitals.text = "生命  %d / %d" % [maxi(u.hp,0),u.max_hp]
@@ -592,7 +637,55 @@ func set_unit(u: UnitState, height: int, resolving: bool) -> void:
 		if conditions.size() > 1:
 			_condition.text += " +%d" % (conditions.size()-1)
 	_condition.tooltip_text = "、".join(conditions)
+	# The numbers a player reads before every decision, always on the card.
+	for child in _figures.get_children():
+		_figures.remove_child(child)
+		child.queue_free()
+	_fill_figures(_figures,u,-1)
 	_update_details()
+
+
+## A unit's numbers as a row of stamps: strength, defence, will, move, jump, and the height
+## it stands at when `height` is given.
+func _fill_figures(row: HBoxContainer, u: UnitState, height: int) -> void:
+	row.add_theme_constant_override("separation",roundi(10*ui_scale))
+	var items := [["strength","力量",u.strength],["armor","防御",u.defense],["will","意志",u.will],["boot","移动",u.move],["jump","跳跃",u.jump]]
+	if height >= 0: items.append(["ui_terrain","站立高度",height])
+	for item: Array in items:
+		var pair := HBoxContainer.new()
+		pair.add_theme_constant_override("separation",roundi(3*ui_scale))
+		pair.tooltip_text = item[1]
+		pair.mouse_filter = Control.MOUSE_FILTER_STOP
+		var stamp := TextureRect.new()
+		stamp.texture = Px.icon(item[0],16)
+		stamp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		stamp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		stamp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		stamp.custom_minimum_size = Vector2.ONE*18*ui_scale
+		stamp.modulate = Px.OCHRE
+		pair.add_child(stamp)
+		var number := Label.new()
+		number.text = str(item[2])
+		Px.fit(number,roundi(Metrics.CAPTION*ui_scale))
+		pair.add_child(number)
+		row.add_child(pair)
+
+
+## What is on a unit beyond its numbers: lasting conditions and the traits worth knowing.
+func _add_tags(parent: Container, u: UnitState) -> void:
+	var tags := HFlowContainer.new()
+	parent.add_child(tags)
+	if u.team == Defs.Team.PLAYER and u.post_move > 0 and not overlay.resolving:
+		tags.add_child(_badge("可再移动 %d 格" % u.post_move,Color("#8eae9d")))
+	if u.is_boss():
+		tags.add_child(_badge("破势 %d/%d" % [u.stagger,u.stagger_max],Color("#bc8258")))
+	for status in u.statuses:
+		tags.add_child(_badge("%s · %d" % [EventText.STATUS_NAMES.get(status,status),u.statuses[status]],Color("#c7896b")))
+	var traits := {"physical_immune":"物理免疫","block":"正面格挡","cannot_attack_adjacent":"不能攻击相邻","forest_stride":"林地疾行","guest":"倒下后撤离"}
+	for key in traits:
+		if u.has_trait(key):
+			tags.add_child(_badge(traits[key],Color("#b69a6e")))
+	tags.visible = tags.get_child_count() > 0
 
 
 func _update_details() -> void:
@@ -671,19 +764,7 @@ func _add_attributes(parent: VBoxContainer, u: UnitState, height: int, compact: 
 	var facing: String = {Defs.NORTH:"北",Defs.EAST:"东",Defs.SOUTH:"南",Defs.WEST:"西"}.get(u.facing,"—")
 	_stat_group(groups,"战斗属性",[["力量",0,u.strength],["防御",1,u.defense],["意志",19,u.will]])
 	_stat_group(groups,"机动与站位",[["移动",18,u.move],["跳跃",20,u.jump],["高度",9,height],["朝向",21,facing]])
-	var tags := HFlowContainer.new()
-	parent.add_child(tags)
-	if u.team == Defs.Team.PLAYER and u.post_move > 0 and not overlay.resolving:
-		tags.add_child(_badge("可再移动 %d 格" % u.post_move,Color("#8eae9d")))
-	if u.is_boss():
-		tags.add_child(_badge("破势 %d/%d" % [u.stagger,u.stagger_max],Color("#bc8258")))
-	for status in u.statuses:
-		tags.add_child(_badge("%s · %d" % [EventText.STATUS_NAMES.get(status,status),u.statuses[status]],Color("#c7896b")))
-	var traits := {"physical_immune":"物理免疫","block":"正面格挡","cannot_attack_adjacent":"不能攻击相邻","forest_stride":"林地疾行","guest":"倒下后撤离"}
-	for key in traits:
-		if u.has_trait(key):
-			tags.add_child(_badge(traits[key],Color("#b69a6e")))
-	tags.visible = tags.get_child_count() > 0
+	_add_tags(parent,u)
 
 
 func show_unit_inspection(u: UnitState, height: int, intent: String) -> void:
@@ -714,14 +795,20 @@ func show_unit_inspection(u: UnitState, height: int, intent: String) -> void:
 		bar_style.set_content_margin_all(0)
 		meter.add_theme_stylebox_override(state_name,bar_style)
 	vital.add_child(meter)
+	var figures := HBoxContainer.new()
+	_context.add_child(figures)
+	_fill_figures(figures,u,height)
+	# What they are about to do, on a line of its own so it is never cut short.
+	var notes := HFlowContainer.new()
+	_context.add_child(notes)
 	if u.team == Defs.Team.PLAYER:
-		header.add_child(_badge("已移动" if u.has_moved else "可移动",Color("#8eae9d")))
-		header.add_child(_badge("可再移动" if u.post_move>0 else ("已行动" if u.has_acted else "可行动"),Color("#b69a6e")))
+		notes.add_child(_badge("已移动" if u.has_moved else "可移动",Color("#8eae9d")))
+		notes.add_child(_badge("可再移动" if u.post_move>0 else ("已行动" if u.has_acted else "可行动"),Color("#b69a6e")))
 	if intent:
-		header.add_child(_badge(intent,Color("#b69a6e")))
-	_add_attributes(_context,u,height,_unit_panel.visible)
+		notes.add_child(_badge(intent,Color("#b69a6e")))
+	notes.visible = notes.get_child_count() > 0
+	_add_tags(_context,u)
 	_info_panel.visible = not _help.button_pressed
-	_bottom.visible = journal_open() or _has_context()
 
 
 func set_view_options(threat: bool,tactical: bool) -> void:
@@ -729,9 +816,17 @@ func set_view_options(threat: bool,tactical: bool) -> void:
 	_tactical.set_pressed_no_signal(tactical)
 
 
-func set_action_context(title: String, can_cancel: bool) -> void:
+## `mode` tells the diamond what is going on: "" | "aim" | "facing".
+var _bar_mode := ""
+
+func set_action_context(title: String, can_cancel: bool, mode := "") -> void:
+	_bar_mode = mode
 	_action_title.text = title
-	_cancel.visible = can_cancel
+	# The bar needs no heading. A line appears over it only while a target or a facing is
+	# being chosen, to say what the next click will do.
+	_action_title.get_parent().visible = can_cancel
+	# The way back is the diamond's bottom facet, not a word at the end of this line.
+	_cancel.visible = false
 	_end_button.flat = can_cancel
 
 
@@ -744,7 +839,6 @@ func set_info_text(bbcode: String,forecast := "") -> void:
 	if bbcode.is_empty() and not _last_record.is_empty():
 		_show_record(_last_record,"最近行动")
 	_info_panel.visible = not _help.button_pressed and (_context.get_child_count()>0 or not bbcode.is_empty())
-	_bottom.visible = _journal.button_pressed or _has_context()
 
 
 func _clear_context() -> void:
@@ -776,104 +870,88 @@ func preview_records(state: BattleState,events: Array,caption := "行动预览�
 			overlay.set_health_forecast(row)
 		_context.add_child(_record_line(row,false))
 	_info_panel.show()
-	_bottom.show()
 
 
-func open_wheel(actions: Array, unit_anchor: Callable) -> void:
-	var entries := [{},{},{},{}]
-	var skill_count := 0
-	for i in actions.size():
-		var item: Dictionary = actions[i]
-		var command: Dictionary = item.get("action",{})
-		var key: String = command.get("skill",command.get("type",""))
-		var slot := -1
-		if command.has("skill"):
-			if skill_count < 2:
-				slot = skill_count
-			skill_count += 1
-		elif key == "wait":
-			slot = 2
-		elif key in ["grapple","mark","struggle","slam","release"] and entries[3].is_empty():
-			slot = 3
-		if slot >= 0:
-			entries[slot] = {"index":i,"label":item.label,"icon":_mark(ACTION_MARK.get(key,16)),
-				"enabled":item.get("enabled",true),"cooldown":item.get("cooldown",0)}
-	var area := get_viewport_rect().grow(-8*ui_scale)
-	var bottom := _bottom.position.y if _bottom.visible else area.end.y
-	area.position.y = _top.get_global_rect().end.y+8*ui_scale
-	area.size.y = bottom-area.position.y-8*ui_scale
-	wheel.open(entries,unit_anchor,area,ui_scale)
-
-
-## actions: [{label, enabled, active}]
+## The commands of whoever is selected, each naming its `group`: move, attack, skill, item,
+## wait. They are drawn as a diamond: see DiamondBar.
 func set_actions(actions: Array) -> void:
-	for c in _action_box.get_children():
-		_action_box.remove_child(c)
-		c.queue_free()
+	_shown_actions = actions
 	_action_panel.visible = not actions.is_empty()
-	_action_box.custom_minimum_size.x = minf(700.0,actions.size()*104.0)*ui_scale
-	for i in actions.size():
-		var a: Dictionary = actions[i]
-		var b := Button.new()
-		b.accessibility_name = a["label"]
-		b.tooltip_text = a["label"]
-		var command: Dictionary = a.get("action",{})
-		var kind: String = command.get("skill",command.get("type",a["kind"]))
-		var utility := kind in ["wait","facing","undo_move"]
-		b.flat = utility and not a.get("active",false)
-		var icon := TextureRect.new()
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.texture = _mark(ACTION_MARK.get(kind,16))
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-		b.add_child(icon)
-		icon.offset_left = -16*ui_scale
-		icon.offset_right = 16*ui_scale
-		icon.offset_top = 9*ui_scale
-		icon.offset_bottom = 41*ui_scale
-		var caption := Label.new()
-		caption.text = a["label"]
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		Px.fit(caption,roundi(Metrics.CAPTION*ui_scale))
-		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		b.add_child(caption)
-		caption.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-		caption.offset_left = 3*ui_scale
-		caption.offset_right = -3*ui_scale
-		caption.offset_top = -30*ui_scale
-		caption.offset_bottom = -4*ui_scale
-		if not a.get("enabled",true):
-			icon.modulate = Color("#a59b90")
-			caption.modulate = icon.modulate
-		var cooldown: int = a.get("cooldown",0)
-		if cooldown > 0:
-			var timer := Label.new()
-			timer.text = str(cooldown)
-			timer.modulate = Color("#e5a580")
-			timer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			Px.fit(timer,roundi(13*ui_scale))
-			b.add_child(timer)
-			timer.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-			timer.offset_left = -23*ui_scale
-			timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			b.tooltip_text += " · 冷却 %d 回合" % cooldown
-		if i < 9:
-			var shortcut := Label.new()
-			shortcut.text = str(i+1)
-			shortcut.position = Vector2(5,1)*ui_scale
-			shortcut.modulate = Color("#cfad89")
-			Px.fit(shortcut,roundi(13*ui_scale))
-			shortcut.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			b.add_child(shortcut)
-		b.disabled = not a.get("enabled", true)
-		b.toggle_mode = true
-		b.button_pressed = a.get("active", false)
-		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(96,Metrics.ACTION) * ui_scale
-		b.pressed.connect(func(): action_pressed.emit(i))
-		_action_box.add_child(b)
+	_diamond.show_commands(actions,_bar_mode)
+	_show_detail(-1)
+
+
+func _toggle_group(key: String) -> void:
+	_diamond.toggle(key)
+
+
+## Closes the open group of commands. True if there was one to close.
+func close_menu() -> bool:
+	return _diamond.close()
+
+
+## A number key: with a group open it picks from the group, otherwise from the four.
+func press_key(number: int) -> void:
+	_diamond.press_key(number)
+
+
+## The card beside the diamond: what the command under the mouse does, what it reaches,
+## what it waits on.
+func _show_detail(index: int) -> void:
+	_detail = index if index >= 0 and index < _shown_actions.size() else -1
+	for child in _menu_rows.get_children():
+		_menu_rows.remove_child(child)
+		child.queue_free()
+	if _detail < 0:
+		_place_workspace.call_deferred()
+		return
+	var a: Dictionary = _shown_actions[_detail]
+	var usable: bool = a.get("enabled",true)
+	var waiting := int(a.get("cooldown",0))
+	_menu_rows.add_theme_constant_override("separation",roundi(4*ui_scale))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation",roundi(10*ui_scale))
+	_menu_rows.add_child(head)
+	var icon := TextureRect.new()
+	icon.texture = _art(str(a.get("art","")),32)
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2.ONE*40*ui_scale
+	icon.modulate = Px.OCHRE
+	head.add_child(icon)
+	var title := VBoxContainer.new()
+	title.add_theme_constant_override("separation",0)
+	head.add_child(title)
+	var name_label := Label.new()
+	name_label.text = str(a.get("title",a.label))
+	Px.fit(name_label,roundi(Metrics.BODY*ui_scale))
+	title.add_child(name_label)
+	var facts := PackedStringArray()
+	if str(a.get("brief","")) != "": facts.append(str(a.brief))
+	if int(a.get("recharge",0)) > 0: facts.append("冷却 %d 回合" % int(a.recharge))
+	var line := Label.new()
+	line.text = "　·　".join(facts)
+	line.modulate = Color("#d8c9b0")
+	Px.fit(line,roundi(Metrics.CAPTION*ui_scale))
+	line.visible = not line.text.is_empty()
+	title.add_child(line)
+	var words := str(a.get("words",""))
+	if words != "":
+		var does := Label.new()
+		does.text = words
+		does.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		does.custom_minimum_size.x = 300*ui_scale
+		does.modulate = Color("#bfae98")
+		Px.fit(does,roundi(Metrics.CAPTION*ui_scale))
+		_menu_rows.add_child(does)
+	if waiting > 0 or not usable:
+		var state := Label.new()
+		state.text = "冷却中，还要 %d 回合" % waiting if waiting > 0 else "现在不能用"
+		state.modulate = Color("#e5a580") if waiting > 0 else Color("#8a8076")
+		Px.fit(state,roundi(Metrics.CAPTION*ui_scale))
+		_menu_rows.add_child(state)
+	_place_workspace.call_deferred()
 
 
 func journal_open() -> bool:
@@ -893,6 +971,18 @@ func set_available_units(count: int, movers: int, available: bool) -> void:
 	_ready_units.tooltip_text = "选择并定位下一名可行动或可再移动的角色"
 
 
+## Draws the eye to the end-turn button: everyone has done what they can.
+func nudge_end_turn() -> void:
+	if _end_button.disabled: return
+	_end_button.pivot_offset = _end_button.size*.5
+	var pulse := _end_button.create_tween()
+	for beat in 2:
+		pulse.tween_property(_end_button,"scale",Vector2(1.08,1.08),.16).set_trans(Tween.TRANS_SINE)
+		pulse.parallel().tween_property(_end_button,"modulate",Color(1.35,1.25,1.1),.16)
+		pulse.tween_property(_end_button,"scale",Vector2.ONE,.2).set_trans(Tween.TRANS_SINE)
+		pulse.parallel().tween_property(_end_button,"modulate",Color.WHITE,.2)
+
+
 func set_turn_command(on: bool, next_battle: String) -> void:
 	_end_button.text = {"camp":"返回营地","1-2":"前往林间","1-5":"前往洞穴","reward":"领取狮皮","corinth_map":"返回行军图"}.get(next_battle,"结束回合")
 	_end_button.disabled = not on
@@ -902,7 +992,8 @@ func set_turn_command(on: bool, next_battle: String) -> void:
 func set_battle_controls_visible(on: bool) -> void:
 	_battle_visible = on
 	_top.visible = on
-	_bottom.visible = on and (_journal.button_pressed or _has_context())
+	_bottom.visible = on
+	_place_workspace.call_deferred()
 	_end_button.visible = on
 	_mission.visible = on
 	_tools.visible = on
@@ -936,17 +1027,9 @@ func record_events(state: BattleState,events: Array,from_round := -1) -> void:
 
 func _person_chip(person: Dictionary) -> HBoxContainer:
 	var chip := HBoxContainer.new()
-	var atlas := AtlasTexture.new()
-	atlas.atlas = load("res://art/original/actors/%s.png" % person.kind)
-	var crop := Rect2(125,42,82,86)
-	match person.kind:
-		"hero": crop = Rect2(133,68,62,62)
-		"wolf": crop = Rect2(69,102,95,95)
-		"heracles": crop = Rect2(131,84,70,70)
-		"lion","boar": crop = Rect2(65,70,120,120)
-	atlas.region = crop
 	var image := TextureRect.new()
-	image.texture = atlas
+	image.texture = Px.face(person.kind,32)
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.custom_minimum_size = Vector2(38,40)*ui_scale
@@ -1062,7 +1145,9 @@ func banner(text: String, hold: float = 0.9) -> void:
 
 
 func is_over_panel(screen: Vector2) -> bool:
-	for c: Control in [_top,_bottom,_help_label]:
+	if _diamond.covers(screen):
+		return true
+	for c: Control in [_top,_card,_bar,_side,_log,_help_label]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(screen):
 			return true
 	return false

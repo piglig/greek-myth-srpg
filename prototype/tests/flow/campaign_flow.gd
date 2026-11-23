@@ -358,7 +358,8 @@ func _hire() -> void:
 	var who: String = saved.roster[0].id
 	_check("the hire marches at once",saved.deploy.has(who),saved.get("deploy"))
 	_check("the hire starts with half the hero's experience",int(saved.xp.get(who,-1)) == int(saved.xp.hero)/2,saved.xp)
-	_check("the hire knows a plain attack and a technique",camp._known(who).size() == 2,camp._known(who))
+	_check("the hire has a plain attack",camp._basic(who) != "",camp._basic(who))
+	_check("and one technique besides",camp._known(who).size() == 1,camp._known(who))
 
 
 func _swap_carried() -> void:
@@ -368,13 +369,46 @@ func _swap_carried() -> void:
 	await _frames()
 	camp._pick_member("atalanta")
 	await _press("信息")
-	_check("atalanta carries both she knows",camp._carried("atalanta").size() == 2,camp._carried("atalanta"))
-	camp._pick_slot(1)
+	_check("the plain attack takes none of the four places",not camp._known("atalanta").has(camp._basic("atalanta")),camp._known("atalanta"))
+	_check("atalanta carries the one technique she knows",camp._carried("atalanta") == [Save.STARTERS.atalanta],camp._carried("atalanta"))
+	camp._pick_slot(0)
 	await _frames()
 	camp._pick_skill(Save.STARTERS.atalanta)
 	await _frames()
 	if not await _press("卸下"): return
-	_check("the choice is saved",_disk().get("loadout",{}).get("atalanta",[]).size() == 1,_disk().get("loadout"))
+	_check("the choice is saved",_disk().get("loadout",{}).get("atalanta",["?"]).is_empty(),_disk().get("loadout"))
+	await _pack_pockets()
+
+
+## Buys two things to carry and puts them in the hero's pockets.
+func _pack_pockets() -> void:
+	_begin("things to carry")
+	var camp := _scene()
+	await _grant_coins(300)
+	camp._go("trader")
+	await _frames()
+	await _press("买")
+	for thing: String in ["item_potion","item_javelin"]:
+		camp._pick(thing,"trader")
+		await _frames()
+		await _press("买下")
+	_check("both are in the bag",int(_bag().get("item_potion",0)) == 1 and int(_bag().get("item_javelin",0)) == 1,_bag())
+	camp._go("party")
+	await _frames()
+	camp._pick_member("hero")
+	await _press("信息")
+	for pocket in 2:
+		camp._pick_pocket(pocket)
+		await _frames()
+		camp._pick_kit(["item_potion","item_javelin"][pocket])
+		await _frames()
+		await _press("带上")
+	var purse: Dictionary = _disk().purse
+	_check("the hero's pockets are saved",purse.get("kit",{}).get("hero",[]) == ["item_potion","item_javelin"],purse.get("kit"))
+	_check("neither is left loose to sell",Save.loose(purse,"item_potion") == 0 and Save.loose(purse,"item_javelin") == 0)
+	camp._pick_pocket(0)
+	await _frames()
+	_check("a third thing has nowhere to go",camp._kit("hero").size() == Save.KIT_SLOTS)
 
 
 func _lose_a_battle() -> bool:
@@ -392,10 +426,23 @@ func _lose_a_battle() -> bool:
 		_check("on the player's side",hire.team == Defs.Team.PLAYER)
 		_check("with a plain attack and a technique",hire.skills.size() == 2,hire.skills)
 	var atalanta: UnitState = field.state.unit("atalanta")
-	_check("atalanta brought only what she carries",atalanta.skills.size() == 1,atalanta.skills)
+	_check("atalanta brought only her plain attack",atalanta.skills.size() == 1,atalanta.skills)
+	var hero: UnitState = field.state.unit("hero")
+	_check("the hero's pockets came along",int(hero.items.get("item_potion",0)) == 1 and int(hero.items.get("item_javelin",0)) == 1,hero.items)
+	_check("what is carried can be used like a technique",hero.skills.has("item_potion") and hero.skills.has("item_javelin"),hero.skills)
+	var bar: Array = field._actions_for(hero)
+	var groups := {}
+	for command: Dictionary in bar: groups[command.group] = int(groups.get(command.group,0))+1
+	_check("the bar sorts commands into move, attack, skill, item and wait",groups.get("move",0) == 1 and groups.get("attack",0) == 1 and groups.get("wait",0) == 1 and groups.get("item",0) == 2 and groups.get("skill",0) >= 1,groups)
+	# The potion is drunk during the battle; the javelin is not thrown.
+	hero.items = {"item_javelin":1}
 	var before := _disk()
 	if not await _end_battle(false): return false
 	var saved := _disk()
+	_check("what was used is gone from the bag",not saved.purse.bag.has("item_potion"),saved.purse.bag)
+	_check("and from the hero's pockets",saved.purse.kit.get("hero",[]) == ["item_javelin"],saved.purse.get("kit"))
+	_check("what was not used is kept",int(saved.purse.bag.get("item_javelin",0)) == 1,saved.purse.bag)
+	before.purse.bag.erase("item_potion")
 	camp = _scene()
 	_check("the report is up",camp.asking == "cheer",camp.asking)
 	_check("the report says it was lost",_button("回营整备") != null)

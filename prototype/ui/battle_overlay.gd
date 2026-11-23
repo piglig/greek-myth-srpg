@@ -13,6 +13,8 @@ var rescue_route: Array[Vector2i] = []
 var rescue_threats: Array[String] = []
 var intent_from := Vector3.INF
 var intent_to := Vector3.INF
+## Where the enemy being looked at means to walk before it acts: ground points, first to last.
+var intent_walk: Array[Vector3] = []
 
 var forecasts := {}
 var playback_hp := {}
@@ -195,15 +197,21 @@ func _draw() -> void:
 					blocker = enemy
 					break
 			var caption := "向西撤离"
+			var brief := "←"
 			var tint := Color("#b2e7ce")
 			if blocker != null:
 				caption = "%d 号拦截" % int(hud.enemy_numbers[blocker.id]) if hud.enemy_numbers.has(blocker.id) else "受阻"
+				brief = "拦"
 				tint = Color("#ffc09b")
-			_rescue_tag(font,Vector2(head.x,r.position.y-5*s),u.display_name+" · "+caption,fs,tint)
+			# A small mark is enough to read the field; the words come when you point at them.
+			if id == focus_id:
+				_rescue_tag(font,Vector2(head.x,r.position.y-5*s),u.display_name+" · "+caption,fs,tint)
+			else:
+				_rescue_tag(font,Vector2(head.x,r.position.y-5*s),brief,fs,tint)
 		draw_rect(r.grow(1.0 * s), Color(0, 0, 0, 0.85))
 		var hp_col := Color(0.35, 0.8, 0.45) if u.team == Defs.Team.PLAYER else Color(0.9, 0.3, 0.25)
 		draw_rect(Rect2(r.position, Vector2(bw * clampf(float(playback_hp.get(id,u.hp)) / u.max_hp, 0, 1), bh)), hp_col)
-		if forecasts.has(id) and not hud.journal_open() and hud.inspected_enemy.is_empty():
+		if forecasts.has(id) and not hud.journal_open():
 			var prediction: Dictionary = forecasts[id]
 			var caption: String = prediction.outcome
 			if prediction.after >= 0:
@@ -213,6 +221,19 @@ func _draw() -> void:
 				var relation: String = {"侧面":"侧击","背面":"背击"}.get(prediction.direction,"")
 				caption = "−%d  %s剩 %d" % [prediction.before-prediction.after,relation+" · " if relation else "",prediction.after]
 			labels.append({"anchor":r,"text":caption})
+		if u.has_status("guard"):
+			# Braced: a shield beside the bar and a pale ring round the feet for as long as
+			# the stance holds, so it reads at a glance on either side.
+			var ours := u.team == Defs.Team.PLAYER
+			var badge := Vector2(r.position.x-13*s,r.get_center().y) if ours else Vector2(r.end.x+13*s,r.get_center().y)
+			draw_circle(badge,11*s,Color("#16232c"),true,-1,true)
+			draw_arc(badge,11*s,0,TAU,28,Color("#8fd0ff"),2*s,true)
+			draw_texture_rect(Px.icon("act_guard",16),Rect2(badge-Vector2(8,8)*s,Vector2(16,16)*s),false,Color("#d6efff"))
+			var feet: Vector2 = controller.world_to_screen(view.position)
+			draw_set_transform(feet,0.0,Vector2(1.0,.5))
+			draw_arc(Vector2.ZERO,30*s*(1.4 if u.size > 1 else 1.0),0,TAU,40,Color("#16232c"),5*s,true)
+			draw_arc(Vector2.ZERO,30*s*(1.4 if u.size > 1 else 1.0),0,TAU,40,Color("#8fd0ff"),2.5*s,true)
+			draw_set_transform(Vector2.ZERO)
 		if id == hit_target:
 			draw_arc(controller.world_to_screen(view.position),22*s,0,TAU,36,Color("#ffac83"),3*s,true)
 
@@ -243,8 +264,6 @@ func _draw() -> void:
 			tags.append("◎标记")
 		if u.has_status("staggered"):
 			tags.append("破势")
-		if u.has_status("guard"):
-			tags.append("防御")
 		if not tags.is_empty() and (detailed or u.grappled_by_id != "" or u.has_status("staggered")):
 			var t := " ".join(tags)
 			var tw := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
@@ -260,8 +279,9 @@ func _draw() -> void:
 		var origin := tag.position.y
 		var free_top := hud._top.get_global_rect().end.y+4*s if hud._top.visible else 4*s
 		var free_bottom := size.y-4*s
-		if hud._bottom.visible and tag.end.x >= hud._bottom.position.x and tag.position.x <= hud._bottom.get_global_rect().end.x:
-			free_bottom = hud._bottom.position.y-4*s
+		for box: Control in [hud._card,hud._bar,hud._side]:
+			if box.is_visible_in_tree() and tag.end.x >= box.position.x and tag.position.x <= box.get_global_rect().end.x:
+				free_bottom = minf(free_bottom,box.position.y-4*s)
 		var max_y := maxf(free_top,free_bottom-extent.y)
 		for step in range(occupied.size()*2+3):
 			var offset := ceilf(step*.5)*(extent.y+3*s)
@@ -279,6 +299,15 @@ func _draw() -> void:
 		draw_rect(Rect2(tag.position,Vector2(3*s,tag.size.y)),Color("#e3a573"))
 		draw_string(font,tag.position+Vector2(8*s,3*s+font.get_ascent(fs)),label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,fs,Color("#ffebc9"))
 
+	if intent_walk.size() > 1:
+		# Footsteps to where it means to stand, and a ring there.
+		var steps := PackedVector2Array()
+		for point in intent_walk: steps.append(controller.world_to_screen(point))
+		for i in range(1,steps.size()):
+			draw_dashed_line(steps[i-1],steps[i],Color("#3a231c"),5*s,9*s)
+			draw_dashed_line(steps[i-1],steps[i],Color("#ffb37a"),2.5*s,9*s)
+		draw_arc(steps[-1],15*s,0,TAU,28,Color("#3a231c"),5*s,true)
+		draw_arc(steps[-1],15*s,0,TAU,28,Color("#ffb37a"),2.5*s,true)
 	if intent_from != Vector3.INF:
 		var a: Vector2 = controller.world_to_screen(intent_from)
 		var b: Vector2 = controller.world_to_screen(intent_to)

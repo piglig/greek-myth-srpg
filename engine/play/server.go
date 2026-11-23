@@ -124,6 +124,8 @@ type request struct {
 	Loadout map[string][]string `json:"loadout"`
 	// Mods 按单位 id 给出装备带来的属性增减（hp/str/def/wil/div/move/jump）。
 	Mods map[string]map[string]int `json:"mods"`
+	// Items 按单位 id 给出随身物品（每件一个 id，最多 rules.KitSlots 件）。
+	Items map[string][]string `json:"items"`
 	Action       *actionJSON         `json:"action"`
 	Unit         string              `json:"unit"`
 	Budget       *int                `json:"budget"`
@@ -277,6 +279,21 @@ func (s *Server) dispatch(req *request) obj {
 		for id, changes := range req.Mods {
 			if u := st.Unit(id); u != nil {
 				if err := u.Adjust(changes); err != nil {
+					return fail("%v", err)
+				}
+			}
+		}
+		for id, kit := range req.Items {
+			u := st.Unit(id)
+			if u == nil {
+				continue
+			}
+			for _, item := range kit {
+				sk := s.data.Skill(item)
+				if sk == nil {
+					return fail("没有这种物品: %s", item)
+				}
+				if err := u.Pack(sk); err != nil {
 					return fail("%v", err)
 				}
 			}

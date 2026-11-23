@@ -18,6 +18,6 @@
 |---|---|---|---|---|---|---|---|
 | `fusion-pixel/` | 缝合像素字体 Fusion Pixel 2026.11.10 | TakWolf 及各源字体作者 | SIL OFL 1.1（须保留 `OFL.txt`，不得单独售卖字体） | 是 | 是 | https://github.com/TakWolf/fusion-pixel-font | 10 像素和 12 像素的简体中文比例字体，全部界面文字都用它 |
 
-| `game-icons/` | game-icons.net 图标 107 个 | Lorc、Delapouite、Skoll、Cathelineau、HeavenlyDog、Lucas | CC BY 3.0（**必须署名**，名单在目录里的 `CREDITS.txt`） | 是 | 是 | https://game-icons.net | 技能、装备、材料、属性、营地页签的图标。清单和取用脚本：`art/tools/fetch_game_icons.py` |
+| `game-icons/` | game-icons.net 图标 134 个 | Lorc、Delapouite、Skoll、Cathelineau、HeavenlyDog、Lucas | CC BY 3.0（**必须署名**，名单在目录里的 `CREDITS.txt`） | 是 | 是 | https://game-icons.net | 技能、装备、材料、属性、营地页签、战斗指令的图标。清单和取用脚本：`art/tools/fetch_game_icons.py` |
 
 署名要求：game-icons 的许可要求在游戏里列出作者。发布前需要做一个致谢页面，目前还没有。

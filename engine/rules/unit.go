@@ -96,6 +96,8 @@ type UnitState struct {
 	Statuses  []KV // 状态 → 剩余回合；staggered / stunned 由破势系统设置
 	Shield    int
 	Cooldowns []KV
+	// Charges 是随身物品还剩几件（物品 id -> 件数）。
+	Charges []KV
 
 	Stagger    int
 	StaggerMax int // > 0 表示带破势条的首领
@@ -223,16 +225,21 @@ func (u *UnitState) Adjust(changes map[string]int) error {
 	return nil
 }
 
-// LoadoutSlots 是一个单位能带进战斗的招式数。特性不占格。
+// LoadoutSlots 是一个单位能带进战斗的技能数。基础攻击（定义里的第一个招式）不占格，特性也不占。
 const LoadoutSlots = 4
 
-// Carry 只留下 ids 里列出的招式，按 ids 的顺序。没学会的 id 略过；超过 LoadoutSlots 个算错。
+// KitSlots 是一个单位能随身带的物品件数。
+const KitSlots = 2
+
+// Carry 只留下基础攻击和 ids 里列出的技能，按 ids 的顺序。没学会的 id 略过；
+// 除基础攻击外超过 LoadoutSlots 个算错。
 func (u *UnitState) Carry(ids []string) error {
-	if len(ids) > LoadoutSlots {
-		return fmt.Errorf("%s 带了 %d 个招式，最多 %d 个", u.ID, len(ids), LoadoutSlots)
+	if len(u.Skills) == 0 {
+		return nil
 	}
-	kept := make([]*Skill, 0, len(ids))
-	seen := map[string]bool{}
+	basic := u.Skills[0]
+	kept := []*Skill{basic}
+	seen := map[string]bool{basic.ID: true}
 	for _, id := range ids {
 		for _, sk := range u.Skills {
 			if sk.ID == id && !seen[id] {
@@ -241,7 +248,37 @@ func (u *UnitState) Carry(ids []string) error {
 			}
 		}
 	}
+	if len(kept)-1 > LoadoutSlots {
+		return fmt.Errorf("%s 带了 %d 个技能，最多 %d 个", u.ID, len(kept)-1, LoadoutSlots)
+	}
 	u.Skills = kept
+	return nil
+}
+
+// Charge 返回某种物品还剩几件。
+func (u *UnitState) Charge(id string) int {
+	for i := range u.Charges {
+		if u.Charges[i].Key == id {
+			return u.Charges[i].Val
+		}
+	}
+	return 0
+}
+
+// Pack 把一件物品放到身上：会用了（进招式表），件数加一。
+func (u *UnitState) Pack(item *Skill) error {
+	total := 0
+	for _, kv := range u.Charges {
+		total += kv.Val
+	}
+	if total >= KitSlots {
+		return fmt.Errorf("%s 随身物品超过 %d 件", u.ID, KitSlots)
+	}
+	if !item.Item {
+		return fmt.Errorf("%s 不是物品", item.ID)
+	}
+	u.AddSkill(item)
+	u.Charges = kvSet(u.Charges, item.ID, u.Charge(item.ID)+1)
 	return nil
 }
 
@@ -274,6 +311,7 @@ func (u *UnitState) Copy() *UnitState {
 	n.Skills = u.Skills[:len(u.Skills):len(u.Skills)]
 	n.Statuses = append([]KV(nil), u.Statuses...)
 	n.Cooldowns = append([]KV(nil), u.Cooldowns...)
+	n.Charges = append([]KV(nil), u.Charges...)
 	return &n
 }
 
@@ -314,3 +352,14 @@ func (t *Traits) Names() []string {
 
 // CanUndoMove 表示这个单位本回合的移动还能撤销。
 func (u *UnitState) CanUndoMove() bool { return u.undoOK }
+
+// dropSkill 把一个招式（用完的物品）从招式表里拿掉。
+func (u *UnitState) dropSkill(id string) {
+	kept := make([]*Skill, 0, len(u.Skills))
+	for _, sk := range u.Skills {
+		if sk.ID != id {
+			kept = append(kept, sk)
+		}
+	}
+	u.Skills = kept
+}
