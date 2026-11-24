@@ -768,6 +768,11 @@ func _end_cheer(to_tree: bool) -> void:
 
 func _top() -> void:
 	Px.sheet(body,Rect2(0,0,Px.SIZE.x,44),.84)
+	# The key pattern runs under the bar, as round the neck of a pot, on a dark band of
+	# its own so it reads over bright ground as well as dark.
+	Px.block(body,Rect2(0,44,Px.SIZE.x,9),Color(Px.INK,.84))
+	Vase.frieze(body,Rect2(0,45,Px.SIZE.x,7),Color(Px.OCHRE,.5))
+	Px.block(body,Rect2(0,53,Px.SIZE.x,1),Color(Px.OCHRE,.3))
 	Px.picture(body,Px.icon("campfire",24),Rect2(24,10,24,24)).modulate = Px.OCHRE
 	Px.text(body,"营地",Rect2(56,8,120,0),Px.TITLE,Px.IVORY)
 	var where := _chapter_of(str(entry.get("id","1-1")))
@@ -1417,26 +1422,42 @@ func _tree_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 			if node.parent == "": _place(branch.nodes,node.id,0,spots,tips)
 		var corner := func(id: String) -> Vector2:
 			return Vector2(roundf(origin+half*(spots[id].x+.5)/tips.size()-box.x*.5),y+18+spots[id].y*52)
-		# The lines first, so the boxes sit on top of them.
-		for node: Dictionary in branch.nodes:
-			if node.parent == "": continue
-			var from: Vector2 = corner.call(node.parent)+Vector2(box.x*.5,box.y)
-			var to: Vector2 = corner.call(node.id)+Vector2(box.x*.5,0)
-			var tone := Px.GREEN if learned.has(node.id) else (Color(Px.OCHRE,.7) if learned.has(node.parent) else Color(Px.FAINT,.6))
-			Px.block(body,Rect2(from.x,from.y,1,8),tone)
-			Px.block(body,Rect2(minf(from.x,to.x),from.y+8,absf(to.x-from.x)+1,1),tone)
-			Px.block(body,Rect2(to.x,from.y+8,1,to.y-from.y-8),tone)
+		# Each technique is a medallion on a branch: filled once learnt, ringed when it
+		# can be, faint while out of reach. The branches are drawn with a brush.
+		var hub := func(id: String) -> Vector2:
+			return corner.call(id)+Vector2(box.x*.5,15)
+		var limbs := Control.new()
+		limbs.size = Px.SIZE
+		limbs.mouse_filter = MOUSE_FILTER_IGNORE
+		body.add_child(limbs)
+		limbs.draw.connect(func():
+			for node: Dictionary in branch.nodes:
+				if node.parent == "": continue
+				var from: Vector2 = hub.call(node.parent)
+				var to: Vector2 = hub.call(node.id)
+				var tone := Px.GREEN if learned.has(node.id) else (Color(Px.OCHRE,.7) if learned.has(node.parent) else Color(Px.FAINT,.6))
+				limbs.draw_polyline(Vase.stroke(from,to,1.2,hash(node.id)),tone,2.0 if learned.has(node.id) else 1.0)
+			for node: Dictionary in branch.nodes:
+				var have := learned.has(node.id)
+				var ready: bool = node.parent == "" or learned.has(node.parent)
+				var spot: Vector2 = hub.call(node.id)
+				var open: bool = technique == node.id
+				if open: Vase.roundel(limbs,spot,18,Vase.GLAZE,Px.OCHRE,1.5)
+				Vase.roundel(limbs,spot,14,Px.GREEN if have else Vase.GLAZE,Px.IVORY if have or ready else Px.FAINT,1.5 if ready else 1.0))
 		for node: Dictionary in branch.nodes:
 			var have := learned.has(node.id)
 			var ready: bool = node.parent == "" or learned.has(node.parent)
 			var tint := Px.GREEN if have else (Px.IVORY if ready else Px.FAINT)
-			var rect := Rect2(corner.call(node.id),box)
-			Px.block(body,rect,Color(Px.INK,.9))
-			Px.block(body,rect,Color(Px.GREEN,.16) if have else Color(Px.IVORY,.07 if ready else .03))
-			var cell := Px.row(body,"",rect,technique == node.id,_pick_technique.bind(node.id),Px.SMALL)
-			Px.picture(body,_mark(node,16),Rect2(rect.position+Vector2(box.x*.5-8,3),Vector2(16,16))).modulate = tint
-			Px.text(body,node.name,Rect2(rect.position+Vector2(0,22),Vector2(box.x,0)),Px.SMALL,tint,HORIZONTAL_ALIGNMENT_CENTER)
-			Px.text(body,"✓" if have else str(node.cost),Rect2(rect.position+Vector2(box.x-20,4),Vector2(16,0)),Px.SMALL,Px.GREEN if have else Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+			var rect := Rect2(corner.call(node.id),Vector2(box.x,42))
+			var cell := Px._control(body,"",rect,_pick_technique.bind(node.id),Px.SMALL)
+			var none := StyleBoxEmpty.new()
+			Px._paint(cell,none,none,none,Color.TRANSPARENT,Color.TRANSPARENT)
+			var spot: Vector2 = hub.call(node.id)
+			Px.picture(body,_mark(node,16),Rect2(spot-Vector2(8,8),Vector2(16,16))).modulate = Vase.GLAZE if have else tint
+			Px.text(body,node.name,Rect2(rect.position+Vector2(0,31),Vector2(box.x,0)),Px.SMALL,Px.IVORY if technique == node.id else tint,HORIZONTAL_ALIGNMENT_CENTER)
+			# What it costs, on a bead at the medallion's shoulder; a tick once learnt.
+			if have: Px.picture(body,Px.icon("done",8),Rect2(spot+Vector2(10,-16),Vector2(8,8))).modulate = Px.GREEN
+			else: Px.text(body,str(node.cost),Rect2(spot+Vector2(11,-17),Vector2(12,0)),Px.SMALL,Px.MUTED if ready else Px.FAINT)
 			cells.append(cell)
 			ids.append(node.id)
 	Px.chain(cells)
@@ -1444,7 +1465,7 @@ func _tree_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 	leaves[0].focus_neighbor_bottom = leaves[0].get_path_to(cells[0])
 	leaves[1].focus_neighbor_bottom = leaves[1].get_path_to(cells[0])
 	for cell in cells: cell.focus_neighbor_left = cell.get_path_to(rows[_everyone().find(member)])
-	y += 18+3*52-10
+	y += 18+3*52+2
 	Px.rule(body,Vector2(x,y),wide,Color(Px.OCHRE,.3))
 	y += 8
 	# The foot: the technique chosen, and learning or handing it back.
@@ -1513,21 +1534,35 @@ func _pick_candidate(item: String) -> void:
 ## A grid of things, as the bag and the trader both show them. `things` are ids; `mark`
 ## gives each cell its corner text and `cost` its price (0 for none). Returns the cells.
 func _grid(key: String, area: Rect2, things: Array, chosen: String, pick: Callable, columns: int, mark: Callable, cost: Callable) -> Array[Button]:
-	var cell := Vector2(floorf(area.size.x/columns),58)
+	var cell := Vector2(floorf(area.size.x/columns),62)
 	var inner := _scroll(key,area,ceili(things.size()/float(columns))*cell.y)
 	var cells: Array[Button] = []
 	for i in things.size():
 		var item: String = things[i]
 		var at := Vector2((i%columns)*cell.x,(i/columns)*cell.y)
 		var open := chosen == item
-		var button := Px.row(inner,"",Rect2(at,cell-Vector2(4,4)),open,pick.bind(item))
+		# Each thing lies on a round plate ringed in the colour of its rarity; the open one
+		# has a second ring. The plate is the button, and lights when pointed at.
+		var hub := at+Vector2(roundf((cell.x-4)*.5),21)
+		var tint := _tint(item)
+		var button := Px._control(inner,"",Rect2(hub-Vector2(20,20),Vector2(40,40)),pick.bind(item),Px.SMALL)
+		var plain := Px.rounded(Px.flat(Color(Vase.GLAZE,.9),Color(tint,1.0 if open else .55),[2,2,2,2] if open else [1,1,1,1]),20)
+		var lit := Px.rounded(Px.flat(Color(tint.darkened(.7),.95),Px.IVORY,[2,2,2,2]),20)
+		Px._paint(button,plain,lit,plain,Px.IVORY,Px.IVORY)
 		button.tooltip_text = "%s · %s" % [Save.GOODS[item].name,Save.effect_of(item)]
-		Px.block(inner,Rect2(at+Vector2(2,0),Vector2(cell.x-6,2)),Color(_tint(item),.9 if open else .55))
-		Px.picture(inner,Px.icon(Save.art(item),32),Rect2(at+Vector2(roundf((cell.x-4)*.5)-16,5),Vector2(32,32))).modulate = _tint(item) if open else _tint(item).darkened(.2)
+		if open:
+			var halo := Px.rounded(Px.flat(Color.TRANSPARENT,Color(Px.OCHRE,.8),[1,1,1,1]),24)
+			var ring := Panel.new()
+			ring.add_theme_stylebox_override("panel",halo)
+			ring.position = hub-Vector2(24,24)
+			ring.size = Vector2(48,48)
+			ring.mouse_filter = MOUSE_FILTER_IGNORE
+			inner.add_child(ring)
+		Px.picture(inner,Px.icon(Save.art(item),24),Rect2(hub-Vector2(12,12),Vector2(24,24))).modulate = tint if open else tint.darkened(.15)
 		var corner := str(mark.call(item))
-		if corner != "": Px.text(inner,corner,Rect2(at+Vector2(0,4),Vector2(cell.x-8,0)),Px.SMALL,Px.IVORY,HORIZONTAL_ALIGNMENT_RIGHT)
+		if corner != "": Px.text(inner,corner,Rect2(at+Vector2(0,0),Vector2(cell.x-6,0)),Px.SMALL,Px.IVORY,HORIZONTAL_ALIGNMENT_RIGHT)
 		var price := int(cost.call(item))
-		if price > 0: _price(inner,price,Vector2(at.x+roundf((cell.x-4)*.5)-(15+Px.width_of(str(price),Px.SMALL))*.5,at.y+41))
+		if price > 0: _price(inner,price,Vector2(at.x+roundf((cell.x-4)*.5)-(15+Px.width_of(str(price),Px.SMALL))*.5,at.y+46))
 		cells.append(button)
 	for i in cells.size():
 		if i%columns > 0: cells[i].focus_neighbor_left = cells[i].get_path_to(cells[i-1])
@@ -2033,20 +2068,33 @@ func _depart(site: Dictionary) -> void:
 
 # --- Questions laid over the camp ---------------------------------------------------
 
-func _modal(width: float, height: float) -> Rect2:
+## `stamp` names a drawing to set in a medallion across the panel's upper left corner, in
+## `tone`; the heading then starts to the right of it, at x+56.
+func _modal(width: float, height: float, stamp := "", tone := Px.OCHRE) -> Rect2:
 	Px.block(body,Rect2(Vector2.ZERO,Px.SIZE),Color(Px.INK,.6)).mouse_filter = MOUSE_FILTER_STOP
 	var rect := Rect2((Px.SIZE-Vector2(width,height))*.5,Vector2(width,height)).abs()
 	Px.sheet(body,rect,.96)
+	if stamp == "": return rect
+	var hub := rect.position+Vector2(44,16)
+	var seal := Control.new()
+	seal.size = Px.SIZE
+	seal.mouse_filter = MOUSE_FILTER_IGNORE
+	body.add_child(seal)
+	seal.draw.connect(func():
+		Vase.roundel(seal,hub,30,Vase.GLAZE,tone,2)
+		Vase.roundel(seal,hub,26,tone,Vase.GLAZE,1))
+	Px.picture(body,Px.icon(stamp,32),Rect2(hub-Vector2(16,16),Vector2(32,32))).modulate = Vase.GLAZE
+	# The key pattern under the heading, where a plain rule would be.
+	Vase.frieze(body,Rect2(rect.position.x+28,rect.position.y+62,width-56,7),Color(tone,.45))
 	return rect
 
 func _ask_boon() -> void:
-	var rect := _modal(520,280)
+	var rect := _modal(520,296,"relic")
 	var x := rect.position.x+28
 	var y := rect.position.y+22
-	Px.picture(body,Px.icon("relic",32),Rect2(x,y,32,32)).modulate = Px.OCHRE
-	Px.text(body,"第一章 · 涅墨亚",Rect2(x+44,y,300,0),Px.SMALL,Px.OCHRE)
-	Px.text(body,"涅墨亚狮子已败",Rect2(x+44,y+14,400,0),Px.TITLE,Px.IVORY)
-	y += 56
+	Px.text(body,"第一章 · 涅墨亚",Rect2(x+56,y-6,300,0),Px.SMALL,Px.OCHRE)
+	Px.text(body,"涅墨亚狮子已败",Rect2(x+56,y+8,400,0),Px.TITLE,Px.IVORY)
+	y += 62
 	Px.text(body,"狮皮归主角：物理减伤 3，受背击倍率降至 1.25。\n不坏之皮：免疫物理伤害 1 回合，冷却 4 回合。",Rect2(x,y,464,0),Px.SMALL,Px.MUTED)
 	y += 44
 	Px.rule(body,Vector2(x,y),464,Color(Px.OCHRE,.3))
@@ -2538,13 +2586,12 @@ func _ask_power() -> void:
 	var at := (entry.get("powers",[]) as Array).size()
 	var rank: Dictionary = Save.TIERS[at+1]
 	var tone := Color(str(rank.tint))
-	var rect := _modal(560,330)
+	var rect := _modal(560,344,"divinity",tone)
 	var x := rect.position.x+28
 	var y := rect.position.y+22
-	Px.picture(body,Px.icon("divinity",32),Rect2(x,y,32,32)).modulate = tone
-	Px.text(body,"圣物 %d 件 · 神性升阶" % int(entry.get("divinity",0)),Rect2(x+44,y,400,0),Px.SMALL,Px.OCHRE)
-	Px.text(body,rank.name,Rect2(x+44,y+14,400,0),Px.TITLE,tone)
-	y += 56
+	Px.text(body,"圣物 %d 件 · 神性升阶" % int(entry.get("divinity",0)),Rect2(x+56,y-6,400,0),Px.SMALL,Px.OCHRE)
+	Px.text(body,rank.name,Rect2(x+56,y+8,400,0),Px.TITLE,tone)
+	y += 62
 	Px.text(body,"得到",Rect2(x,y,40,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"%s神性 +%d。" % [rank.gain,Save.TIER_DIVINITY],Rect2(x+40,y,464,0),Px.SMALL,Px.IVORY)
 	y += 20
@@ -2577,13 +2624,13 @@ func _take_power(id: String) -> void:
 	_render()
 
 func _ask_system() -> void:
-	var rect := _modal(260,150)
+	var rect := _modal(260,172,"system")
 	var x := rect.position.x+28
-	Px.text(body,"系统",Rect2(x,rect.position.y+18,200,0),Px.TITLE,Px.IVORY)
+	Px.text(body,"系统",Rect2(x+56,rect.position.y+22,200,0),Px.TITLE,Px.IVORY)
 	var choices: Array[Button] = [
-		Px.row(body,"回到营地",Rect2(x-10,rect.position.y+60,224,24),false,_set_asking.bind("")),
-		Px.row(body,"回到首页",Rect2(x-10,rect.position.y+86,224,24),false,get_tree().change_scene_to_file.bind(TITLE)),
-		Px.row(body,"离开游戏",Rect2(x-10,rect.position.y+112,224,24),false,Soundscape.quit_game)]
+		Px.row(body,"回到营地",Rect2(x-10,rect.position.y+80,224,24),false,_set_asking.bind("")),
+		Px.row(body,"回到首页",Rect2(x-10,rect.position.y+106,224,24),false,get_tree().change_scene_to_file.bind(TITLE)),
+		Px.row(body,"离开游戏",Rect2(x-10,rect.position.y+132,224,24),false,Soundscape.quit_game)]
 	Px.chain(choices)
 	_focus(choices[0])
 

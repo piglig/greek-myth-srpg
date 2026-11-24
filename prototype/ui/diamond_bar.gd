@@ -7,12 +7,14 @@ extends Control
 ## the first technique, and three more grow at its upper left, lower left and straight left.
 ## 物品 does the same to the right. Anything beyond four grows one facet further out.
 ##
-## The bottom facet is always the way back. While a group is open, a target is being
-## chosen, or a facing is being chosen after 待机, it reads 取消. While a facing is being
-## chosen the top facet reads 确认: wait facing the way they already face.
+## The way back sits where the four facets meet: a small red diamond marked with a cross,
+## shown while a group is open, a target is being chosen, or a facing is being chosen
+## after 待机. While a facing is being chosen the top facet reads 确认: wait facing the way
+## they already face.
 ##
 ## Moving has no facet: with nothing else chosen, clicking the ground moves. Once someone
-## has moved, a small diamond to take the move back sits where the four facets meet.
+## has moved, and nothing else is going on, the same middle place holds a small diamond
+## to take the move back.
 ##
 ## The control covers the whole screen but only its facets take the mouse; everything else
 ## falls through to the battlefield.
@@ -30,8 +32,10 @@ const GROWTH := {
 	"skill": [Vector2i(0,1),Vector2i(0,2),Vector2i(-1,1),Vector2i(-1,2),Vector2i(-1,3),Vector2i(-2,2),Vector2i(-2,3),Vector2i(0,3)],
 	"item": [Vector2i(1,0),Vector2i(2,0),Vector2i(1,-1),Vector2i(2,-1),Vector2i(3,-1),Vector2i(2,-2)],
 }
-## How big the take-it-back diamond at the middle is, against a facet.
+## How big the diamond at the middle is, against a facet: taking a move back, and the
+## way back out of a group or an aim, which is a little larger.
 const HUB := 0.40
+const HUB_BACK := 0.50
 
 var radius := 58.0  ## half a facet's width
 var centre := Vector2.ZERO  ## where the four fixed facets meet
@@ -101,11 +105,9 @@ func _build() -> void:
 		var facet := _facet(ROOT[slot][3],ROOT[slot][1],ROOT[slot][2])
 		facet.group = group
 		facet.key = slot+1 if open_group == "" and mode == "" else 0
-		if group == "wait" and back:
-			# The way back.
-			facet.label = "取消"
-			facet.art = "act_undo"
-			facet.press = "close" if open_group != "" else "cancel"
+		if group == "wait" and mode == "aim":
+			# Not while a target is being chosen: the way back is the middle.
+			facet.enabled = false
 		elif group == "attack" and mode == "facing" and single.has("wait"):
 			# Keep the facing they have, and wait.
 			facet.label = "确认"
@@ -133,7 +135,13 @@ func _build() -> void:
 	# Taking a move back: a small diamond over the point where the four meet, while it is
 	# on offer and nothing else is going on. Added last so it is drawn, and hit, on top.
 	var hub := {}
-	if not back and single.has("move") and commands[single.move].get("kind","") == "do":
+	if back:
+		# The way back, at the middle.
+		hub = _facet(Vector2i.ZERO,"取消","")
+		hub.press = "close" if open_group != "" else "cancel"
+		hub.hub = true
+		hub.back = true
+	elif single.has("move") and commands[single.move].get("kind","") == "do":
 		hub = _facet(Vector2i.ZERO,"",str(commands[single.move].get("art","act_undo")))
 		hub.index = single.move
 		hub.group = "move"
@@ -183,6 +191,7 @@ func _middle(facet: Dictionary) -> Vector2:
 	return centre if facet.has("hub") else spot(facet.at)
 
 func _reach(facet: Dictionary) -> float:
+	if facet.has("back"): return radius*HUB_BACK
 	return radius*HUB if facet.has("hub") else radius
 
 
@@ -273,6 +282,13 @@ func _draw() -> void:
 		outline.append(shape[0])
 		draw_polyline(outline,edge,2.0 if lit else 1.5)
 		if grown < 1.0: continue
+		if facet.has("back"):
+			# A cross, drawn: the plainest sign there is for "not this".
+			var arm := reach*.34
+			var ink_back := Px.IVORY if lit else Px.RED.lightened(.55)
+			draw_line(mid+Vector2(-arm,-arm),mid+Vector2(arm,arm),ink_back,3.0)
+			draw_line(mid+Vector2(-arm,arm),mid+Vector2(arm,-arm),ink_back,3.0)
+			continue
 		if facet.has("hub"):
 			# Only the turning arrow: there is no room for a word, and the card beside says it.
 			var mark := reach*1.05

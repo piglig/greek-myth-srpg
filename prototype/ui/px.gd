@@ -101,13 +101,39 @@ static func block(parent: Control, rect: Rect2, tone: Color) -> ColorRect:
 	return fill
 
 
-## A translucent ink sheet with a hairline along its top and bottom.
-static func sheet(parent: Control, rect: Rect2, weight := .80, lined := true) -> ColorRect:
-	var fill := block(parent,rect,Color(INK,weight))
-	if lined:
-		block(parent,Rect2(rect.position,Vector2(rect.size.x,1)),Color(OCHRE,.55))
-		block(parent,Rect2(rect.position.x,rect.end.y-1,rect.size.x,1),Color(OCHRE,.25))
-	return fill
+## A panel: black glaze, streaked as the wheel leaves it, with two opposite corners cut as
+## a tag is trimmed, and an edge drawn with a brush rather than a rule. Bars that run the
+## width of the screen, and small labels, keep square corners.
+static func sheet(parent: Control, rect: Rect2, weight := .80, lined := true) -> Control:
+	var panel := Control.new()
+	panel.position = rect.position
+	panel.size = rect.size
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	panel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(panel)
+	var cut := 10.0 if rect.size.y >= 60 and rect.size.x < SIZE.x-1 else 0.0
+	var salt := int(rect.position.x*7+rect.position.y*13+rect.size.x)
+	panel.draw.connect(func():
+		var size := panel.size
+		var shape := PackedVector2Array([Vector2.ZERO,Vector2(size.x-cut,0),Vector2(size.x,cut),size,Vector2(cut,size.y),Vector2(0,size.y-cut)])
+		var uvs := PackedVector2Array()
+		for point in shape: uvs.append((panel.position+point)/128.0)
+		panel.draw_colored_polygon(shape,Color(1,1,1,weight),uvs,Vase.glaze())
+		if not lined: return
+		# Brighter along the top and round the cut corner, fainter along the foot.
+		var waver := .7 if size.y >= 60 else 0.0
+		var top := Vase.stroke(Vector2(0,.5),Vector2(size.x-cut,.5),waver,salt)
+		top.append(Vector2(size.x-.5,cut))
+		panel.draw_polyline(top,Color(OCHRE,.6),1.0)
+		var foot := PackedVector2Array([Vector2(.5,size.y-cut)])
+		foot.append_array(Vase.stroke(Vector2(cut,size.y-.5),Vector2(size.x,size.y-.5),waver,salt+3))
+		panel.draw_polyline(foot,Color(OCHRE,.28),1.0)
+		if cut > 0:
+			# A bead where each cut begins, as a rivet holds a plate.
+			panel.draw_circle(Vector2(size.x-cut-5,5),1.5,Color(OCHRE,.7))
+			panel.draw_circle(Vector2(cut+5,size.y-5),1.5,Color(OCHRE,.35)))
+	return panel
 
 
 static func rule(parent: Control, at: Vector2, length: float, tone := Color(OCHRE,.4), upright := false) -> ColorRect:
@@ -199,17 +225,26 @@ static func _paint(control: Button, rest: StyleBox, lit: StyleBox, off: StyleBox
 		control.add_theme_color_override(state,ink_lit)
 
 
-## The main action on a screen: a solid block.
+## Rounds a box's corners, in whole pixels, so buttons read as tags and not as cells.
+static func rounded(style: StyleBoxFlat, radius: float) -> StyleBoxFlat:
+	style.set_corner_radius_all(int(radius))
+	style.anti_aliasing = false
+	return style
+
+
+## The main action on a screen: a solid tag, round at both ends.
 static func primary(parent: Control, value: String, rect: Rect2, action: Callable) -> Button:
 	var control := _control(parent,value,rect,action,BODY)
-	_paint(control,flat(RED,OCHRE,[0,0,0,1]),flat(RED.lightened(.14),IVORY,[1,1,1,1]),flat(Color(INK,.6),FAINT,[1,1,1,1]),IVORY,IVORY)
+	var turn := rect.size.y*.5
+	_paint(control,rounded(flat(RED,OCHRE,[1,1,1,1]),turn),rounded(flat(RED.lightened(.14),IVORY,[1,1,1,1]),turn),rounded(flat(Color(INK,.6),FAINT,[1,1,1,1]),turn),IVORY,IVORY)
 	return control
 
 
-## An ordinary action: a hairline box that fills when pointed at.
+## An ordinary action: an outlined tag that fills when pointed at.
 static func button(parent: Control, value: String, rect: Rect2, action: Callable) -> Button:
 	var control := _control(parent,value,rect,action,BODY)
-	_paint(control,flat(Color(INK,.55),Color(OCHRE,.5),[1,1,1,1]),flat(Color(CLAY_DARK,.9),OCHRE,[1,1,1,1]),flat(Color(INK,.4),Color(FAINT,.6),[1,1,1,1]),IVORY,IVORY)
+	var turn := minf(rect.size.y*.5,14.0)
+	_paint(control,rounded(flat(Color(INK,.55),Color(OCHRE,.5),[1,1,1,1]),turn),rounded(flat(Color(CLAY_DARK,.9),OCHRE,[1,1,1,1]),turn),rounded(flat(Color(INK,.4),Color(FAINT,.6),[1,1,1,1]),turn),IVORY,IVORY)
 	return control
 
 
@@ -227,7 +262,13 @@ static func row(parent: Control, value: String, rect: Rect2, chosen: bool, actio
 	var control := _control(parent,value,rect,action,points)
 	control.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var rest := flat(Color(CLAY_DARK,.55) if chosen else Color.TRANSPARENT,OCHRE if chosen else Color.TRANSPARENT,[2,0,0,0],Vector2(10,2))
-	_paint(control,rest,flat(Color(CLAY_DARK,.8),IVORY,[2,0,0,0],Vector2(10,2)),flat(Color.TRANSPARENT,Color.TRANSPARENT,[2,0,0,0],Vector2(10,2)),IVORY if chosen else MUTED,IVORY)
+	var lit := flat(Color(CLAY_DARK,.8),IVORY,[2,0,0,0],Vector2(10,2))
+	# The marker stays square on the left; the far end is turned.
+	for style: StyleBoxFlat in [rest,lit]:
+		style.corner_radius_top_right = int(minf(rect.size.y*.5,10.0))
+		style.corner_radius_bottom_right = int(minf(rect.size.y*.5,10.0))
+		style.anti_aliasing = false
+	_paint(control,rest,lit,flat(Color.TRANSPARENT,Color.TRANSPARENT,[2,0,0,0],Vector2(10,2)),IVORY if chosen else MUTED,IVORY)
 	return control
 
 
@@ -338,7 +379,22 @@ static func face(def_id: String, size := 32) -> Texture2D:
 			head = Image.create(whole,whole,false,first.get_format())
 			head.blit_rect(first,used,Vector2i((whole-used.size.x)/2,(whole-used.size.y)/2))
 		head.resize(size,size,Image.INTERPOLATE_NEAREST)
-		_cache[key] = ImageTexture.create_from_image(head)
+		head.convert(Image.FORMAT_RGBA8)
+		# Set in a roundel, as a face is painted inside a cup: clay behind, a ring round it.
+		var medal := Image.create(size,size,false,Image.FORMAT_RGBA8)
+		var middle := (size-1)*.5
+		var reach := size*.5
+		var ground := CLAY_DARK.darkened(.35)
+		for y in size:
+			for x in size:
+				var far := Vector2(x-middle,y-middle).length()
+				if far > reach: continue
+				if far > reach-maxf(1.0,size/20.0):
+					medal.set_pixel(x,y,OCHRE)
+					continue
+				var paint := head.get_pixel(x,y)
+				medal.set_pixel(x,y,ground.lerp(Color(paint.r,paint.g,paint.b,1),paint.a))
+		_cache[key] = ImageTexture.create_from_image(medal)
 	return _cache[key]
 
 
@@ -357,10 +413,16 @@ static func fit(control: Control, wanted: float) -> void:
 ## The battle panels' boxes, in window pixels: the same sheet-and-hairline look as the menus.
 static func big_box(kind: String, pad := Vector2(18,8)) -> StyleBox:
 	match kind:
-		"panel": return flat(Color(INK,.86),Color(OCHRE,.6),[0,2,0,0],pad)
-		"button_hover": return flat(Color(CLAY_DARK,.95),OCHRE,[2,2,2,2],pad)
-		"button_pressed","button_primary": return flat(RED,OCHRE,[0,0,0,2],pad)
-		"button_disabled": return flat(Color(INK,.5),Color(FAINT,.6),[2,2,2,2],pad)
-		"card_chosen": return flat(Color(CLAY_DARK,.9),OCHRE,[2,2,2,2],pad)
-		"focus": return flat(Color.TRANSPARENT,IVORY,[2,2,2,2],pad)
-	return flat(Color(INK,.6),Color(OCHRE,.5),[2,2,2,2],pad)
+		"panel":
+			# Two opposite corners turned, where the menus' panels have theirs cut.
+			var plate := flat(Color(INK,.86),Color(OCHRE,.6),[0,2,0,0],pad)
+			plate.corner_radius_top_right = 14
+			plate.corner_radius_bottom_left = 14
+			plate.anti_aliasing = false
+			return plate
+		"button_hover": return rounded(flat(Color(CLAY_DARK,.95),OCHRE,[2,2,2,2],pad),16)
+		"button_pressed","button_primary": return rounded(flat(RED,OCHRE,[2,2,2,2],pad),16)
+		"button_disabled": return rounded(flat(Color(INK,.5),Color(FAINT,.6),[2,2,2,2],pad),16)
+		"card_chosen": return rounded(flat(Color(CLAY_DARK,.9),OCHRE,[2,2,2,2],pad),8)
+		"focus": return rounded(flat(Color.TRANSPARENT,IVORY,[2,2,2,2],pad),16)
+	return rounded(flat(Color(INK,.6),Color(OCHRE,.5),[2,2,2,2],pad),16)

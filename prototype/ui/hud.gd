@@ -470,9 +470,12 @@ func _dock(c: Control, preset: int, grow_h: int, grow_v: int, offset: Vector2) -
 
 ## The frame the selected unit's face sits in.
 func _draw_seal() -> void:
-	var frame := Rect2(Vector2.ZERO,_seal.size).grow(-1*ui_scale)
-	_seal.draw_rect(frame,Px.INK)
-	_seal.draw_rect(frame,Px.OCHRE,false,maxf(1.0,2*ui_scale))
+	# The face is already a medallion: give it one more ring, a little way out, as a seal
+	# has, instead of a box.
+	var middle := _seal.size*.5
+	var reach := minf(_seal.size.x,_seal.size.y)*.5-1*ui_scale
+	_seal.draw_circle(middle,reach,Px.INK)
+	_seal.draw_arc(middle,reach-1*ui_scale,0,TAU,48,Color(Px.OCHRE,.8),maxf(1.0,2*ui_scale))
 
 
 static func _mark(index: int) -> AtlasTexture:
@@ -823,7 +826,7 @@ func set_action_context(title: String, can_cancel: bool, mode := "") -> void:
 	# The bar needs no heading. A line appears over it only while a target or a facing is
 	# being chosen, to say what the next click will do.
 	_action_title.get_parent().visible = can_cancel
-	# The way back is the diamond's bottom facet, not a word at the end of this line.
+	# The way back is the diamond's middle, not a word at the end of this line.
 	_cancel.visible = false
 	_end_button.flat = can_cancel
 
