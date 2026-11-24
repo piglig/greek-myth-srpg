@@ -83,7 +83,13 @@
       "pierce": {"type": "boolean"},
       "throw": {"type": "boolean", "description": "throws the target over to the cell on the user's other side"},
       "area_knockback": {"type": "integer", "minimum": 1, "maximum": 3},
-      "self_status": {"enum": ["impervious_hide"]},
+      "self_status": {"enum": ["impervious_hide", "thunder_body"]},
+      "relic": {"type": "boolean", "description": "a relic's active: the tiers of divinity favour these"},
+      "blast": {"type": "integer", "minimum": 1, "maximum": 2, "description": "aimed at a cell; hits everyone this near it"},
+      "square": {"type": "boolean"},
+      "friendly_fire": {"type": "boolean"},
+      "blink": {"type": "integer", "minimum": 1, "maximum": 6},
+      "area_shield": {"type": "integer", "minimum": 1, "maximum": 20},
       "area_status": {
         "enum": [
           "burning",
@@ -129,7 +135,8 @@
       {
         "required": ["heal", "min_range", "max_range"],
         "not": {"required": ["mult"]}
-      }
+      },
+      {"required": ["area_shield", "radius"]}
     ]
   }
 }

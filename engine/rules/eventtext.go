@@ -15,7 +15,7 @@ var statusNames = map[string]string{
 
 var sourceNames = map[string]string{
 	"fall": "坠落", "collision": "撞击", "edge": "坠出边缘",
-	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河",
+	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河", "thunder_body": "雷躯",
 }
 
 var noteTexts = map[string]string{
@@ -35,7 +35,7 @@ var errorTexts = map[string]string{
 	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "no enemy there": "那里没有敌人",
 	"out of range": "超出射程",
 	"not in line":  "不在直线上", "no line of sight": "视线被挡住",
-	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标",
+	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标", "cannot be healed": "他已经不是凡人的药能治的了",
 	"bad facing": "朝向无效", "cannot mark": "不能标记", "need landing": "先选择落点",
 	"bad landing": "不能落在那里", "no boulder there": "那里没有巨石", "already sealed": "这个入口已经封住",
 	"cannot seal the last entrance": "不能封住最后一个入口", "no one in range": "范围内没有目标",
@@ -161,6 +161,8 @@ func describeOne(s *BattleState, e *Event) string {
 		return fmt.Sprintf("%s 从%s入口冲出，落在 %s", nameOf(s, e.Unit), lookup(entranceNames, e.Entrance), cellText(e.To))
 	case EvIntercept:
 		return fmt.Sprintf("%s 截击，替 %s 挡下攻击", nameOf(s, e.Unit), nameOf(s, e.Protected))
+	case EvWard:
+		return fmt.Sprintf("  %s 获得 %d 点护盾", nameOf(s, e.Target), e.Amount)
 	case EvThrow:
 		return fmt.Sprintf("%s 把 %s 摔了出去", nameOf(s, e.Unit), nameOf(s, e.Target))
 	}

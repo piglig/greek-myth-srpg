@@ -44,6 +44,10 @@ func KnockOut(s *BattleState, u *UnitState, ev *[]Event) {
 
 // AddStatus 施加状态。首领无视控制状态，除非 bypassArmor 为真或正处于破势。
 func AddStatus(s *BattleState, u *UnitState, status string, rounds int, ev *[]Event, bypassArmor bool) bool {
+	if vessel(u) && IsAilment(status) && s.Tier() >= TierInhuman {
+		emit(ev, Event{Type: EvResist, Target: u.ID, Status: status, Why: "divine"})
+		return false
+	}
 	isControl := isControlStatus(status)
 	if isControl && !bypassArmor {
 		if u.IsBoss() && !u.HasStatus("staggered") {

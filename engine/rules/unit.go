@@ -98,6 +98,8 @@ type UnitState struct {
 	ActionsPerTurn, ActionsLeft                             int
 	HasMoved, HasActed, AssistUsed, MarkUsed, InterceptUsed bool
 	PostMove                                                int // 行动后还能走的步数（游击）
+	// 阶位对圣物主动的好处用过没有：前一个每场一次，后一个每回合一次（见 divinity.go）。
+	RelicFreeUsed, RelicSwiftUsed bool
 
 	Arrival int // Scheduled round, zero after arrival.
 	Alive   bool

@@ -3,13 +3,13 @@ extends RefCounted
 ## Turns rule events into Chinese lines for the preview panel and battle log.
 
 const STATUS_NAMES := {
-	"impervious_hide":"不坏之皮","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"impervious_hide":"不坏之皮","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
 const SOURCE_NAMES := {
 	"fall": "坠落", "collision": "撞击", "edge": "坠出边缘",
-	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河",
+	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河", "thunder_body": "雷躯",
 }
 const NOTE_NAMES := {
 	"kindling":"助燃",
@@ -27,7 +27,7 @@ const ERRORS := {
 	"on cooldown": "冷却中", "no enemy there": "那里没有敌人",
 	"out of range": "超出射程",
 	"not in line": "不在直线上", "no line of sight": "视线被挡住",
-	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标",
+	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标", "cannot be healed": "他已经不是凡人的药能治的了",
 	"bad facing": "朝向无效", "cannot mark": "不能标记", "need landing": "先选择落点",
 	"bad landing": "不能落在那里", "no boulder there": "那里没有巨石", "already sealed": "这个入口已经封住",
 	"cannot seal the last entrance": "不能封住最后一个入口", "no one in range": "范围内没有目标",
@@ -125,6 +125,8 @@ static func _line(s: BattleState, e: Dictionary) -> String:
 			return "%s 从%s入口冲出，落在 %s" % [name_of(s, e["unit"]), ENTRANCE_NAMES.get(e["entrance"], e["entrance"]), _cell(e["to"])]
 		"intercept":
 			return "%s 截击，替 %s 挡下攻击" % [name_of(s, e["unit"]), name_of(s, e["protected"])]
+		"ward":
+			return "  %s 获得 %d 点护盾" % [name_of(s, e["target"]), e["amount"]]
 		"throw":
 			return "%s 把 %s 摔了出去" % [name_of(s, e["unit"]), name_of(s, e["target"])]
 	return ""

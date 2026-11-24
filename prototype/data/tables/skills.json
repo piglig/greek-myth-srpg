@@ -50,7 +50,63 @@
     "name": "不坏之皮",
     "self_status": "impervious_hide",
     "rounds": 1,
+    "cooldown": 4,
+    "relic": true
+  },
+  "thunder_bolt": {
+    "name": "雷矢",
+    "mult": 1.2,
+    "type": "divine",
+    "min_range": 2,
+    "max_range": 5,
+    "ranged": true,
+    "status": "stunned",
+    "rounds": 1,
+    "stagger_bonus": 20,
+    "cooldown": 3
+  },
+  "sky_fire": {
+    "name": "天火",
+    "mult": 0.8,
+    "type": "divine",
+    "min_range": 2,
+    "max_range": 4,
+    "blast": 1,
+    "status": "burning",
+    "rounds": 2,
+    "cooldown": 3
+  },
+  "thunder_step": {
+    "name": "雷行",
+    "blink": 4,
+    "area_knockback": 1,
+    "radius": 1,
+    "cooldown": 3
+  },
+  "sky_dome": {
+    "name": "天穹",
+    "area_shield": 6,
+    "radius": 2,
     "cooldown": 4
+  },
+  "sky_wrath": {
+    "name": "天罚",
+    "mult": 1.5,
+    "type": "divine",
+    "min_range": 2,
+    "max_range": 6,
+    "blast": 1,
+    "square": true,
+    "friendly_fire": true,
+    "status": "burning",
+    "rounds": 2,
+    "cooldown": 4
+  },
+  "thunder_body": {
+    "name": "雷躯",
+    "self_status": "thunder_body",
+    "rounds": 2,
+    "cooldown": 5
   },
   "spear": {
     "name": "矛刺",

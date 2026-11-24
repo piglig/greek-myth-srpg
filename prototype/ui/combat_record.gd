@@ -4,7 +4,7 @@ extends RefCounted
 const NAMES := {"rescued":"安全撤离","assist":"援护","move":"移动","undo_move":"撤销移动","leap":"跃进","arrival":"增援",
 	"knockback":"击退","fall":"坠落","dodge":"闪避","shield":"护盾","ko":"倒下","stagger":"破势累积",
 	"broken":"破势","status":"状态变化","status_end":"状态结束","resist":"抵抗",
-	"throw":"过肩摔","mark":"标记","face":"转向",
+	"throw":"过肩摔","ward":"护盾","mark":"标记","face":"转向",
 	"intercept":"截击","retreat":"撤退","emerge":"入场","sealed":"封锁入口","push":"推石",
 	"collision":"撞击","edge":"坠出边缘","stun_skip":"跳过行动"}
 const CONSEQUENCES := ["damage","ko","knockback","fall","dodge","shield","stagger","broken","resist","status","edge","collision"]

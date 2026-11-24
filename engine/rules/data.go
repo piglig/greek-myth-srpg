@@ -61,9 +61,22 @@ type Skill struct {
 	Pierce bool
 	// Throw 表示过肩摔：命中后把目标摔到自己另一侧的相邻格（见 effects.go 的 Throw）。
 	Throw bool
+	// Relic 表示圣物的主动技能：阶位的好处只对它们生效。
+	Relic bool
+	// Blast 大于 0 表示指定一格、打到那一格周围 Blast 格内所有敌人的招式；Square 为真时
+	// 范围是方形，否则是十字。FriendlyFire 为真时连同伴和自己都打。
+	Blast        int
+	Square       bool
+	FriendlyFire bool
+	// Blink 大于 0 表示瞬移到这么多格内的任意一格，不看地形和高度。
+	Blink int
+	// AreaShield 大于 0 表示给自己和 Radius 格内的同伴各加这么多护盾。
+	AreaShield int
 }
 
-func (sk *Skill) IsArea() bool { return sk.AreaStatus != "" || sk.AreaKnockback > 0 }
+func (sk *Skill) IsArea() bool {
+	return sk.AreaStatus != "" || sk.AreaKnockback > 0 || sk.AreaShield > 0
+}
 
 // 游戏里只有这四种异常状态。招式和物品能给别人加上的状态必须在其中。
 var ailments = map[string]bool{"burning": true, "poisoned": true, "rooted": true, "stunned": true}
@@ -431,6 +444,12 @@ func (d *Data) loadSkills() error {
 		sk.AreaKnockback = raw.int("area_knockback", 0)
 		sk.Pierce, _ = raw.m["pierce"].(bool)
 		sk.Throw, _ = raw.m["throw"].(bool)
+		sk.Relic, _ = raw.m["relic"].(bool)
+		sk.Blast = raw.int("blast", 0)
+		sk.Square, _ = raw.m["square"].(bool)
+		sk.FriendlyFire, _ = raw.m["friendly_fire"].(bool)
+		sk.Blink = raw.int("blink", 0)
+		sk.AreaShield = raw.int("area_shield", 0)
 		for _, given := range []string{sk.Status, sk.AreaStatus} {
 			if given != "" && !IsAilment(given) {
 				return fmt.Errorf("招式 %s 的状态 %s 不是四种异常状态（灼烧、中毒、束缚、眩晕）之一", id, given)

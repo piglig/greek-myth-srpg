@@ -133,8 +133,10 @@ func eventsJSON(events []rules.Event) []obj {
 			m["unit"], m["from"], m["to"], m["path"] = e.Unit, xy(e.From), xy(e.To), cellsJSON(e.Path)
 		case rules.EvUndoMove, rules.EvLeap:
 			m["unit"], m["from"], m["to"] = e.Unit, xy(e.From), xy(e.To)
+		case rules.EvWard:
+			m["target"], m["amount"] = e.Target, e.Amount
 		case rules.EvArea:
-			m["unit"], m["skill"] = e.Unit, e.Skill
+			m["unit"], m["skill"], m["to"] = e.Unit, e.Skill, xy(e.To)
 		case rules.EvAttack:
 			notes := e.Notes.Names()
 			if notes == nil {

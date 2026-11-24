@@ -32,8 +32,9 @@ static func _sprite(parent: Node3D, effect: Texture2D) -> BattleFX:
 	return fx
 
 
-static func spawn(parent: Node3D, effect: Texture2D, origin: Vector3, duration: float) -> Tween:
+static func spawn(parent: Node3D, effect: Texture2D, origin: Vector3, duration: float, tint := Color.WHITE) -> Tween:
 	var fx := _sprite(parent,effect)
+	fx.modulate = tint
 	fx.position = origin
 	if effect.resource_path.begins_with(KIT):
 		duration = maxf(duration,kit_seconds(effect.resource_path.get_file()))

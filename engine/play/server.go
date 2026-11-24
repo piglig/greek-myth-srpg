@@ -297,6 +297,9 @@ func (s *Server) dispatch(req *request) obj {
 		if err := s.deploy(st, party, req.Picks); err != nil {
 			return fail("%v", err)
 		}
+		if err := st.GrantDivinity(s.data, req.Reward); err != nil {
+			return fail("%v", err)
+		}
 		for id, carried := range req.Loadout {
 			if u := st.Unit(id); u != nil {
 				if err := u.Carry(carried); err != nil {
@@ -470,6 +473,25 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 	var landings, inRange, valid []rules.Cell
 	sk := u.Skill(pending.Skill)
 	switch {
+	case act.Type == rules.ActSkill && sk != nil && (sk.Blink > 0 || sk.Blast > 0):
+		// 指定格子的招式：射程底色照常，可选的是每一个校验得过的格子。
+		for y := 0; y < g.Depth; y++ {
+			for x := 0; x < g.Width; x++ {
+				c := rules.Cell{X: x, Y: y}
+				dist := gap(u.Pos.X, u.Size, x) + gap(u.Pos.Y, u.Size, y)
+				reach, near := sk.MaxRange, max(sk.MinRange, 1)
+				if sk.Blink > 0 {
+					reach, near = sk.Blink, 1
+				}
+				if dist >= near && dist <= reach {
+					inRange = append(inRange, c)
+				}
+				act.Target = c
+				if rules.Validate(st, act) == "" {
+					valid = append(valid, c)
+				}
+			}
+		}
 	case act.Type == rules.ActSkill && sk != nil && sk.HasLeap && !act.HasTo:
 		for y := 0; y < g.Depth; y++ {
 			for x := 0; x < g.Width; x++ {

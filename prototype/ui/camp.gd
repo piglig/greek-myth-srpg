@@ -64,7 +64,7 @@ var scrolls := {}
 var picked := {"trader":"","recruit":"","march":-1}
 var chapter := 0
 var note := ""
-var asking := ""  ## "" | "boon" | "system"
+var asking := ""  ## "" | "boon" | "power" | "system" | "cheer"
 var canvas: Control
 var body := Control.new()
 var signs := Control.new()
@@ -114,8 +114,7 @@ func _ready() -> void:
 		layer.mouse_filter = MOUSE_FILTER_IGNORE
 		canvas.add_child(layer)
 	cheer.hide()
-	if entry.has("equipped_relic") and entry.get("boon","") == "":
-		asking = "boon"
+	asking = _owed()
 	_render()
 	# News from the last battle is told once, then forgotten.
 	if entry.has("news"):
@@ -129,8 +128,24 @@ func _open_for_shot(which: String) -> void:
 	match which:
 		"boon":
 			entry.equipped_relic = "lion_pelt"
-			entry.divinity = 3
+			entry.divinity = 1
 			entry.boon = ""
+			asking = "boon"
+		"power", "power2", "power3":
+			# Standing at a tier whose technique is not yet chosen.
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.divinity = {"power":2,"power2":4,"power3":6}[which]
+			entry.powers = {"power":[],"power2":["thunder_bolt"],"power3":["thunder_bolt","sky_dome"]}[which]
+			asking = "power"
+		"divine":
+			# The protagonist's sheet as a demigod.
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.divinity = 4
+			entry.powers = ["sky_fire","thunder_step"]
+			screen = "party"
+			member = "hero"
 		"system": asking = "system"
 		"kit":
 			screen = "party"
@@ -527,7 +542,15 @@ func _render() -> void:
 		"march": _march()
 	_after()
 	if asking == "boon": _ask_boon()
+	elif asking == "power": _ask_power()
 	elif asking == "system": _ask_system()
+
+## What the camp must settle before anything else: the boon after a chapter's boss, then
+## any divine technique a new tier has brought.
+func _owed() -> String:
+	if entry.has("equipped_relic") and entry.get("boon","") == "": return "boon"
+	if Save.owes_power(entry): return "power"
+	return ""
 
 ## A price: the coin stamp and the number, red when the purse cannot cover it. `at` is the
 ## left edge of the price, or its right edge when `flush`.
@@ -682,7 +705,7 @@ func _report(news: Dictionary, gains: Dictionary) -> void:
 
 func _end_cheer(to_tree: bool) -> void:
 	if asking != "cheer": return
-	asking = "boon" if entry.has("equipped_relic") and entry.get("boon","") == "" else ""
+	asking = _owed()
 	cheer.hide()
 	Px.clear(cheer)
 	if to_tree and asking == "":
@@ -946,6 +969,8 @@ func _known(who: String) -> Array:
 		for node: Dictionary in branch.nodes:
 			var grants := str(node.get("skill",""))
 			if learned.has(node.id) and grants != "" and not known.has(grants): known.append(grants)
+	# What divinity grew on him takes a place like anything else.
+	if who == "hero": known.append_array(entry.get("powers",[]))
 	return known
 
 ## The techniques a member takes into battle, at most CARRY. Until the player chooses,
@@ -980,10 +1005,13 @@ func _skill_brief(id: String) -> String:
 	var near := int(skill.get("min_range",1))
 	var far := int(skill.get("max_range",1))
 	var words := "射程 %d" % near if near == far else "射程 %d–%d" % [near,far]
+	if skill.has("blink"): words = "%d 格内" % int(skill.blink)
+	elif skill.has("self_status") or skill.has("area_shield"): words = "自身"
 	if int(skill.get("cooldown",0)) > 0: words += " · 冷却 %d" % int(skill.cooldown)
 	return words
 
 func _skill_words(who: String, id: String) -> String:
+	if Save.power_words(id) != "": return Save.power_words(id)
 	var node := _teacher(who,id)
 	if not node.is_empty(): return str(node.desc)
 	var skill: Dictionary = SkillCatalog.get_skill(id)
@@ -1090,6 +1118,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 	for i in stats.size():
 		var key: String = stats[i][2]
 		var plain := int(base.get("max_hp",base.get("hp",0))) if key == "hp" else int(base.get(key,0))
+		if member == "hero" and key == "div": plain += Save.TIER_DIVINITY*Save.tier(entry)
 		var value: int = plain+int(now.get(key,0))
 		var after: int = plain+int(then.get(key,0))
 		var spot := Vector2(x+(i%4)*108,y+(i/4)*24)
@@ -1175,6 +1204,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		for node: Dictionary in branch.nodes:
 			if learned.has(node.id) and str(node.get("skill","")) == "": always.append(str(node.name))
 	if member == "hero" and entry.has("equipped_relic"):
+		always.append("%s（圣物 %d 件）" % [Save.TIERS[Save.tier(entry)].name,int(entry.get("divinity",0))])
 		always.append("圣物 涅墨亚狮皮")
 		if entry.get("boon","") != "": always.append("神赐 "+str(Save.BOONS[entry.boon][1]))
 	Px.text(body,"特性",Rect2(x,y,34,0),Px.SMALL,Px.OCHRE)
@@ -1966,7 +1996,7 @@ func _ask_boon() -> void:
 	Px.text(body,"第一章 · 涅墨亚",Rect2(x+44,y,300,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"涅墨亚狮子已败",Rect2(x+44,y+14,400,0),Px.TITLE,Px.IVORY)
 	y += 56
-	Px.text(body,"狮皮归主角：物理减伤 3，受背击倍率降至 1.25。\n不坏之皮：免疫物理伤害 1 回合，冷却 4 回合，使用时神性 +2。",Rect2(x,y,464,0),Px.SMALL,Px.MUTED)
+	Px.text(body,"狮皮归主角：物理减伤 3，受背击倍率降至 1.25。\n不坏之皮：免疫物理伤害 1 回合，冷却 4 回合。",Rect2(x,y,464,0),Px.SMALL,Px.MUTED)
 	y += 44
 	Px.rule(body,Vector2(x,y),464,Color(Px.OCHRE,.3))
 	y += 12
@@ -1989,9 +2019,53 @@ func _take_boon(id: String) -> void:
 	next.choose_route = false
 	next.camp_summary = "涅墨亚狮子已败。"
 	if _keep(next):
-		asking = ""
+		asking = _owed()
 		chapter = _chapter_of("2-1")
 		picked.march = -1
+	_render()
+
+## A new tier of divinity: what it gives and takes, and the one technique of two that
+## grows on him with it. The choice is for good.
+func _ask_power() -> void:
+	var at := (entry.get("powers",[]) as Array).size()
+	var rank: Dictionary = Save.TIERS[at+1]
+	var tone := Color(str(rank.tint))
+	var rect := _modal(560,330)
+	var x := rect.position.x+28
+	var y := rect.position.y+22
+	Px.picture(body,Px.icon("divinity",32),Rect2(x,y,32,32)).modulate = tone
+	Px.text(body,"圣物 %d 件 · 神性升阶" % int(entry.get("divinity",0)),Rect2(x+44,y,400,0),Px.SMALL,Px.OCHRE)
+	Px.text(body,rank.name,Rect2(x+44,y+14,400,0),Px.TITLE,tone)
+	y += 56
+	Px.text(body,"得到",Rect2(x,y,40,0),Px.SMALL,Px.OCHRE)
+	Px.text(body,"%s神性 +%d。" % [rank.gain,Save.TIER_DIVINITY],Rect2(x+40,y,464,0),Px.SMALL,Px.IVORY)
+	y += 20
+	if rank.cost != "":
+		Px.text(body,"失去",Rect2(x,y,40,0),Px.SMALL,Px.RED.lightened(.4))
+		Px.text(body,rank.cost,Rect2(x+40,y,464,0),Px.SMALL,Px.IVORY)
+		y += 20
+	y += 6
+	Px.rule(body,Vector2(x,y),504,Color(Px.OCHRE,.3))
+	y += 12
+	Px.text(body,"身上长出了凡人没有的东西。两样里取一样，取了不能改；它和别的招式一样占出战的格子。",Rect2(x,y,504,0),Px.SMALL,Px.MUTED)
+	y += 40
+	var choices: Array[Button] = []
+	for power: Array in Save.POWERS[at]:
+		choices.append(Px.button(body,power[1],Rect2(x,y,96,34),_take_power.bind(power[0])))
+		Px.text(body,power[2],Rect2(x+108,y+2,396,0),Px.SMALL,Px.IVORY)
+		y += 48
+	Px.chain(choices)
+	_focus(choices[0])
+
+func _take_power(id: String) -> void:
+	var next: Dictionary = entry.duplicate(true)
+	var powers: Array = next.get("powers",[])
+	powers.append(id)
+	next.powers = powers
+	if _keep(next):
+		asking = _owed()
+		note = "%s 留在了他身上。" % str(SkillCatalog.get_skill(id).name)
+		note_tone = Color(str(Save.TIERS[Save.tier(next)].tint))
 	_render()
 
 func _ask_system() -> void:
@@ -2011,7 +2085,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if asking == "cheer":
 			_end_cheer(false)
 			return
-		if asking == "boon": return
+		if asking in ["boon","power"]: return
 		if asking != "": _set_asking("")
 		elif screen != "home": _go("home")
 		else: _set_asking("system")

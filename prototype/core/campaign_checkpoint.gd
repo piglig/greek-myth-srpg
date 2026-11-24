@@ -273,10 +273,52 @@ const BOONS := {
 	"swift_boots": ["赫尔墨斯", "疾行之靴", "每场战斗的第一回合，全体我方单位移动力 +2。"],
 }
 
+## The four tiers of divinity. The tier follows how many relics the protagonist has taken
+## (entry.divinity) and nothing else: `gain` is what it gives, `cost` what it takes.
+const TIERS := [
+	{"name":"凡人","from":0,"tint":"#cfc4b0","gain":"","cost":""},
+	{"name":"沾染","from":2,"tint":"#7fc4ff","gain":"每场战斗第一次使用圣物主动，不进入冷却。","cost":""},
+	{"name":"半神","from":4,"tint":"#ffd76a","gain":"每回合第一次使用圣物主动，不占行动。","cost":"他出手时，身边的英雄不再为他援护。"},
+	{"name":"非人","from":6,"tint":"#fff6da","gain":"免疫灼烧、中毒、束缚、眩晕。","cost":"治疗的招式和药对他不再起作用。"},
+]
+## Each tier raises his divinity by this much.
+const TIER_DIVINITY := 3
+## The divine techniques: on reaching a tier he takes one of its two, for good. The engine
+## holds the same pairs (rules.PowerPairs).
+const POWERS := [
+	[["thunder_bolt","雷矢","射程 2–5。打一个，1.2 倍神性伤害，眩晕 1 回合；首领改为破势 +20。冷却 3。"],
+	 ["sky_fire","天火","射程 2–4。指定一格，那一格和相邻四格各受 0.8 倍神性伤害，灼烧 2 回合。冷却 3。"]],
+	[["thunder_step","雷行","瞬间出现在 4 格内任意一格，不看地形和高度；落点相邻的敌人各被震退 1 格。不算移动。冷却 3。"],
+	 ["sky_dome","天穹","自己和 2 格内的同伴各得 6 点护盾。冷却 4。"]],
+	[["sky_wrath","天罚","射程 2–6。任选一片 3×3，1.5 倍神性伤害，灼烧 2 回合。不分敌我。冷却 4。"],
+	 ["thunder_body","雷躯","2 回合内，每次回合结算时与他相邻的所有人受 6 点神性伤害。不分敌我。冷却 5。"]],
+]
+
+static func tier_of(relics: int) -> int:
+	var tier := 0
+	for i in TIERS.size():
+		if relics >= int(TIERS[i].from): tier = i
+	return tier
+
+static func tier(entry: Dictionary) -> int:
+	return tier_of(int(entry.get("divinity",0)))
+
+## Whether a tier has been reached whose technique is not yet chosen.
+static func owes_power(entry: Dictionary) -> bool:
+	return (entry.get("powers",[]) as Array).size() < tier(entry)
+
+## What a divine technique does, in words; "" for anything else.
+static func power_words(id: String) -> String:
+	for pair: Array in POWERS:
+		for power: Array in pair:
+			if power[0] == id: return str(power[2])
+	return ""
+
 static func chapter_reward(entry: Dictionary) -> Dictionary:
 	var result := entry.duplicate(true)
 	result["equipped_relic"] = "lion_pelt"
-	result["divinity"] = 0
+	result["divinity"] = 1
+	result["powers"] = []
 	result["boon"] = ""
 	return result
 

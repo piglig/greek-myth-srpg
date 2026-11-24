@@ -230,6 +230,15 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if sk.SelfStatus != "" {
 		return ""
 	}
+	if sk.Blink > 0 {
+		return BlinkLandingError(s, u, cell, sk)
+	}
+	if sk.AreaShield > 0 {
+		return ""
+	}
+	if sk.Blast > 0 {
+		return validateBlast(s, u, sk, cell)
+	}
 	if sk.IsArea() {
 		if !anyAreaTarget(s, u, sk) {
 			return "no one in range"
@@ -311,6 +320,9 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 	if sk.ID == "purify_arrow" || sk.Mends() {
 		if target == nil || target.Team != u.Team || (sk.ID == "purify_arrow" && target.DefID == "chiron") {
 			return "need healable ally"
+		}
+		if vessel(target) && s.Tier() >= TierInhuman {
+			return "cannot be healed"
 		}
 		if (sk.Heal == 0 && sk.ID != "purify_arrow" || target.HP == target.MaxHP) && cleanseTarget(target) == "" {
 			return "unhurt ally"
@@ -394,11 +406,24 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 			defer u.dropSkill(sk.ID)
 		}
 	}
+	defer relicUse(s, u, sk)
 	if sk.SelfStatus != "" {
 		u.HasActed = true
 		u.SetCooldown(sk.ID, sk.Cooldown)
 		u.SetStatus(sk.SelfStatus, sk.Rounds)
 		emit(ev, Event{Type: EvStatus, Target: u.ID, Status: sk.SelfStatus, Rounds: sk.Rounds})
+		return
+	}
+	if sk.Blink > 0 {
+		doBlink(s, u, sk, a.Target, ev)
+		return
+	}
+	if sk.AreaShield > 0 {
+		doWard(s, u, sk, ev)
+		return
+	}
+	if sk.Blast > 0 {
+		doBlast(s, u, sk, a.Target, ev)
 		return
 	}
 	if sk.IsArea() {
@@ -652,6 +677,10 @@ func assist(s *BattleState, attacker, target *UnitState, ev *[]Event) {
 		if ally == attacker || ally.AssistUsed || ally.HasStatus("stunned") {
 			continue
 		}
+		// 半神：同伴不再为他援护。
+		if vessel(attacker) && s.Tier() >= TierDemigod {
+			return
+		}
 		if Distance(ally, target) != 1 {
 			continue
 		}
@@ -733,6 +762,7 @@ func beginPhase(s *BattleState, phase Phase, ev *[]Event) {
 			continue
 		}
 		if phase == PhasePlayer {
+			u.RelicSwiftUsed = false
 			u.AssistUsed = false
 			u.MarkUsed = false
 			u.InterceptUsed = false
@@ -756,8 +786,9 @@ func beginPhase(s *BattleState, phase Phase, ev *[]Event) {
 	}
 }
 
-// SettleRound 做回合结算，顺序：地形和持续伤害 → 状态倒计时 → 冷却。
+// SettleRound 做回合结算，顺序：雷躯 → 地形和持续伤害 → 状态倒计时 → 冷却。
 func SettleRound(s *BattleState, ev *[]Event) {
+	settleThunderBody(s, ev)
 	for _, u := range s.Living(TeamAny) {
 		switch terrain := s.Grid.TerrainAt(u.Pos); {
 		case terrain == Burning:

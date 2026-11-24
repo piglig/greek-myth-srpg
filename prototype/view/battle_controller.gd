@@ -16,6 +16,7 @@ const IMPACT := preload("res://art/thirdparty/pixelfx/hit.png")
 const SLASH := preload("res://art/thirdparty/pixelfx/slash.png")
 ## What a thing carried does where it lands, and what comes over whoever takes a status.
 const BURST := preload("res://art/thirdparty/pixelfx/burst.png")
+const FLAME := preload("res://art/thirdparty/pixelfx/flame.png")
 const THUD := preload("res://art/thirdparty/pixelfx/thud.png")
 const BLESS := preload("res://art/thirdparty/pixelfx/bless.png")
 ## The four ailments show on the body for as long as they last. With each, how high on the
@@ -101,6 +102,13 @@ func _ready() -> void:
 			_capture_path = arg.trim_prefix("--capture=")
 		elif arg.begins_with("--demo="):
 			_demo = arg.trim_prefix("--demo=")
+		elif arg.begins_with("--relics="):
+			# For trying a tier of divinity: so many relics, and (with --powers) what grew.
+			_campaign_reward["equipped_relic"] = "lion_pelt"
+			_campaign_reward["boon"] = ""
+			_campaign_reward["divinity"] = int(arg.trim_prefix("--relics="))
+		elif arg.begins_with("--powers="):
+			_campaign_reward["powers"] = Array(arg.trim_prefix("--powers=").split(","))
 		elif arg.begins_with("--bench="):
 			# Leave heroes the battle places in camp, to see the field without them.
 			_bench = Array(arg.trim_prefix("--bench=").split(","))
@@ -120,7 +128,8 @@ func _ready() -> void:
 		_outcomes = entry.get("outcomes",{})
 		_rescued = entry.get("rescued", [])
 		if entry.has("equipped_relic"):
-			for key in ["equipped_relic","boon","divinity"]: _campaign_reward[key]=entry[key]
+			for key in ["equipped_relic","boon","divinity","powers"]:
+				if entry.has(key): _campaign_reward[key]=entry[key]
 		_saved_orders=entry.get("orders",[])
 		_chiron_joined = entry.get("chiron_joined",false)
 		_roster = entry.get("roster",[])
@@ -963,7 +972,13 @@ func _play(events: Array, from_round := -1) -> void:
 				_popup(e["target"], EventText.STATUS_NAMES.get(e["status"], e["status"]), Color(0.8, 0.9, 1))
 			"stun_skip":
 				_popup(e["unit"], "眩晕", Color(1, 0.85, 0.2))
+			"ward":
+				_popup(e.target,"护盾 +%d" % int(e.amount),Color("#8fd0ff"))
+				BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
 			"area":
+				if Checkpoint.power_words(e.skill) != "":
+					await _divine(e,events)
+					continue
 				if e.skill == "roar" and state.unit(e.unit).def_id == "lion":
 					var caller: UnitView = unit_views[e.unit]
 					var inhale := caller.create_tween()
@@ -1320,6 +1335,42 @@ func _process(_delta: float) -> void:
 		var look: Array = AURAS[due[key][1]]
 		# A hair toward the camera, so the card is drawn over its wearer and not through them.
 		_auras[key] = BattleFX.aura(view,look[0],Vector3.UP*view.sprite_height*float(look[1])+Vector3(0,0,.05),float(look[2]) if look.size() > 2 else 1.0)
+
+
+## A divine technique lands: its name in the tier's colour, and light on every cell it
+## reaches. The colour is the tier's, so the same technique looks less human as he rises.
+func _divine(e: Dictionary, events: Array) -> void:
+	var def: Dictionary = SkillCatalog.get_skill(e.skill)
+	var tier := Checkpoint.tier_of(int(state.reward.get("divinity",0)))
+	var tint := Color(str(Checkpoint.TIERS[tier].tint))
+	var caster: UnitView = unit_views[e.unit]
+	var cells: Array[Vector2i] = []
+	if def.has("blast"):
+		var reach := int(def.blast)
+		for dy in range(-reach,reach+1):
+			for dx in range(-reach,reach+1):
+				if def.get("square",false) or absi(dx)+absi(dy) <= reach:
+					var cell: Vector2i = e.to+Vector2i(dx,dy)
+					if state.grid.in_bounds(cell): cells.append(cell)
+		caster.face_point(map_view.anchor_world(state,e.to,1))
+	elif def.has("blink"):
+		cells.append(e.to)
+	_popup(e.unit,str(def.name),tint)
+	Soundscape.cue("warning")
+	var rows := Hud.CombatRecord.collect(state,events)
+	for row in rows:
+		if row.linked and not row.target_id.is_empty() and not row.outcome.is_empty():
+			hud.overlay.set_health_forecast(row)
+	var burns: bool = def.get("status","") == "burning"
+	for cell in cells:
+		BattleFX.spawn(_units_root,FLAME if burns else BURST,map_view.anchor_world(state,cell,1)+Vector3.UP*.08,.3,tint)
+	if tier >= 3:
+		# The ground itself answers: a few quick shoves of the view that sum to nothing.
+		var shake := create_tween()
+		for push: Vector2 in [Vector2(5,0),Vector2(-9,3),Vector2(6,-5),Vector2(-2,2)]:
+			shake.tween_callback(cam_rig.pan_pixels.bind(push))
+			shake.tween_interval(.04)
+	await get_tree().create_timer(.3).timeout
 
 
 func _effect_origin(unit: UnitView) -> Vector3:
@@ -2070,6 +2121,7 @@ func _show_targets(u: UnitState) -> void:
 ## was learnt from the tree, the trader's for a thing, else its numbers.
 func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 	if Checkpoint.GOODS.has(id): return Checkpoint.effect_of(id)
+	if Checkpoint.power_words(id) != "": return Checkpoint.power_words(id)
 	for branch: Dictionary in SkillTree.trees().get(u.tree,[]):
 		for node: Dictionary in branch.nodes:
 			if str(node.get("skill","")) == id: return str(node.desc)
@@ -2084,7 +2136,8 @@ func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 
 ## Reach and waiting time of a technique or a thing, in a few words.
 func _brief(sk: Dictionary) -> String:
-	if sk.has("self_status") or sk.has("area_status") or sk.has("area_knockback"): return "自身"
+	if sk.has("blink"): return "%d 格内" % int(sk.blink)
+	if sk.has("self_status") or sk.has("area_status") or sk.has("area_knockback") or sk.has("area_shield"): return "自身"
 	var near := int(sk.get("min_range",1))
 	var far := int(sk.get("max_range",1))
 	return "射程 %d" % near if near == far else "射程 %d–%d" % [near,far]
@@ -2115,7 +2168,7 @@ func _actions_for(u: UnitState) -> Array:
 		if carried:
 			entry.count = int(u.items.get(sk,0))
 			entry.brief += "　·　剩 %d 件" % entry.count
-		if def.has("self_status"):
+		if def.has("self_status") or def.has("area_shield"):
 			entry.kind = "do"
 			entry.enabled = can_act and cd == 0
 			entry.erase("active")
@@ -2391,6 +2444,41 @@ func _run_capture() -> void:
 			state.unit(foe_id).statuses = {}
 			state.unit("hero").statuses = {}
 			await get_tree().create_timer(1.0).timeout
+		"powers":
+			# The protagonist uses whatever divinity grew on him, one technique a turn, on
+			# the first thing each can reach. For a recording.
+			for turn in 5:
+				var u := state.unit("hero")
+				if u == null or not u.alive: break
+				cam_rig.focus(unit_views["hero"].position)
+				await get_tree().create_timer(.6).timeout
+				for sk: String in u.skills:
+					if Checkpoint.power_words(sk) == "" or u.cooldown(sk) > 0: continue
+					var def: Dictionary = SkillCatalog.get_skill(sk)
+					var act := {"type":"skill","unit":"hero","skill":sk}
+					if not (def.has("self_status") or def.has("area_shield")):
+						var aim := Rules.targeting(state,act)
+						if aim.valid.is_empty(): continue
+						# Step toward the enemy rather than away: the reachable cell nearest any of them.
+						var pick: Vector2i = aim.valid[0]
+						if def.has("blink"):
+							var score := 999
+							for cell: Vector2i in aim.valid:
+								for other_id: String in state.order:
+									var other := state.unit(other_id)
+									if other.team != Defs.Team.ENEMY or not other.alive or other.hidden: continue
+									var gap: int = abs(cell.x-other.pos.x)+abs(cell.y-other.pos.y)
+									if gap < score:
+										score = gap
+										pick = cell
+						act.target = pick
+					await _perform(act)
+					await get_tree().create_timer(1.6).timeout
+					break
+				_end_turn()
+				await get_tree().create_timer(1.0).timeout
+				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
+				await get_tree().create_timer(.6).timeout
 		"throw":
 			# The protagonist closes on the nearest enemy and throws them over his shoulder.
 			for turn in 6:
