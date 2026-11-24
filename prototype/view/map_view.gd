@@ -19,6 +19,7 @@ const TERRAIN_COLORS := {
 var nemea := false
 var village_sites := false
 var woodland := false
+var grid_lines := true
 var field: NemeaField
 var grid: BattleGrid
 var tactical := false
@@ -32,6 +33,7 @@ func build(g: BattleGrid) -> void:
 	field = null
 	if nemea and not tactical:
 		field = NemeaField.new()
+		field.grid_lines = grid_lines
 		add_child(field)
 		field.build(g, LEVEL_HEIGHT, village_sites, woodland)
 		return

@@ -22,7 +22,17 @@ const BLESS := preload("res://art/thirdparty/pixelfx/bless.png")
 ## The four ailments show on the body for as long as they last. With each, how high on the
 ## body it sits (0 the feet, 1 the crown). A badge by the health bar says the same; this is what lets
 ## the player see it across the field without reading badges.
+const LIGHTNING := preload("res://art/original/fx/lightning.png")
+const SKYFIRE := preload("res://art/original/fx/skyfire.png")
+const THUNDERSTEP := preload("res://art/original/fx/thunderstep.png")
+const DOME := preload("res://art/original/fx/dome.png")
+const THUNDERBODY := preload("res://art/original/fx/thunderbody.png")
+const CAST_NET := preload("res://art/original/fx/net.png")
+const NET_PIXEL_SIZE := .022
+## The combat result is already applied while its throwing animation is playing.
+var pending_net_binds := {}
 const AURAS := {
+	"thunder_body": [THUNDERBODY,.48,1.20],
 	"burning": [preload("res://art/thirdparty/pixelfx/burning.png"),.30],
 	"poisoned": [preload("res://art/thirdparty/pixelfx/poisoned.png"),.04],
 	"stunned": [preload("res://art/thirdparty/pixelfx/stunned.png"),1.02],
@@ -205,6 +215,7 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	if state == null:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
+	UnitState.looks["hero"] = Checkpoint.hero_look(state.reward)
 	Rules.start_battle(state)
 	if battle_id=="2-1":
 		for order: Dictionary in _saved_orders:
@@ -757,6 +768,8 @@ func _play(events: Array, from_round := -1) -> void:
 	var ward: UnitView
 	var guard_home := Vector3.ZERO
 	for event in events:
+		if event.type=="attack" and event.skill=="item_net" and not _auras.has("%s/rooted" % event.target):
+			pending_net_binds[event.target] = true
 		if event.type == "damage" and not hud.overlay.playback_hp.has(event.target):
 			hud.overlay.playback_hp[event.target] = event.hp + event.amount
 	for index in events.size():
@@ -818,7 +831,12 @@ func _play(events: Array, from_round := -1) -> void:
 				var lu := state.unit(e["unit"])
 				var lv: UnitView = unit_views[lu.id]
 				var to := map_view.anchor_world(state, e["to"], lu.size)
-				await _leap(lv, to, lu.def_id == "lion")
+				if index+1<events.size() and events[index+1].get("skill","")=="thunder_step":
+					_divine_flash(THUNDERSTEP,lv.position,.29,.77)
+					await get_tree().create_timer(.13).timeout
+					lv.position = to
+				else:
+					await _leap(lv, to, lu.def_id == "lion")
 			"intercept":
 				defender=unit_views[e.unit] as PixelUnit
 				ward=unit_views[e.protected]
@@ -853,8 +871,12 @@ func _play(events: Array, from_round := -1) -> void:
 					if not covered_spear:
 						await attacker.turn_to_strike(ward.position)
 						await _cover_step(defender,ward,attacker).finished
-				if covered_spear:
+				if e.skill=="thunder_bolt":
+					await _divine(e,events)
+				elif covered_spear:
 					recovery=await _centaur_strike(attacker as PixelUnit,ward,defender)
+				elif (attacker as PixelUnit).epic_attack_sheet and e.skill in ["slash","heavy_cut","spear","trample","felling_blow","axe_sweep","shield_split","spear_breaker"]:
+					recovery=await _epic_strike(attacker as PixelUnit,unit_views[e.target],state.unit(e.unit).look())
 				elif e["skill"] == "spear" and state.unit(e["unit"]).def_id == "hero":
 					recovery = await _spear_strike(unit_views[e["unit"]],unit_views[e["target"]])
 				elif e.skill == "spear" and state.unit(e.unit).def_id == "centaur":
@@ -862,7 +884,8 @@ func _play(events: Array, from_round := -1) -> void:
 				elif e.skill in ["witch_fire","solar_flame","frailty","cinder_lance","bind_hex","night_hex"]:
 					var victim: UnitView=unit_views[e.target]
 					await attacker.turn_to_strike(victim.position)
-					attacker.set_pose(2,.18)
+					attacker.set_pose(2,.28)
+					await get_tree().create_timer(.29).timeout
 					var spark:=MeshInstance3D.new()
 					var orb:=SphereMesh.new()
 					orb.radius=.17 if e.skill=="solar_flame" else .11
@@ -873,18 +896,24 @@ func _play(events: Array, from_round := -1) -> void:
 					glow.albedo_color=Color("#b972df") if e.skill in ["frailty","bind_hex","night_hex"] else Color("#ffac41")
 					spark.material_override=glow
 					_units_root.add_child(spark)
-					spark.position=attacker.position+Vector3.UP*1.3
+					var origin:=attacker.medea_release_point() if state.unit(e.unit).def_id=="medea" else attacker.position+Vector3.UP*1.3
+					var aim:=_effect_origin(victim)
+					spark.global_position=origin
 					var shot:=create_tween()
-					shot.tween_interval(.16)
-					shot.tween_property(spark,"position",victim.position+Vector3.UP,.25)
+					shot.tween_method(func(t: float): spark.global_position=origin.lerp(aim,t)+Vector3.UP*(1.6*t*(1.-t)),0.,1.,clampf(origin.distance_to(aim)/10.,.22,.48))
 					await shot.finished
 					spark.queue_free()
-					attacker.set_pose(-1,.18)
+					attacker.set_pose(-1,.34)
 				elif SkillCatalog.get_skill(e.skill).get("item",false):
-					await _throw_thing(attacker,unit_views[e.target],e.skill)
+					if e.skill=="item_net":
+						var binds := events.any(func(ev): return ev.type=="status" and ev.target==e.target and ev.status=="rooted")
+						await _throw_net(attacker,unit_views[e.target],binds)
+						pending_net_binds.erase(e.target)
+					else:
+						await _throw_thing(attacker,unit_views[e.target],e.skill)
 				elif e["skill"] == "heracles_bow":
 					recovery = await _bow_shot(attacker,unit_views[e.target])
-				elif e.skill == "bandit_bow":
+				elif e.skill == "bandit_bow" or (state.unit(e.unit).look()=="merc_archer" and SkillCatalog.get_skill(e.skill).get("ranged",false)):
 					recovery = await _bandit_shot(attacker,unit_views[e.target])
 				elif state.unit(e["unit"]).def_id == "chiron":
 					recovery = await _chiron_shot(attacker as PixelUnit,unit_views[e.target])
@@ -969,12 +998,19 @@ func _play(events: Array, from_round := -1) -> void:
 					recovery=await _chiron_shot(unit_views[e.unit] as PixelUnit,unit_views[e.target])
 					_popup(e.target,"净化箭　+%d"%e.amount,Color("#98e3ae"))
 			"status":
+				if e.status=="thunder_body":
+					Soundscape.cue("warning")
+					_divine_flash(THUNDERBODY,unit_views[e.target].position,.45)
+					_popup(e.target,"雷躯",_divine_tint())
+					await get_tree().create_timer(.44).timeout
+					continue
 				_popup(e["target"], EventText.STATUS_NAMES.get(e["status"], e["status"]), Color(0.8, 0.9, 1))
 			"stun_skip":
 				_popup(e["unit"], "眩晕", Color(1, 0.85, 0.2))
 			"ward":
 				_popup(e.target,"护盾 +%d" % int(e.amount),Color("#8fd0ff"))
-				BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
+				if not events.any(func(ev): return ev.get("skill","")=="sky_dome"):
+					BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
 			"area":
 				if Checkpoint.power_words(e.skill) != "":
 					await _divine(e,events)
@@ -1264,20 +1300,12 @@ func _throw_thing(thrower: UnitView, target: UnitView, thing: String) -> void:
 	var arc := create_tween()
 	arc.tween_method(func(t: float):
 		card.position = hand.lerp(mark,t)+Vector3.UP*lift*4.0*t*(1.0-t)
-		card.rotation.z = -t*TAU*(2.0 if thing in ["item_stone","item_firepot","item_net"] else .0),0.0,1.0,flight)
+		card.rotation.z = -t*TAU*(2.0 if thing in ["item_stone","item_firepot"] else .0),0.0,1.0,flight)
 	await arc.finished
 	card.queue_free()
 	if thing in ["item_stone","item_javelin"]:
 		BattleFX.spawn(_units_root,THUD,mark,.3)
-	if thing == "item_net":
-		# The net opens over them and settles.
-		var net := _thing_card(thing,mark,Color("#e9dcc0"))
-		net.scale = Vector3.ONE*.6
-		var settle := create_tween()
-		settle.tween_property(net,"scale",Vector3.ONE*2.6,.18).set_ease(Tween.EASE_OUT)
-		settle.parallel().tween_property(net,"modulate:a",0.0,.5).set_delay(.25)
-		settle.tween_callback(net.queue_free)
-	elif fiery:
+	if fiery:
 		BattleFX.spawn(_units_root,BURST,target.position+Vector3.UP*.08,.3)
 		# Three tongues of flame where it breaks.
 		for n in 3:
@@ -1288,6 +1316,43 @@ func _throw_thing(thrower: UnitView, target: UnitView, thing: String) -> void:
 			rise.parallel().tween_property(flame,"position:y",flame.position.y+.55,.5).set_delay(n*.05)
 			rise.parallel().tween_property(flame,"modulate:a",0.0,.3).set_delay(.25+n*.05)
 			rise.tween_callback(flame.queue_free)
+
+
+## Both the final cast frame and the first binding frame use this same ankle-space anchor.
+func _ankles(view: UnitView) -> Vector3:
+	var axes := cam_rig.camera.global_basis
+	return axes.y*view.sprite_height*.135 + axes.z*.22
+
+func _net_size(view: UnitView) -> float:
+	return NET_PIXEL_SIZE*(1.30 if view.size>1 else 1.0)
+
+func _throw_net(thrower: UnitView, target: UnitView, binds: bool) -> void:
+	await thrower.turn_to_strike(target.position)
+	var axes := cam_rig.camera.global_basis
+	var side := signf((target.position-thrower.position).dot(axes.x))
+	var hand := thrower.position+axes.y*thrower.sprite_height*.56+axes.x*.22*side+axes.z*.18
+	var net := BattleFX._sprite(_units_root,CAST_NET)
+	net.pixel_size = _net_size(target)
+	net.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	net.render_priority = 2
+	net.position = hand
+	var feet := target.position+_ankles(target)
+	var landing := feet if binds else feet+axes.x*side*.56
+	var spread := landing+axes.y*target.sprite_height*.38
+	var flight := clampf(hand.distance_to(landing)/7.,.40,.64)
+	Soundscape.cue("swing")
+	var toss := net.create_tween()
+	toss.tween_method(func(t: float):
+		net.position = hand.lerp(spread,t)+Vector3.UP*(.9+flight)*4.*t*(1.-t)
+		net.frame = mini(4,floori(t*5.))
+		net.rotation.z = .24*side*sin(PI*t),0.,1.,flight)
+	toss.tween_interval(.055)
+	toss.tween_method(func(t: float):
+		net.position = spread.lerp(landing,t)
+		net.frame = 4+mini(3,floori(t*4.)) if binds else 4
+		if not binds: net.modulate.a=1.-t,0.,1.,.30)
+	await toss.finished
+	net.queue_free()
 
 
 ## Something carried is drunk or handed over: it rises over whoever takes it and fades, with
@@ -1324,17 +1389,45 @@ func _process(_delta: float) -> void:
 		var wearer := state.unit(id)
 		if wearer == null or not wearer.alive or wearer.hidden or not is_instance_valid(unit_views[id]): continue
 		for status: String in AURAS:
+			if status=="rooted" and pending_net_binds.has(id): continue
 			if wearer.has_status(status): due["%s/%s" % [id,status]] = [id,status]
 	for key: String in _auras.keys():
 		if not due.has(key) or not is_instance_valid(_auras[key]):
 			if is_instance_valid(_auras[key]): _auras[key].queue_free()
 			_auras.erase(key)
 	for key: String in due:
-		if _auras.has(key): continue
 		var view: UnitView = unit_views[due[key][0]]
+		if _auras.has(key):
+			if due[key][1]=="rooted": _auras[key].position = _ankles(view)
+			continue
 		var look: Array = AURAS[due[key][1]]
 		# A hair toward the camera, so the card is drawn over its wearer and not through them.
 		_auras[key] = BattleFX.aura(view,look[0],Vector3.UP*view.sprite_height*float(look[1])+Vector3(0,0,.05),float(look[2]) if look.size() > 2 else 1.0)
+		if due[key][1]=="rooted":
+			_auras[key].modulate.a = 1.0
+			_auras[key].pixel_size = _net_size(view)
+			_auras[key].position = _ankles(view)
+			_auras[key].alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		elif due[key][1]=="thunder_body":
+			_auras[key].modulate = _divine_tint()
+			_auras[key].alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+
+
+func _divine_tint() -> Color:
+	return Color(str(Checkpoint.TIERS[Checkpoint.tier(state.reward)].tint))
+
+
+func _divine_flash(texture: Texture2D, ground: Vector3, seconds: float, size := 1.0) -> void:
+	var fx := BattleFX._sprite(_units_root,texture)
+	fx.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	fx.pixel_size = .033*size
+	fx.offset.y = 36.
+	fx.modulate = _divine_tint()
+	fx.global_position = ground + cam_rig.camera.global_basis.z*.24
+	fx.render_priority = 2
+	var anim := fx.create_tween()
+	anim.tween_property(fx,"frame",fx.hframes-1,seconds)
+	anim.tween_callback(fx.queue_free)
 
 
 ## A divine technique lands: its name in the tier's colour, and light on every cell it
@@ -1342,7 +1435,7 @@ func _process(_delta: float) -> void:
 func _divine(e: Dictionary, events: Array) -> void:
 	var def: Dictionary = SkillCatalog.get_skill(e.skill)
 	var tier := Checkpoint.tier_of(int(state.reward.get("divinity",0)))
-	var tint := Color(str(Checkpoint.TIERS[tier].tint))
+	var tint := _divine_tint()
 	var caster: UnitView = unit_views[e.unit]
 	var cells: Array[Vector2i] = []
 	if def.has("blast"):
@@ -1353,17 +1446,31 @@ func _divine(e: Dictionary, events: Array) -> void:
 					var cell: Vector2i = e.to+Vector2i(dx,dy)
 					if state.grid.in_bounds(cell): cells.append(cell)
 		caster.face_point(map_view.anchor_world(state,e.to,1))
-	elif def.has("blink"):
-		cells.append(e.to)
 	_popup(e.unit,str(def.name),tint)
 	Soundscape.cue("warning")
 	var rows := Hud.CombatRecord.collect(state,events)
 	for row in rows:
 		if row.linked and not row.target_id.is_empty() and not row.outcome.is_empty():
 			hud.overlay.set_health_forecast(row)
-	var burns: bool = def.get("status","") == "burning"
-	for cell in cells:
-		BattleFX.spawn(_units_root,FLAME if burns else BURST,map_view.anchor_world(state,cell,1)+Vector3.UP*.08,.3,tint)
+	match e.skill:
+		"thunder_bolt":
+			var target: UnitView = unit_views[e.target]
+			await caster.turn_to_strike(target.position)
+			_divine_flash(LIGHTNING,target.position,.50,1.18)
+		"sky_fire","sky_wrath":
+			var center: Vector2i = e.to
+			var texture := SKYFIRE if e.skill=="sky_fire" else LIGHTNING
+			_divine_flash(texture,map_view.anchor_world(state,center,1),.63,1.14)
+			await get_tree().create_timer(.11).timeout
+			for cell in cells:
+				if cell!=center:
+					_divine_flash(texture,map_view.anchor_world(state,cell,1),.50,.71)
+		"thunder_step":
+			_divine_flash(THUNDERSTEP,caster.position,.47)
+		"sky_dome":
+			for event in events:
+				if event.type=="ward":
+					_divine_flash(DOME,unit_views[event.target].position,.77,1.20)
 	if tier >= 3:
 		# The ground itself answers: a few quick shoves of the view that sum to nothing.
 		var shake := create_tween()
@@ -1437,6 +1544,35 @@ func _recover_cover(hero: PixelUnit, home: Vector3, contact: bool) -> void:
 	hero.release_intercept()
 
 
+func _epic_strike(actor: PixelUnit, target: UnitView, look: String) -> Tween:
+	await actor.turn_to_strike(target.position)
+	var axe:=look in ["idas","merc_captain"]
+	var sweep:=look=="merc_captain"
+	var planted:=look=="merc_lancer"
+	var home:=actor.position
+	var forward:=(target.position-home).slide(Vector3.UP).normalized()
+	actor._sprite.material_override.set_shader_parameter("painted_action_sheet",actor.epic_attack_sheet)
+	var strike:=actor.create_tween()
+	var lateral:=Vector3(-forward.z,0,forward.x)*(.13 if sweep else 0.)
+	var reach:=.16 if planted else .23 if sweep else .25 if axe else .40
+	var drive_time:=.19 if sweep else .17 if planted else .15 if axe else .12
+	var load_time:=.25 if sweep else .33 if planted else .38 if axe else .26
+	strike.tween_method(actor.set_painted_action_frame,0.,16.,load_time)
+	strike.parallel().tween_property(actor,"position",home-forward*(.035 if planted else .10)-lateral,load_time).set_trans(Tween.TRANS_SINE)
+	strike.tween_interval(.03 if sweep else .09 if axe else .04)
+	strike.tween_callback(Soundscape.cue.bind("swing" if axe else "step"))
+	strike.tween_method(actor.set_painted_action_frame,16.,21.,drive_time)
+	strike.parallel().tween_property(actor,"position",home+forward*reach+lateral,drive_time).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await strike.finished
+	var settle:=actor.create_tween()
+	settle.tween_method(actor.set_painted_action_frame,21.,26.,.20 if planted else .12)
+	if not axe:settle.tween_callback(Soundscape.cue.bind("step"))
+	settle.tween_method(actor.set_painted_action_frame,26.,55.,.46)
+	settle.parallel().tween_property(actor,"position",home,.46).set_trans(Tween.TRANS_SINE)
+	settle.tween_callback(actor.set_painted_action_frame.bind(-1.))
+	return settle
+
+
 func _centaur_strike(rider: PixelUnit, target: UnitView, defender: PixelUnit=null) -> Tween:
 	await rider.turn_to_strike(target.position)
 	var pose := rider.set_painted_action_frame if defender==null else rider.aim_covered_spear.bind(defender)
@@ -1495,6 +1631,8 @@ func _bandit_shot(archer: UnitView, target: UnitView) -> Tween:
 	var aim := _effect_origin(target)
 	var grip := archer.bow_grip(1.)
 	var arrow := BattleFX.nock(_units_root,ARROW)
+	if (archer as PixelUnit).painted_look == "merc_archer":
+		arrow.pixel_size = archer._sprite.pixel_size*.80
 	arrow.align_to_grip(grip,aim)
 	archer.set_pose(3,.05)
 	Soundscape.cue("arrow")
@@ -1567,6 +1705,23 @@ func _bump(attacker_id: String, target_id: String, skill: String, evade_slash :=
 	var v: UnitView = unit_views[attacker_id]
 	var t: UnitView = unit_views[target_id]
 	await v.turn_to_strike(t.position)
+	if state.unit(attacker_id).look()=="merc_sword" and skill in ["slash","heavy_cut","spear_breaker"]:
+		var home := v.position
+		var forward := (t.position-home).slide(Vector3.UP).normalized()
+		var cut := v.create_tween()
+		cut.tween_property(v,"position",home-forward*.045,.09)
+		if evade_slash:
+			cut.parallel().tween_callback((t as PixelUnit).begin_evade.bind(v))
+		cut.tween_callback(v.set_pose.bind(2,.095))
+		cut.tween_callback(Soundscape.cue.bind("swing"))
+		cut.tween_property(v,"position",home+forward*.29,.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		await cut.finished
+		BattleFX.spawn(_units_root,SLASH,_effect_origin(t),.13)
+		var recovery := v.create_tween()
+		recovery.tween_interval(.055)
+		recovery.tween_callback(v.set_pose.bind(-1,.19))
+		recovery.tween_property(v,"position",home,.21).set_trans(Tween.TRANS_SINE)
+		return recovery
 	if skill=="slash" and state.unit(attacker_id).def_id in ["bandit","bandit_chief"]:
 		return await _raider_slash(v,t,state.unit(attacker_id).def_id=="bandit_chief",evade_slash)
 	if skill=="shield_bash":
@@ -2427,7 +2582,10 @@ func _run_capture() -> void:
 			await get_tree().create_timer(1.0).timeout
 			for thrown: Array in [["item_firepot","火油罐"],["item_stone","石块"],["item_javelin","标枪"],["item_net","捕网"]]:
 				_popup("hero",thrown[1],Color("#f1e3c4"))
-				await _throw_thing(me,foe,thrown[0])
+				if thrown[0]=="item_net":
+					await _throw_net(me,foe,true)
+				else:
+					await _throw_thing(me,foe,thrown[0])
 				await get_tree().create_timer(1.6).timeout
 			_popup("hero","药剂",Color("#b9f0c4"))
 			await _take_tonic(me,me,"item_potion")

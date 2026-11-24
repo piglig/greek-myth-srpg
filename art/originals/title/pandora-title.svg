@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="288" height="138" viewBox="0 0 288 138">
+  <title>潘多拉之裔</title>
+  <desc>横卧的陶罐与回纹，象牙色中文题名，下方为 HEIR OF PANDORA。</desc>
+  <defs>
+    <linearGradient id="ivory" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="63" y2="112">
+      <stop stop-color="#fff4d9" />
+      <stop offset="1" stop-color="#eacb92" />
+    </linearGradient>
+    <g id="name">
+      <path aria-label="潘" d="M18 66h4v4h-4zM46 66h12v4h-12zM22 70h4v4h-4zM30 70h16v4h-16zM34 74h4v4h-4zM42 74h4v4h-4zM50 74h4v4h-4zM14 78h4v4h-4zM26 78h32v4h-32zM18 82h4v4h-4zM34 82h4v4h-4zM42 82h4v4h-4zM50 82h4v4h-4zM30 86h4v4h-4zM42 86h4v4h-4zM54 86h4v4h-4zM26 90h32v4h-32zM18 94h4v4h-4zM30 94h4v4h-4zM42 94h4v4h-4zM54 94h4v4h-4zM18 98h4v4h-4zM30 98h28v4h-28zM14 102h4v4h-4zM30 102h4v4h-4zM42 102h4v4h-4zM54 102h4v4h-4zM14 106h4v4h-4zM30 106h28v4h-28z" />
+      <path aria-label="多" d="M87 66h4v4h-4zM83 70h20v4h-20zM71 74h12v4h-12zM99 74h4v4h-4zM83 78h4v4h-4zM95 78h4v4h-4zM87 82h8v4h-8zM99 82h4v4h-4zM79 86h8v4h-8zM95 86h16v4h-16zM67 90h12v4h-12zM91 90h4v4h-4zM107 90h4v4h-4zM79 94h12v4h-12zM107 94h4v4h-4zM91 98h4v4h-4zM103 98h4v4h-4zM95 102h8v4h-8zM75 106h20v4h-20z" />
+      <path aria-label="拉" d="M124 66h4v4h-4zM144 66h4v4h-4zM124 70h4v4h-4zM148 70h4v4h-4zM120 74h12v4h-12zM136 74h28v4h-28zM124 78h4v4h-4zM124 82h4v4h-4zM140 82h4v4h-4zM156 82h4v4h-4zM124 86h8v4h-8zM140 86h4v4h-4zM156 86h4v4h-4zM120 90h8v4h-8zM144 90h4v4h-4zM156 90h4v4h-4zM124 94h4v4h-4zM144 94h4v4h-4zM156 94h4v4h-4zM124 98h4v4h-4zM144 98h4v4h-4zM152 98h4v4h-4zM124 102h4v4h-4zM152 102h4v4h-4zM120 106h8v4h-8zM136 106h28v4h-28z" />
+      <path aria-label="之" d="M189 66h4v4h-4zM193 70h4v4h-4zM173 74h40v4h-40zM205 78h4v4h-4zM201 82h4v4h-4zM197 86h4v4h-4zM193 90h4v4h-4zM189 94h4v4h-4zM181 98h8v4h-8zM177 102h4v4h-4zM189 102h8v4h-8zM173 106h4v4h-4zM197 106h20v4h-20z" />
+      <path aria-label="裔" d="M246 66h4v4h-4zM226 70h44v4h-44zM238 74h4v4h-4zM250 74h4v4h-4zM226 78h12v4h-12zM254 78h4v4h-4zM262 78h4v4h-4zM234 82h4v4h-4zM242 82h8v4h-8zM258 82h4v4h-4zM234 86h8v4h-8zM262 86h8v4h-8zM230 90h36v4h-36zM230 94h4v4h-4zM238 94h4v4h-4zM254 94h4v4h-4zM262 94h4v4h-4zM230 98h8v4h-8zM242 98h24v4h-24zM230 102h4v4h-4zM238 102h4v4h-4zM254 102h4v4h-4zM262 102h4v4h-4zM230 106h4v4h-4zM238 106h20v4h-20zM262 106h4v4h-4z" />
+    </g>
+    <g id="subtitle">
+      <path aria-label="H" d="M80 124h1v1h-1zM84 124h1v1h-1zM80 125h1v1h-1zM84 125h1v1h-1zM80 126h1v1h-1zM84 126h1v1h-1zM80 127h5v1h-5zM80 128h1v1h-1zM84 128h1v1h-1zM80 129h1v1h-1zM84 129h1v1h-1zM80 130h1v1h-1zM84 130h1v1h-1z" />
+      <path aria-label="E" d="M89 124h5v1h-5zM89 125h1v1h-1zM89 126h1v1h-1zM89 127h4v1h-4zM89 128h1v1h-1zM89 129h1v1h-1zM89 130h5v1h-5z" />
+      <path aria-label="I" d="M98 124h3v1h-3zM99 125h1v1h-1zM99 126h1v1h-1zM99 127h1v1h-1zM99 128h1v1h-1zM99 129h1v1h-1zM98 130h3v1h-3z" />
+      <path aria-label="R" d="M105 124h4v1h-4zM105 125h1v1h-1zM109 125h1v1h-1zM105 126h1v1h-1zM109 126h1v1h-1zM105 127h4v1h-4zM105 128h1v1h-1zM108 128h1v1h-1zM105 129h1v1h-1zM109 129h1v1h-1zM105 130h1v1h-1zM109 130h1v1h-1z" />
+      <path aria-label="O" d="M123 124h3v1h-3zM122 125h1v1h-1zM126 125h1v1h-1zM122 126h1v1h-1zM126 126h1v1h-1zM122 127h1v1h-1zM126 127h1v1h-1zM122 128h1v1h-1zM126 128h1v1h-1zM122 129h1v1h-1zM126 129h1v1h-1zM123 130h3v1h-3z" />
+      <path aria-label="F" d="M131 124h5v1h-5zM131 125h1v1h-1zM131 126h1v1h-1zM131 127h4v1h-4zM131 128h1v1h-1zM131 129h1v1h-1zM131 130h1v1h-1z" />
+      <path aria-label="P" d="M148 124h4v1h-4zM148 125h1v1h-1zM152 125h1v1h-1zM148 126h1v1h-1zM152 126h1v1h-1zM148 127h4v1h-4zM148 128h1v1h-1zM148 129h1v1h-1zM148 130h1v1h-1z" />
+      <path aria-label="A" d="M159 124h1v1h-1zM159 125h1v1h-1zM158 126h1v1h-1zM160 126h1v1h-1zM158 127h1v1h-1zM160 127h1v1h-1zM158 128h3v1h-3zM157 129h1v1h-1zM161 129h1v1h-1zM157 130h1v1h-1zM161 130h1v1h-1z" />
+      <path aria-label="N" d="M166 124h1v1h-1zM170 124h1v1h-1zM166 125h2v1h-2zM170 125h1v1h-1zM166 126h2v1h-2zM170 126h1v1h-1zM166 127h1v1h-1zM168 127h1v1h-1zM170 127h1v1h-1zM166 128h1v1h-1zM169 128h2v1h-2zM166 129h1v1h-1zM169 129h2v1h-2zM166 130h1v1h-1zM170 130h1v1h-1z" />
+      <path aria-label="D" d="M175 124h4v1h-4zM175 125h1v1h-1zM179 125h1v1h-1zM175 126h1v1h-1zM179 126h1v1h-1zM175 127h1v1h-1zM179 127h1v1h-1zM175 128h1v1h-1zM179 128h1v1h-1zM175 129h1v1h-1zM179 129h1v1h-1zM175 130h4v1h-4z" />
+      <path aria-label="O" d="M185 124h3v1h-3zM184 125h1v1h-1zM188 125h1v1h-1zM184 126h1v1h-1zM188 126h1v1h-1zM184 127h1v1h-1zM188 127h1v1h-1zM184 128h1v1h-1zM188 128h1v1h-1zM184 129h1v1h-1zM188 129h1v1h-1zM185 130h3v1h-3z" />
+      <path aria-label="R" d="M193 124h4v1h-4zM193 125h1v1h-1zM197 125h1v1h-1zM193 126h1v1h-1zM197 126h1v1h-1zM193 127h4v1h-4zM193 128h1v1h-1zM196 128h1v1h-1zM193 129h1v1h-1zM197 129h1v1h-1zM193 130h1v1h-1zM197 130h1v1h-1z" />
+      <path aria-label="A" d="M204 124h1v1h-1zM204 125h1v1h-1zM203 126h1v1h-1zM205 126h1v1h-1zM203 127h1v1h-1zM205 127h1v1h-1zM203 128h3v1h-3zM202 129h1v1h-1zM206 129h1v1h-1zM202 130h1v1h-1zM206 130h1v1h-1z" />
+    </g>
+  </defs>
+  <image x="51" y="0" width="186" height="62" xlink:href="pithos-frieze.png" />
+  <g stroke-linejoin="miter">
+    <use xlink:href="#name" transform="translate(0 2)" fill="#251811" stroke="#251811" stroke-width="1.6" />
+    <use xlink:href="#name" fill="#39261b" stroke="#39261b" stroke-width="1.4" />
+    <use xlink:href="#name" fill="url(#ivory)" />
+    <use xlink:href="#subtitle" fill="#2f2119" stroke="#2f2119" stroke-width="0.9" />
+    <use xlink:href="#subtitle" fill="#efcc93" />
+  </g>
+  <path fill="#c79455" d="M29 128l40-.7v1.4z M259 128l-40-.7v1.4z M71 128l2-1.6 2 1.6-2 1.6z M213 128l2-1.6 2 1.6-2 1.6z" />
+</svg>

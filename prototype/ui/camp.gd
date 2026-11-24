@@ -22,12 +22,14 @@ const LORE := {
 	"chiron": "半人马贤者，教过阿喀琉斯、伊阿宋和阿斯克勒庇俄斯。被一支毒箭误伤，伤口永不愈合。",
 	"medea": "科尔喀斯的女巫，赫利俄斯的孙女，赫卡忒的女祭司。帮伊阿宋取得金羊毛，又被他抛弃。",
 }
+const LEVEL_UP := preload("res://art/original/fx/levelup.png")
+var leveled_members: Array[String] = []
 const NUMERALS := ["一","二","三","四","五","六","七","八"]
 ## The people of the camp: who they are, the sprite that plays them, where they stand,
 ## and the screen they open.
 const PEOPLE := [
-	{"key":"trader","name":"阿齐尔","role":"行商","service":"买护符","icon":"shop","def":"refugee","look":"npc_trader","cell":Vector2(10.5,5.9),"turn":Vector2i(0,1)},
-	{"key":"recruit","name":"达蒙","role":"教习","service":"招募","icon":"helmet","def":"bandit_chief","look":"npc_drill","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
+	{"key":"trader","name":"阿齐尔","role":"行商","service":"买护符","icon":"shop","def":"refugee","look":"npc_trader","cell":Vector2(10.85,6.15),"turn":Vector2i(0,1)},
+	{"key":"recruit","name":"达蒙","role":"教习","service":"招募 · 操练","icon":"helmet","def":"bandit_chief","look":"npc_drill","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
 	{"key":"march","name":"伊俄","role":"领路人","service":"出征","icon":"march","def":"bandit_archer","look":"npc_guide","cell":Vector2(11.4,8.2),"turn":Vector2i(-1,0)}]
 const GREETINGS := {"trader":"坐。我这秤称过腓尼基的银子，也称过阿卡迪亚最后一袋麦子。",
 	"recruit":"把盾放低些。你看得见我的肩，才看得见我什么时候出手。",
@@ -41,6 +43,7 @@ const MEASURE := 430.0
 
 var entry := {}
 var persistent := true
+var drill_open := false
 var screen := "home"  ## home | party | trader | recruit | march
 const CARRY := 4  ## techniques a member takes into battle; the engine enforces the same number (rules.LoadoutSlots)
 var page := "info"  ## member sheet: "info" (numbers, gear, carried techniques) or "tree"
@@ -260,10 +263,12 @@ func _pitch_camp() -> void:
 	scene = Diorama.new()
 	add_child(scene)
 	scene.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-	scene.lay(["22222222222222","11222222222211","11111111111111","00111111111100","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000"],
+	scene.map_view.grid_lines = false
+	scene.lay(["22222222222222","11111111111111","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000","00000000000000"],
 		[Vector2i(1,6),Vector2i(12,3),Vector2i(2,9),Vector2i(8,9)])
-	scene.fire(FIRE)
-	scene.prop(preload("res://art/landmarks/cart.glb"),1.6,Vector2(11.4,3.2),-.5)
+	scene.fire(FIRE,.46)
+	scene.prop(preload("res://art/landmarks/olive.glb"),2.65,Vector2(.15,2.68),.3)
+	scene.prop(preload("res://art/landmarks/cypress.glb"),1.75,Vector2(13.55,3.05),-.7)
 	_furnish()
 	for person: Dictionary in PEOPLE:
 		figures[person.key] = scene.unit(person.def,person.cell,person.turn,false,person.look)
@@ -280,69 +285,73 @@ func _pitch_camp() -> void:
 	_turn_sitters()
 	scene.look.call_deferred(_view_target(),0,_view_zoom())
 
-## What makes the place a camp: somewhere to sleep, the trader's stall, the drillmaster's
-## yard, the guide's post. Models from two CC0 kits (see art/thirdparty/CREDITS.md).
+const CAMP_MODELS := {
+	"ridge-tent": preload("res://art/camp/ridge-tent.glb"),
+	"lean-to": preload("res://art/camp/lean-to.glb"),
+	"amphora": preload("res://art/camp/amphora.glb"),
+	"hydria": preload("res://art/camp/hydria.glb"),
+	"tripod": preload("res://art/camp/tripod.glb"),
+	"altar": preload("res://art/camp/altar.glb"),
+	"spear-rack": preload("res://art/camp/spear-rack.glb"),
+	"aspis": preload("res://art/camp/aspis.glb"),
+	"wolf-hide": preload("res://art/camp/wolf-hide.glb"),
+	"brazier": preload("res://art/camp/brazier.glb"),
+}
+const VISITOR_SPOTS := {"trader":Vector2(9.92,6.93),"recruit":Vector2(4.35,6.25),"march":Vector2(10.59,8.75)}
+var furnishings: Array[AABB] = []
+var visit_walk: Tween
+var destination := ""
+
+func _place_prop(model: String, cell: Vector2, turn := 0., size := 1.) -> void:
+	var prop_node := scene.camp_prop(CAMP_MODELS[model],cell,turn,size,1. if model=="ridge-tent" else .40)
+	for mesh: MeshInstance3D in prop_node.find_children("*","MeshInstance3D",true,false):
+		furnishings.append((mesh.global_transform*mesh.get_aabb()).grow(.15))
+
 func _furnish() -> void:
-	var props := "res://art/thirdparty/camp/props/%s.gltf"
-	var survival := "res://art/thirdparty/camp/survival/%s.glb"
-	# Tents on the open ground at the near left, bedrolls and logs by the fire.
-	# Kept to the far left and behind the fire: nothing stands between the camera and
-	# whoever sits by it when their sheet is open.
-	scene.kit(survival % "tent-canvas",Vector2(.9,7.3),2.0,.55,true)
-	scene.kit(survival % "tent-canvas",Vector2(1.5,9.2),2.0,.3,true)
-	scene.kit(survival % "bedroll",Vector2(2.6,8.4),.22,.9,true)
-	scene.kit(survival % "bedroll-packed",Vector2(2.3,7.2),.36,.3,true)
-	scene.kit(survival % "tree-log",Vector2(8.9,5.4),.34,1.1,true)
-	scene.kit(survival % "tree-log-small",Vector2(5.6,5.0),.3,-.3,true)
-	scene.kit(props % "Bucket_Wooden_1",Vector2(8.1,5.6),.42)
-	# The trader: a stall, and his wares round it.
-	scene.kit(props % "Stall_Empty",Vector2(10.3,4.2),2.6,PI)
-	scene.kit(props % "Crate_Wooden",Vector2(11.6,4.9),.66,.4)
-	scene.kit(props % "Crate_Wooden",Vector2(12.0,4.3),.66,-.2)
-	scene.kit(props % "Vase_4",Vector2(9.2,4.8),.62)
-	scene.kit(props % "Bag",Vector2(9.5,5.4),.42,.6)
-	scene.kit(props % "Barrel",Vector2(12.3,5.4),.85)
-	# The drillmaster: weapons to hand and something to hit.
-	scene.kit(props % "WeaponStand",Vector2(2.2,4.7),1.25,.5)
-	scene.kit(props % "Dummy",Vector2(4.6,5.0),1.75,.3)
-	scene.kit(props % "Shield_Wooden",Vector2(3.0,4.5),.8,.3)
-	scene.kit(props % "Bench",Vector2(1.6,6.2),.45,1.3)
-	# The guide: a post that points the way, a banner, his chest.
-	scene.kit(survival % "signpost",Vector2(12.5,9.0),1.6,-.6,true)
-	scene.kit(props % "Banner_1",Vector2(12.9,7.2),2.6,-.4)
-	scene.kit(props % "Chest_Wood",Vector2(12.4,7.9),.5,-.9)
-	scene.kit(props % "Stool",Vector2(10.5,8.6),.42)
-	# What stood here before the camp did: an old shrine's columns, one still up, one down.
-	var greek := "res://art/thirdparty/camp/greek/%s.glb"
-	scene.kit(greek % "doric_column",Vector2(6.6,3.3),2.7,0.0,false,true)
-	var fallen := scene.kit(greek % "doric_column",Vector2(8.4,13.2),2.4,0.0,false,true)
-	fallen.rotation = Vector3(PI*.5,.9,0)
-	fallen.position.y += .38
+	# Trading tent, decorated water jar and amphorae on timber stands.
+	_place_prop("ridge-tent",Vector2(10.15,2.63),.40)
+	_place_prop("amphora",Vector2(11.96,5.16),.30,.89)
+	_place_prop("amphora",Vector2(12.52,4.67),-.32,.76)
+	_place_prop("hydria",Vector2(9.15,5.18),.56,1.13)
+	_place_prop("hydria",Vector2(8.70,4.80),-1.03,.76)
+	# The drill yard faces the path. The shield rests against the rack.
+	_place_prop("spear-rack",Vector2(2.55,4.15),-.21)
+	_place_prop("aspis",Vector2(2.92,4.48),-.27)
+	_place_prop("wolf-hide",Vector2(1.23,4.75),.12)
+	_place_prop("lean-to",Vector2(1.65,7.20),.85)
+	# A second tent and the shrine stand behind the fire.
+	_place_prop("ridge-tent",Vector2(2.70,2.04),.30,.86)
+	_place_prop("altar",Vector2(6.59,3.14),-.15,1.15)
+	_place_prop("tripod",Vector2(7.52,3.52),.32)
+	_place_prop("brazier",FIRE)
+	_place_prop("lean-to",Vector2(12.43,7.43),-.54,.82)
+	_place_prop("amphora",Vector2(12.18,8.50),-.38,.77)
 
 ## With a screen open the camp slides right so whoever it concerns stays in view: the
 ## person being spoken to, or the member whose sheet is open. A member is shown close up,
 ## so the figure that fights stands in for a portrait.
 func _view_target() -> Vector2:
-	if screen == "home": return FIRE+Vector2(.4,.2)
+	if screen == "home": return Vector2(7.12,5.35)
 	if screen == "party":
 		if view == "members" and seats.has(member): return seats[member]+Vector2(-5.0,-.9)
 		return FIRE+Vector2(-7.8,-.8)
 	for person: Dictionary in PEOPLE:
-		if person.key == screen: return person.cell+Vector2(-7.8,-.8)
+		if person.key == screen: return (person.cell as Vector2).lerp(VISITOR_SPOTS[person.key],.5)+Vector2(-4.50,-.87)
 	return FIRE
 
 func _view_zoom() -> int:
-	return 2 if screen == "party" and view == "members" else 1
+	return 2 if VISITOR_SPOTS.has(screen) or (screen == "party" and view == "members") else 1
 
 ## Whoever's sheet is open turns to face you; the rest go back to the fire.
 func _turn_sitters() -> void:
 	for who: String in sitters:
 		var shown: bool = screen == "party" and view == "members" and who == member
+		if who=="hero" and VISITOR_SPOTS.has(screen): continue
 		sitters[who][0].set_facing(Defs.SOUTH if shown else sitters[who][1])
 
 func _reframe() -> void:
 	_turn_sitters()
-	scene.rig.zoom_index = _view_zoom()
+	scene.rig.ease_zoom(_view_zoom(),.40)
 	scene.rig.glide_to(scene.spot(_view_target())+Vector3.UP*.8)
 
 func _process(_delta: float) -> void:
@@ -450,6 +459,7 @@ func _tree_of(who: String) -> String:
 
 ## The folder of sprite sheets a member is drawn from: their own colours where they have them.
 func _look(who: String) -> String:
+	if who == "hero": return Save.hero_look(entry)
 	var kind := _kind(who)
 	return str(kind.get("look",kind.def)) if not kind.is_empty() else who
 
@@ -519,7 +529,13 @@ func _keep(next: Dictionary) -> bool:
 	if persistent and Save.write_entry(next) != OK:
 		note = "没能写入存档，请检查本机存储空间。"
 		return false
+	var changes_hero := Save.tier(next)!=Save.tier(entry) and sitters.has("hero")
 	entry = next
+	if changes_hero:
+		var toward: Vector2i = sitters.hero[1]
+		sitters.hero[0].queue_free()
+		sitters.hero[0] = scene.unit("hero",seats.hero,toward,false,_look("hero"))
+		_turn_sitters()
 	return true
 
 func _chapter_of(id: String) -> int:
@@ -562,9 +578,111 @@ func _story(who: String) -> String:
 
 # --- Drawing ------------------------------------------------------------------------
 
+func _stop_walk() -> void:
+	if visit_walk:
+		visit_walk.kill()
+		visit_walk = null
+	destination = ""
+	if sitters.has("hero"): sitters.hero[0].walking = false
+	signs.show()
+
+## Quarter-cell steps are only for finding a passage. The feet move continuously on the terrain.
+func _camp_route(hero: PixelUnit, goal: Vector2) -> PackedVector2Array:
+	var grid := AStarGrid2D.new()
+	grid.region = Rect2i(0,0,57,41)
+	grid.cell_size = Vector2.ONE*.25
+	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	grid.update()
+	var people: Array = figures.values()
+	for who: String in sitters:
+		if who != "hero": people.append(sitters[who][0])
+	for z in grid.region.size.y:
+		for x in grid.region.size.x:
+			var id := Vector2i(x,z)
+			var foot := scene.spot(Vector2(id)*.25)
+			var occupied := false
+			for box in furnishings:
+				if Rect2(box.position.x,box.position.z,box.size.x,box.size.z).has_point(Vector2(foot.x,foot.z)):
+					occupied = true
+					break
+			if not occupied:
+				for person: Node3D in people:
+					if (foot-person.position).slide(Vector3.UP).length_squared()<.32:
+						occupied = true
+						break
+			if occupied: grid.set_point_solid(id)
+	var start3 := scene.map_view.to_local(hero.position)
+	var start := Vector2i((Vector2(start3.x,start3.z)*4).round())
+	var end := Vector2i((goal*4).round())
+	grid.set_point_solid(start,false)
+	grid.set_point_solid(end,false)
+	var steps := grid.get_id_path(start,end)
+	var route := PackedVector2Array()
+	for i in range(1,steps.size()-1):
+		if steps[i]-steps[i-1]!=steps[i+1]-steps[i]: route.append(Vector2(steps[i])*.25)
+	if not steps.is_empty(): route.append(goal)
+	return route
+
+func _walk_to(where: String) -> void:
+	_stop_walk()
+	var hero: PixelUnit = sitters.hero[0]
+	var home := where=="home"
+	var goal: Vector2 = seats.hero if home else VISITOR_SPOTS[where]
+	var route := _camp_route(hero,goal)
+	if route.is_empty():
+		if home: hero.position=scene.spot(goal)
+		else: _go(where)
+		return
+	destination = where
+	if not home: signs.hide()
+	var current := scene.map_view.to_local(hero.position)
+	var start := Vector2(current.x,current.z)
+	visit_walk = create_tween()
+	hero.walking = true
+	for point in route:
+		var end := scene.spot(point)
+		visit_walk.tween_callback(hero.face_point.bind(end))
+		visit_walk.tween_method(func(cell: Vector2): hero.position=scene.spot(cell),start,point,maxf(.04,scene.spot(start).distance_to(end)/3.6))
+		start = point
+	if not home:
+		visit_walk.tween_callback(func():
+			hero.walking = false
+			hero.face_point(figures[where].position)
+			figures[where].face_point(hero.position)
+			var meeting: Vector3 = hero.position.lerp(figures[where].position,.55)
+			scene.rig.ease_zoom(2,.55)
+			scene.rig.glide_to(meeting+Vector3.UP*.90))
+		visit_walk.tween_interval(1.10)
+	visit_walk.tween_callback(func():
+		visit_walk = null
+		destination = ""
+		hero.walking = false
+		if home:
+			hero.set_facing(sitters.hero[1])
+		else:
+			_go(where))
+
+func _visit(where: String) -> void:
+	if screen=="home" and VISITOR_SPOTS.has(where) and sitters.has("hero"):
+		_walk_to(where)
+	else:
+		_go(where)
+
 func _go(where: String) -> void:
+	drill_open = false
+	_stop_walk()
 	screen = where
 	asking = ""
+	if sitters.has("hero"):
+		var hero: PixelUnit = sitters.hero[0]
+		if VISITOR_SPOTS.has(where):
+			hero.position = scene.spot(VISITOR_SPOTS[where])
+			hero.face_point(figures[where].position)
+			figures[where].face_point(hero.position)
+		elif where=="home" and hero.position.distance_to(scene.spot(seats.hero))>.1:
+			_walk_to("home")
+		else:
+			hero.position = scene.spot(seats.hero)
 	_reframe()
 	_render()
 
@@ -574,6 +692,7 @@ func _focus(control: Control) -> void:
 		if is_instance_valid(control) and control.is_inside_tree(): control.grab_focus()).call_deferred()
 
 func _set_asking(what: String) -> void:
+	_stop_walk()
 	asking = what
 	_render()
 
@@ -613,36 +732,44 @@ func _price(parent: Control, amount: int, at: Vector2, flush := false, tone := P
 	coin.mouse_filter = MOUSE_FILTER_IGNORE
 	Px.text(parent,words,Rect2(x+15,at.y,80,0),Px.SMALL,tone).mouse_filter = MOUSE_FILTER_IGNORE
 
-## Gold dust for a level gained, thrown up from one spot.
-func _dust(at: Vector2) -> CPUParticles2D:
-	var dust := CPUParticles2D.new()
-	dust.position = at
-	dust.emitting = false
-	dust.one_shot = true
-	dust.amount = 36
-	dust.lifetime = 1.1
-	dust.explosiveness = .95
-	dust.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	dust.emission_rect_extents = Vector2(40,3)
-	dust.direction = Vector2.UP
-	dust.spread = 60.0
-	dust.initial_velocity_min = 50.0
-	dust.initial_velocity_max = 150.0
-	dust.gravity = Vector2(0,200)
-	dust.scale_amount_min = 2.0
-	dust.scale_amount_max = 3.0
-	var fade := Gradient.new()
-	fade.set_color(0,Color("fff1c4"))
-	fade.set_color(1,Color(Px.OCHRE,0))
-	dust.color_ramp = fade
-	cheer.add_child(dust)
-	return dust
+## The laurel ring passes behind the portrait and leaves the facial features visible.
+func _rank_ring(face: Control) -> void:
+	var ring := Sprite2D.new()
+	ring.texture = LEVEL_UP
+	ring.hframes = 10
+	ring.scale = Vector2.ONE*.80
+	ring.position = face.position+face.size*.5
+	face.get_parent().add_child(ring)
+	face.get_parent().move_child(ring,face.get_index())
+	var anim := ring.create_tween()
+	anim.tween_property(ring,"frame",9,.78)
+	anim.tween_callback(ring.queue_free)
+
+func _celebrate_levels() -> void:
+	for who in leveled_members:
+		if not sitters.has(who): continue
+		var wearer: PixelUnit = sitters[who][0]
+		var ring := BattleFX._sprite(wearer,LEVEL_UP)
+		ring.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		ring.pixel_size = wearer.sprite_height/65.
+		ring.offset.y = 35.
+		ring.position = -scene.rig.camera.global_basis.z*.065
+		ring.render_priority = -1
+		var anim := ring.create_tween()
+		anim.tween_property(ring,"frame",9,.88)
+		anim.tween_callback(ring.queue_free)
+	leveled_members.clear()
 
 ## The party walks back into camp. One panel: how the battle went and what it paid, then a
 ## cell for each member who marched, whose experience fills in front of you. `gains` is
 ## {who: [experience before, after]}.
 func _report(news: Dictionary, gains: Dictionary) -> void:
 	asking = "cheer"
+	leveled_members.clear()
+	for who: String in gains:
+		var progress: Array = gains[who]
+		if Save.standing(progress[1]).level > Save.standing(progress[0]).level:
+			leveled_members.append(who)
 	Px.clear(cheer)
 	cheer.show()
 	var won: bool = news.get("won",false)
@@ -705,7 +832,6 @@ func _report(news: Dictionary, gains: Dictionary) -> void:
 		if got <= 0: continue
 		if to.level > from.level: rose = true
 		# The bar fills; each time it tops out the level turns over and it starts again.
-		var dust := _dust(panel.position+cell.position+Vector2(50,96)) if to.level > from.level else null
 		var climb := panel.create_tween()
 		climb.tween_interval(.35+i*.12)
 		for level in range(from.level,to.level):
@@ -717,7 +843,7 @@ func _report(news: Dictionary, gains: Dictionary) -> void:
 				edge.color.a = 1.0
 				words.text = "+%d 技能点" % (level+1-int(from.level))
 				words.add_theme_color_override("font_color",Px.GREEN)
-				dust.restart()
+				_rank_ring(face)
 				Soundscape.cue("confirm"))
 			climb.tween_property(rank,"scale",Vector2.ONE,.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		climb.tween_property(fill,"size:x",roundf(bar_wide*to.into/to.need),.4).set_ease(Tween.EASE_OUT)
@@ -757,6 +883,7 @@ func _end_cheer(to_tree: bool) -> void:
 	if asking != "cheer": return
 	asking = _owed()
 	cheer.hide()
+	_celebrate_levels()
 	Px.clear(cheer)
 	if to_tree and asking == "":
 		screen = "party"
@@ -846,7 +973,12 @@ func _home() -> void:
 			var ahead := _site(str(entry.get("id","1-1")))
 			if not ahead.is_empty(): under = "%s %s" % [ahead.id,ahead.name]
 		Px.text(sign,under,Rect2(30,20,80,0),Px.SMALL,Px.OCHRE if person.key == "march" else Px.MUTED)
-		stops.append(Px.hotspot(sign,Rect2(0,0,112,150),_go.bind(person.key),person.service))
+		var hot := Px.hotspot(sign,Rect2(0,0,112,150),_visit.bind(person.key),person.service)
+		for state in ["hover","pressed","focus"]:
+			hot.add_theme_stylebox_override(state,StyleBoxEmpty.new())
+		hot.draw.connect(func():
+			if hot.has_focus() or hot.is_hovered(): hot.draw_rect(Rect2(0,0,112,34),Px.OCHRE,false,1.))
+		stops.append(hot)
 	Px.chain(stops,false)
 	for stop in stops:
 		stop.focus_neighbor_top = stop.get_path_to(tabs_row[0])
@@ -864,7 +996,8 @@ func _head(title: String, over: String, words: String, face: Texture2D, sheets :
 	Px.text(body,over,Rect2(x,HEAD.position.y+25,100,0),Px.SMALL,Px.OCHRE)
 	if words != "":
 		Px.rule(body,Vector2(x+76,HEAD.position.y+10),28,Color(Px.OCHRE,.35),true)
-		Px.text(body,words,Rect2(x+88,HEAD.position.y+8,HEAD.end.x-x-88-92,0),Px.SMALL,Px.MUTED)
+		var controls_width := 170 if screen == "recruit" else 92
+		Px.text(body,words,Rect2(x+88,HEAD.position.y+8,HEAD.end.x-x-88-controls_width,0),Px.SMALL,Px.MUTED)
 	if screen != "party":
 		tabs_row.append(Px.button(body,"回营地",Rect2(HEAD.end.x-78,HEAD.position.y+10,66,28),_go.bind("home")))
 	if sheets:
@@ -938,9 +1071,7 @@ func _stats(sheet: Dictionary, at: Vector2, with_divinity := true) -> void:
 # --- 队伍：一个角色的全部 -----------------------------------------------------------
 
 func _party() -> void:
-	var everyone := _everyone()
-	if not everyone.has(member): member = "hero"
-	_head("队伍","%d 人在营" % everyone.size(),"",null,view != "pack")
+	_head("队伍","%d 人在营" % _everyone().size(),"",null,view != "pack")
 	# Two ways in: by person, or by thing.
 	var ways: Array[Button] = []
 	for i in 2:
@@ -953,6 +1084,11 @@ func _party() -> void:
 	if view == "pack":
 		_pack()
 		return
+	_member_list()
+
+func _member_list() -> void:
+	var everyone := _everyone()
+	if not everyone.has(member): member = "hero"
 	var going := _marching()
 	var rows_data := []
 	for who: String in everyone:
@@ -1052,7 +1188,7 @@ func _teacher(who: String, id: String) -> Dictionary:
 
 func _skill_mark(who: String, id: String, size: int) -> Texture2D:
 	var node := _teacher(who,id)
-	return _mark(node if not node.is_empty() else {"id":id},size)
+	return Hud._art(id,size) if node.is_empty() else _mark(node,size)
 
 ## Reach and cooldown in a few words.
 func _skill_brief(id: String) -> String:
@@ -1138,6 +1274,20 @@ func _sheet(rows: Array) -> void:
 	leaves.append(Px.tab(body,"信息",Rect2(x,y,64,24),page == "info",_pick_page.bind("info")))
 	leaves.append(Px.tab(body,"技能树",Rect2(x+68,y,64,24),page == "tree",_pick_page.bind("tree")))
 	Px.chain(leaves,false)
+	if page == "tree" and member == "hero":
+		var innate: Array = UnitCatalog.unit_def(_def(member)).get("skills",[])
+		var offset := x+140
+		for source: String in ["随身","狮皮"]:
+			if source == "狮皮" and entry.get("equipped_relic","") != "lion_pelt": continue
+			Px.text(body,source,Rect2(offset,y+7,26,0),Px.SMALL,Px.MUTED)
+			offset += 26
+			for id: String in (innate if source == "随身" else ["impervious_hide"]):
+				var icon := Px.picture(body,_skill_mark(member,id,24),Rect2(offset,y,24,24))
+				icon.modulate = Px.IVORY
+				icon.mouse_filter = MOUSE_FILTER_PASS
+				icon.tooltip_text = str(SkillCatalog.get_skill(id).name)
+				offset += 26
+			offset += 6
 	if root == "":
 		leaves[1].disabled = true
 		leaves[1].tooltip_text = "只用随身的招式，没有可修习的分支。"
@@ -1453,7 +1603,7 @@ func _tree_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 			var none := StyleBoxEmpty.new()
 			Px._paint(cell,none,none,none,Color.TRANSPARENT,Color.TRANSPARENT)
 			var spot: Vector2 = hub.call(node.id)
-			Px.picture(body,_mark(node,16),Rect2(spot-Vector2(8,8),Vector2(16,16))).modulate = Vase.GLAZE if have else tint
+			Px.picture(body,_mark(node,24),Rect2(spot-Vector2(12,12),Vector2(24,24))).modulate = Vase.GLAZE if have else tint
 			Px.text(body,node.name,Rect2(rect.position+Vector2(0,31),Vector2(box.x,0)),Px.SMALL,Px.IVORY if technique == node.id else tint,HORIZONTAL_ALIGNMENT_CENTER)
 			# What it costs, on a bead at the medallion's shoulder; a tick once learnt.
 			if have: Px.picture(body,Px.icon("done",8),Rect2(spot+Vector2(10,-16),Vector2(8,8))).modulate = Px.GREEN
@@ -1503,7 +1653,7 @@ func _pick_technique(id: String) -> void:
 ## The stamp for a technique: its own drawing if it has one, else the one for what it grants.
 func _mark(node: Dictionary, size: int) -> Texture2D:
 	for key: String in [str(node.id),str(node.get("skill","")),str(node.get("trait",""))]:
-		if key != "" and ResourceLoader.exists("res://art/thirdparty/game-icons/%s.svg" % key): return Px.icon(key,size)
+		if key != "" and ResourceLoader.exists(Px.icon_path(key)): return Px.icon(key,size)
 	return Px.icon("skills",size)
 
 func _train(next: Array) -> void:
@@ -1879,8 +2029,20 @@ func _sell_scrap() -> void:
 
 # --- 达蒙：招募 -----------------------------------------------------------------------
 
+func _toggle_drill() -> void:
+	drill_open = not drill_open
+	if drill_open:
+		page = "tree"
+		technique = ""
+	_render()
+
 func _recruit() -> void:
 	_person_head("recruit")
+	var service := Px.button(body,"招募名册" if drill_open else "操练",Rect2(HEAD.end.x-156,HEAD.position.y+10,70,28),_toggle_drill)
+	tabs_row.append(service)
+	if drill_open:
+		_member_list()
+		return
 	var offers := Save.offers(entry)
 	if offers.filter(func(offer): return offer.id == picked.recruit).is_empty():
 		picked.recruit = "" if offers.is_empty() else str(offers[0].id)
@@ -1995,7 +2157,7 @@ func _march() -> void:
 	Px.text(body,"出战名单",Rect2(x,y,120,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"另选 %d / %d 人" % [going.size(),Save.SEATS],Rect2(x+230,y,200,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
 	y += 20
-	Px.picture(body,Px.face("hero",32),Rect2(x,y,32,32))
+	Px.picture(body,Px.face(_look("hero"),32),Rect2(x,y,32,32))
 	Px.text(body,_name("hero"),Rect2(x+40,y+2,120,0),Px.BODY,Px.IVORY)
 	Px.text(body,"必定出战",Rect2(x+40,y+18,120,0),Px.SMALL,Px.FAINT)
 	y += 42
@@ -2453,18 +2615,18 @@ func _play_taking() -> float:
 	_wash(tone,.22,.6,.5)
 	if not verdict_spots.rises: return 1.15
 	# A new tier: the sky answers.
-	var bolt := Control.new()
-	bolt.mouse_filter = MOUSE_FILTER_IGNORE
-	bolt.modulate.a = 0.0
+	var bolt := Sprite2D.new()
+	bolt.texture = preload("res://art/original/fx/lightning.png")
+	bolt.hframes = 10
+	bolt.position = to - Vector2(0,72)
+	bolt.scale = Vector2.ONE*2.0
+	bolt.modulate = tone
+	bolt.hide()
 	floats.add_child(bolt)
-	bolt.draw.connect(func():
-		for strand in 3:
-			var path := Vase.stroke(Vector2(to.x+(strand-1)*46,-6),to,13.0,strand*17+int(to.x))
-			bolt.draw_polyline(path,Color(tone.lightened(.5),1),3.0 if strand == 1 else 1.5))
 	var strike := bolt.create_tween()
 	strike.tween_interval(.62)
-	for flash in [1.0,.25,.9,0.0]:
-		strike.tween_property(bolt,"modulate:a",flash,.06)
+	strike.tween_callback(bolt.show)
+	strike.tween_property(bolt,"frame",9,.52)
 	strike.tween_callback(bolt.queue_free)
 	_wash(Px.IVORY,.45,.5,.62)
 	_burst(to,15,Px.IVORY,.7,.66,Vector2(1.7,1.7))
@@ -2586,11 +2748,14 @@ func _ask_power() -> void:
 	var at := (entry.get("powers",[]) as Array).size()
 	var rank: Dictionary = Save.TIERS[at+1]
 	var tone := Color(str(rank.tint))
-	var rect := _modal(560,344,"divinity",tone)
+	var rect := _modal(748,344,"divinity",tone)
 	var x := rect.position.x+28
 	var y := rect.position.y+22
 	Px.text(body,"圣物 %d 件 · 神性升阶" % int(entry.get("divinity",0)),Rect2(x+56,y-6,400,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,rank.name,Rect2(x+56,y+8,400,0),Px.TITLE,tone)
+	# A matching painted bust accompanies the rank that is being chosen.
+	Px.picture(body,load("res://art/original/portraits/hero-tier%d.png" % (at+1)),Rect2(x-8,y+74,168,210))
+	x += 184
 	y += 62
 	Px.text(body,"得到",Rect2(x,y,40,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"%s神性 +%d。" % [rank.gain,Save.TIER_DIVINITY],Rect2(x+40,y,464,0),Px.SMALL,Px.IVORY)
@@ -2606,7 +2771,11 @@ func _ask_power() -> void:
 	y += 40
 	var choices: Array[Button] = []
 	for power: Array in Save.POWERS[at]:
-		choices.append(Px.button(body,power[1],Rect2(x,y,96,34),_take_power.bind(power[0])))
+		var choice := Px.button(body,power[1],Rect2(x,y,96,34),_take_power.bind(power[0]))
+		choice.icon = Px.icon(power[0],24)
+		choice.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		choice.add_theme_color_override("icon_normal_color",tone)
+		choices.append(choice)
 		Px.text(body,power[2],Rect2(x+108,y+2,396,0),Px.SMALL,Px.IVORY)
 		y += 48
 	Px.chain(choices)
@@ -2637,20 +2806,24 @@ func _ask_system() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
+		if destination!="" and destination!="home":
+			_go("home")
+			return
 		if asking == "cheer":
 			_end_cheer(false)
 			return
 		if asking in ["boon","power","verdict"]: return
 		if asking != "": _set_asking("")
+		elif drill_open: _toggle_drill()
 		elif screen != "home": _go("home")
 		else: _set_asking("system")
 	elif asking == "" and event is InputEventKey and event.pressed and not event.echo:
 		# Quick keys: Q for the party, then the three people of the camp.
-		if event.keycode == KEY_TAB and screen == "party" and view == "members" and _tree_of(member) != "":
+		if event.keycode == KEY_TAB and (drill_open or (screen == "party" and view == "members")) and _tree_of(member) != "":
 			get_viewport().set_input_as_handled()
 			_pick_page("tree" if page == "info" else "info")
 			return
 		var where: String = {KEY_Q:"party",KEY_1:"trader",KEY_2:"recruit",KEY_3:"march"}.get(event.keycode,"")
 		if where != "":
 			get_viewport().set_input_as_handled()
-			_go("home" if screen == where else where)
+			_visit("home" if screen == where else where)

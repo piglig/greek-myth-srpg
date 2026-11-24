@@ -352,7 +352,7 @@ func _ready() -> void:
 ## Shows each of the foot's panels when it has something in it, and sets them in their
 ## corners: the card at the left, the commands in the middle, the forecast at the right.
 func _place_workspace() -> void:
-	if _bottom == null or _card == null:
+	if not is_inside_tree() or _bottom == null or _card == null:
 		return
 	var reading := journal_open()
 	_card.visible = _battle_visible and _unit_panel.visible and not reading
@@ -396,7 +396,7 @@ func _has_context() -> bool:
 ## The drawing for a command, tinted by whoever draws it.
 static func _art(kind: String, size := 32) -> Texture2D:
 	var name: String = ACTION_ART.get(kind,kind)
-	if not ResourceLoader.exists("res://art/thirdparty/game-icons/%s.svg" % name): name = "skills"
+	if not ResourceLoader.exists(Px.icon_path(name)): name = "skills"
 	return Px.icon(name,size)
 
 

@@ -127,6 +127,7 @@ const BORDER := 14
 const DETAIL := 12
 const CLIFF_HALF_WIDTH := 0.085
 var plant_shadows: Array[Transform3D] = []
+var grid_lines := true
 var grid: BattleGrid
 var map_layer_height: float
 var picking_surface: TriangleMesh
@@ -275,6 +276,7 @@ func build(battle_grid: BattleGrid, layer_height: float, village: bool = false, 
 	mat.shader = preload("res://view/nemea_ground.gdshader")
 	mat.set_shader_parameter("village_lane",village)
 	mat.set_shader_parameter("woodland",woodland)
+	mat.set_shader_parameter("grid_lines",grid_lines)
 	mat.set_shader_parameter("field_size",Vector2(grid.width,grid.depth))
 	var levels := Image.create(grid.width,grid.depth,false,Image.FORMAT_RF)
 	for z in grid.depth:

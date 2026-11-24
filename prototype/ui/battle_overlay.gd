@@ -225,6 +225,7 @@ func _draw() -> void:
 		var ours := u.team == Defs.Team.PLAYER
 		var worn: Array = []
 		for badge: Array in BADGES:
+			if badge[0]=="rooted" and controller.pending_net_binds.has(id): continue
 			if u.has_status(badge[0]): worn.append(badge)
 		if u.id in [state.marked_id,state.previous_mark]: worn.append(["marked","act_mark","#ffe08a"])
 		for n in worn.size():

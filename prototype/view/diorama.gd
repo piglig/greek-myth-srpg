@@ -84,6 +84,7 @@ func unit(def_id: String, cell: Vector2, facing: Vector2i, enemy := false, look 
 	state.id = "%s_%d" % [def_id,_units]
 	state.def_id = def_id
 	if look != "": UnitState.looks[state.id] = look
+	else: UnitState.looks.erase(state.id)
 	state.team = Defs.Team.ENEMY if enemy else Defs.Team.PLAYER
 	state.facing = facing
 	state.size = 2 if def_id in ["lion","boar"] else 1
@@ -105,61 +106,58 @@ func prop(scene: PackedScene, width: float, cell: Vector2, turn := 0.0) -> Node3
 	return model
 
 
-## A model from a third-party kit, in its own materials. `tall` is how high it should stand
-## in the world (a person is about 1.8); it is set down on the ground at `cell`.
-## `canvas` repaints it as linen and wood (see camp_canvas.gdshader).
-## `stone` carves it from the valley's limestone, for models that come without paint.
-func kit(path: String, cell: Vector2, tall: float, turn := 0.0, canvas := false, stone := false) -> Node3D:
-	var model := (load(path) as PackedScene).instantiate() as Node3D
-	stand.add_child(model)
-	var box := AABB()
-	var any := false
-	for part: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false):
-		for surface in part.mesh.get_surface_count() if canvas else 0:
-			var given := part.mesh.surface_get_material(surface) as BaseMaterial3D
-			var paint := ShaderMaterial.new()
-			paint.shader = preload("res://view/camp_canvas.gdshader")
-			if given != null: paint.set_shader_parameter("albedo_map",given.albedo_texture)
-			part.set_surface_override_material(surface,paint)
-		if stone:
-			part.material_override = NemeaField.finish()
-			part.set_instance_shader_parameter("limestone",1.0)
-		var reach: AABB = (model.global_transform.affine_inverse()*part.global_transform)*part.get_aabb()
-		box = reach if not any else box.merge(reach)
-		any = true
-	var size := tall/maxf(box.size.y,.001)
-	model.scale = Vector3.ONE*size
-	model.rotation.y = turn
-	model.position = spot(cell)-Vector3.UP*box.position.y*size
-	return model
+## Camp meshes are authored in metres with the origin at the centre of the footprint.
+## Follow the local ground plane so stretcher legs and tent pegs meet the slope.
+func camp_prop(asset: PackedScene, cell: Vector2, turn := 0., size := 1., sample_radius := .4) -> Node3D:
+	var prop_node := asset.instantiate() as Node3D
+	stand.add_child(prop_node)
+	var east := spot(cell+Vector2.RIGHT*sample_radius)-spot(cell-Vector2.RIGHT*sample_radius)
+	var south := spot(cell+Vector2.DOWN*sample_radius)-spot(cell-Vector2.DOWN*sample_radius)
+	var up := south.cross(east).normalized()
+	prop_node.basis = Basis(Quaternion(Vector3.UP,up))*Basis(Vector3.UP,turn)
+	prop_node.scale *= size
+	prop_node.position = spot(cell)-Vector3.UP*.018
+	# A small contact shadow keeps the legs, pegs and pointed vessels anchored in soft light.
+	var meshes := prop_node.find_children("*","MeshInstance3D",true,false)
+	if not meshes.is_empty():
+		var bounds: AABB = (meshes[0] as MeshInstance3D).get_aabb()
+		var shadow := MeshInstance3D.new()
+		shadow.mesh = NemeaField._shadow_mesh()
+		shadow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		stand.add_child(shadow)
+		shadow.transform = prop_node.transform
+		shadow.scale *= Vector3(maxf(.35,bounds.size.x*1.20),1.,maxf(.32,bounds.size.z*1.20))
+		shadow.position += up*.045
+	return prop_node
 
 
 ## A campfire: a ring of stones and a looping flame.
-func fire(cell: Vector2) -> void:
+func fire(cell: Vector2, bowl_height := 0.) -> void:
 	var pit := Node3D.new()
 	pit.position = spot(cell)
 	stand.add_child(pit)
-	for i in 9:
+	for i in (9 if bowl_height==0. else 0):
 		var rock := NemeaField.landmark(preload("res://art/landmarks/boulder.glb"),.33)
 		rock.scale.y *= .68
 		rock.position = Vector3(cos(TAU*i/9)*.42,0,sin(TAU*i/9)*.42)
 		pit.add_child(rock)
 	var flame := MeshInstance3D.new()
 	var card := QuadMesh.new()
-	card.size = Vector2(2.4,2.4)
+	var span := 2.4 if bowl_height==0. else 1.65
+	card.size = Vector2.ONE*span
 	flame.mesh = card
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://view/pixel_flame.gdshader")
 	paint.set_shader_parameter("atlas",preload("res://art/thirdparty/pixelfx/flame.png"))
 	flame.material_override = paint
-	flame.position.y = 2.4*.375
+	flame.position.y = bowl_height+span*.375
 	flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	pit.add_child(flame)
 	var glow := OmniLight3D.new()
 	glow.light_color = Color("#ffb060")
 	glow.light_energy = 1.6
 	glow.omni_range = 5.0
-	glow.position.y = .8
+	glow.position.y = bowl_height+.8
 	pit.add_child(glow)
 
 

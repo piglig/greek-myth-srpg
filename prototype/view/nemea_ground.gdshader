@@ -7,6 +7,7 @@ uniform sampler2D stone : source_color, repeat_enable, filter_linear_mipmap_anis
 uniform sampler2D cliff : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 // Standing height of every rule cell, in world units, one texel per cell.
 uniform sampler2D levels : filter_linear, repeat_disable;
+uniform bool grid_lines = true;
 uniform vec2 field_size;
 uniform bool village_lane;
 uniform bool woodland;
@@ -73,7 +74,7 @@ void fragment() {
 		base *= mix(vec3(1.),vec3(.63,.62,.68),shade);
 		float lip = smoothstep(.03,.28,p.y-below)*(1.-exposed);
 		base *= 1.+.13*lip;
-		if (n.y > 0.96) {
+		if (grid_lines && n.y > 0.96) {
 			vec2 seams = min(fract(p.xz),1.0-fract(p.xz));
 			float line = 1.0-smoothstep(0.0,0.024,min(seams.x,seams.y));
 			base *= 1.0-line*0.24;

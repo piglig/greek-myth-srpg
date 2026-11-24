@@ -1,17 +1,19 @@
 class_name PixelUnit
 extends UnitView
 ## Painted locomotion, weapon keys and eight camera-relative impact strips.
-const FALL_SECONDS := {"wolf":.64,"bandit":.91,"bandit_archer":1.09,"bandit_chief":1.48,"centaur":1.24,"boar":.98,"lion":1.32,"hero":1.38,"atalanta":1.03,"heracles":1.52,"chiron":1.46,"refugee":1.22}
+const FALL_SECONDS := {"wolf":.64,"bandit":.91,"bandit_archer":1.09,"bandit_chief":1.48,"centaur":1.24,"boar":.98,"lion":1.32,"hero":1.38,"atalanta":1.03,"heracles":1.52,"chiron":1.46,"refugee":1.22,"medea":1.15}
 var falling := false
 var fall_tween: Tween
 var raider_throw_sheet: Texture2D
 var in_raider_throw := false
 var wrestle_sheet: Texture2D
+var epic_attack_sheet: Texture2D
 var fall_sheet: Texture2D
 var lion_exposed := false
 var balance_sheet: Texture2D
 var balance_motion: Tween
 var evade_origin: Vector3
+var painted_look: String
 var kind: String
 var reaction := Sprite3D.new()
 var strips := {}
@@ -35,11 +37,14 @@ var impact_side := 0.
 
 func setup(u: UnitState, _tex: Texture2D, _motion: Texture2D) -> void:
 	kind = u.def_id
+	painted_look = u.look()
 	var folder := "res://art/pixel/%s/"%u.look()
 	super.setup(u,load(folder+"actors.png"),load(folder+"motion.png"))
 	if kind in ["centaur","chiron"]:
 		var action := "spear.png" if kind=="centaur" else "bow.png"
 		_sprite.material_override.set_shader_parameter("painted_action_sheet",load(folder+action))
+	if u.look() in ["idas","eurytion","merc_captain","merc_lancer"]:
+		epic_attack_sheet=load(folder+("axe.png" if kind=="bandit_chief" else "spear.png"))
 	if kind in ["atalanta","bandit_chief","lion"]:
 		balance_sheet=load(folder+("evade.png" if kind=="atalanta" else "break.png"))
 	if kind in ["hero","bandit"]:
@@ -48,7 +53,7 @@ func setup(u: UnitState, _tex: Texture2D, _motion: Texture2D) -> void:
 		wrestle_sheet=load(folder+"wrestle.png")
 	if kind in FALL_SECONDS:
 		fall_sheet=load(folder+"fall.png")
-	var clips := [] if kind=="medea" else ["light","heavy"]
+	var clips := ["light","heavy"]
 	if kind=="hero": clips.append_array(["guard","block"])
 	if kind=="heracles": clips.append_array(["push","hold","bow"])
 	for clip in clips: strips[clip]=load(folder+clip+".png")
@@ -71,9 +76,6 @@ func setup(u: UnitState, _tex: Texture2D, _motion: Texture2D) -> void:
 	add_child(reaction)
 
 func receive_impact(force: Vector3, severity: float, source: String, blocked: bool):
-	if kind=="medea":
-		super.react_to_hit(force,severity)
-		return
 	var heavy := severity>=.24 or source in ["gore","pounce","club","fall"]
 	hit_clip="heavy" if heavy else "light"
 	if kind=="hero" and (guarding or blocked): hit_clip="block"
@@ -206,7 +208,9 @@ func bow_grip(tension: float) -> Vector3:
 		return super.bow_grip(tension)
 	# Native 160x128 cells. The same hand is visible on opposite sides of the two drawings.
 	var grip := Vector2(111,35) if _sprite.frame_coords.y == 1 else Vector2(49,41)
-	if kind == "chiron":
+	if painted_look == "merc_archer":
+		grip = Vector2(125,41) if _sprite.frame_coords.y == 1 else Vector2(33,42)
+	elif kind == "chiron":
 		grip = Vector2(124,35) if _sprite.frame_coords.y == 1 else Vector2(31,41)
 	var lateral := (grip.x-80.) * (-1. if _sprite.flip_h else 1.) * _sprite.scale.x
 	var axes := get_viewport().get_camera_3d().global_basis

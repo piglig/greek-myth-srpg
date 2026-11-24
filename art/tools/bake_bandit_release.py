@@ -33,7 +33,40 @@ def release(draw, rear):
     backing.alpha_composite(Image.fromarray(body))
     return backing
 
-def bake_release(folder):
+def phalerus_release(draw, rear):
+    # Trace the empty space beside his forearm in each native painted key.
+    # The wrist and wooden limbs stay in place as the shaft clears the bow.
+    pose = draw.copy()
+    erase = ImageDraw.Draw(pose)
+    if rear:
+        top, bottom = (112,14), (112,73)
+        string_gaps = [[(111,15),(110,19),(93,39),(92,36)],
+                       [(96,54),(112,72),(108,70),(95,56)]]
+        shaft = (99,40,136,42)
+        wrist = (123,40,127,42)
+        elbow = (54,41)
+    else:
+        top, bottom = (45,17), (45,74)
+        string_gaps = [[(47,18),(68,38),(67,40),(47,22)],
+                       [(45,72),(60,56),(61,59),(46,74)]]
+        shaft = (24,40,59,43)
+        wrist = (31,40,34,43)
+        elbow = (92,44)
+    for polygon in string_gaps:
+        erase.polygon(polygon, fill=0)
+    erase.rectangle(shaft, fill=0)
+    x,y,r,b = wrist
+    pose.paste(draw.crop((x,y-2,r+1,y)).resize((r-x+1,b-y+1)),(x,y))
+    y,x = np.indices((128,160),dtype=np.float32)
+    recoil = np.exp(-((x-elbow[0])/14)**2-((y-elbow[1])/10)**2)
+    body = cv2.remap(np.array(pose),x+(3 if rear else -3)*recoil,y+recoil,cv2.INTER_NEAREST)
+    relaxed = Image.new("RGBA", draw.size)
+    ImageDraw.Draw(relaxed).line([top,bottom],fill=(161,126,82,255))
+    relaxed.alpha_composite(Image.fromarray(body))
+    return relaxed
+
+
+def bake_release(folder, release_key=release):
     with Image.open(folder/'actors.png') as source, Image.open(folder/'motion.png') as motion:
         actors=Image.new('RGBA',(640,256))
         actors.paste(source,(0,0))
@@ -42,7 +75,7 @@ def bake_release(folder):
         for side in range(2):
             top=side*128
             idle=source.crop((0,top,160,top+128))
-            pose=release(source.crop((320,top,480,top+128)),bool(side))
+            pose=release_key(source.crop((320,top,480,top+128)),bool(side))
             actors.paste(pose,(480,top))
             offset=side*(rows+1)*128
             sheet.paste(motion.crop((0,side*rows*128,motion.width,(side+1)*rows*128)),(0,offset))

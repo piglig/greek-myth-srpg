@@ -18,6 +18,8 @@ var post: MeshInstance3D
 ## Key light for the painted battlefields. It turns with the camera so rock faces toward the
 ## viewer stay a step darker than the ground above them from every quadrant.
 var sun: DirectionalLight3D
+var _zoom_motion: Tween
+var _zoom_ratio := 1.0
 var _glide: Tween
 var pivot := Vector3.ZERO
 var bounds := AABB()
@@ -51,7 +53,7 @@ func ppu() -> float:
 	var density := float(ZOOM_PPU[zoom_index])
 	if painted:
 		density *= get_viewport().get_visible_rect().size.y / 360.0
-	return density
+	return density*_zoom_ratio
 
 
 func focus(point: Vector3) -> void:
@@ -90,6 +92,15 @@ func keep_in_view(points: Array[Vector3], top_fraction: float, bottom_fraction: 
 		shift = -minf(height*top_fraction-lowest,maxf(0.0,height*bottom_fraction-highest))
 	pivot -= _ground_forward()*shift/(ppu()*sin(deg_to_rad(_pitch_degrees())))
 	_apply()
+
+
+func ease_zoom(index: int, seconds: float) -> void:
+	if _zoom_motion: _zoom_motion.kill()
+	var current := float(ZOOM_PPU[zoom_index])*_zoom_ratio
+	zoom_index = index
+	_zoom_ratio = current/float(ZOOM_PPU[index])
+	_zoom_motion = create_tween()
+	_zoom_motion.tween_property(self,"_zoom_ratio",1.,seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func glide_to(point: Vector3) -> void:

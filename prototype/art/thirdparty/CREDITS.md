@@ -19,8 +19,40 @@
 | `fusion-pixel/` | 缝合像素字体 Fusion Pixel 2026.11.10 | TakWolf 及各源字体作者 | SIL OFL 1.1（须保留 `OFL.txt`，不得单独售卖字体） | 是 | 是 | https://github.com/TakWolf/fusion-pixel-font | 10 像素和 12 像素的简体中文比例字体，全部界面文字都用它 |
 
 | `game-icons/` | game-icons.net 图标 138 个 | Lorc、Delapouite、Skoll、Cathelineau、HeavenlyDog、Lucas | CC BY 3.0（**必须署名**，名单在目录里的 `CREDITS.txt`） | 是 | 是 | https://game-icons.net | 技能、装备、材料、属性、营地页签、战斗指令的图标。清单和取用脚本：`art/tools/fetch_game_icons.py` |
-| `camp/props/` | Fantasy Props MegaKit 标准版（免费部分，94 件里取了 23 件） | Quaternius | CC0 | 是 | 是 | https://quaternius.com/packs/fantasypropsmegakit.html（下载自 https://opengameart.org/content/fantasy-props-megakit ） | 营地的货摊、木箱、木桶、陶罐、布袋、武器架、训练假人、盾、长凳、凳子、旗帜、箱子等。四套共用贴图从 2048 缩到 1024（颜色）/ 512（法线、ORM） |
-| `camp/survival/` | Survival Kit 2.0（80 件里取了 11 件） | Kenney | CC0 | 是 | 是 | https://kenney.nl/assets/survival-kit（下载自 https://opengameart.org/content/survival-kit ） | 营地的帐篷、铺盖、原木、路牌。原配色是现代露营的橙黄，游戏里用 `view/camp_canvas.gdshader` 只取明暗，改画成亚麻布和旧木 |
-| `camp/greek/` | Doric Greek Column | Victor Viña | CC BY 3.0（**必须署名**） | 是 | 是 | https://poly.pizza/m/5VD5-v8NBZ4 | 营地里一立一倒两根残柱。模型没有贴图，表面用的是游戏里地标的石灰岩质感。 |
+| `camp/props/` | Fantasy Props MegaKit 标准版（免费部分，94 件里取了 23 件） | Quaternius | CC0 | 是 | 是 | https://quaternius.com/packs/fantasypropsmegakit.html（下载自 https://opengameart.org/content/fantasy-props-megakit ） | 早期营地的货摊、木箱、木桶、陶罐、布袋、武器架、训练假人、盾、长凳、凳子、旗帜、箱子等。四套共用贴图从 2048 缩到 1024（颜色）/ 512（法线、ORM） |
+| `camp/survival/` | Survival Kit 2.0（80 件里取了 11 件） | Kenney | CC0 | 是 | 是 | https://kenney.nl/assets/survival-kit（下载自 https://opengameart.org/content/survival-kit ） | 早期营地的帐篷、铺盖、原木、路牌。原配色是现代露营的橙黄，游戏里用 `view/camp_canvas.gdshader` 只取明暗，改画成亚麻布和旧木 |
+| `camp/greek/` | Doric Greek Column | Victor Viña | CC BY 3.0（**必须署名**） | 是 | 是 | https://poly.pizza/m/5VD5-v8NBZ4 | 早期营地里一立一倒两根残柱。模型没有贴图，表面用的是游戏里地标的石灰岩质感。 |
 
 署名要求：game-icons 和 `camp/greek/` 的许可要求在游戏里列出作者。发布前需要做一个致谢页面，目前还没有。
+
+## 原创生成素材
+
+2026-11-25，OpenAI ImageGen。营地行商阿齐尔、教习达蒙、领路人伊俄的六姿势原画与对话半身像，以项目原创人物为画风参考。文件位于 `art/originals/` 和 `art/originals/portraits/`，标识为 `npc_trader`、`npc_drill`、`npc_guide`。
+
+2026-11-25，OpenAI ImageGen。阿尔卡斯、阿塔兰忒、喀戎、美狄亚、赫拉克勒斯的对话半身像，以各自的游戏角色图为造型参考，沿用营地半身像的画法。文件位于 `art/originals/portraits/`。
+
+## 原创图标
+
+2026-11-25，Codex 为本项目绘制的 27 枚陶绘剪影，含状态、战斗指令、圣物与首领。SVG 位于 `prototype/art/original/icons/`，对应的透明 PNG 位于 `art/originals/icons/`。
+
+2026-11-25，OpenAI ImageGen。美狄亚两面六姿势原画 `art/originals/medea.png`，参考其项目内角色图和半身像；移动、施法过渡与受击、倒地序列由项目制作脚本生成。
+
+2026-11-25，OpenAI ImageGen。伊达斯、欧律提翁的正面及侧后方六姿势原画与配套半身像，伊达斯另有双手举斧蓄力稿。素材位于 `art/originals/` 与 `art/originals/portraits/`；游戏帧由 `art/tools/bake_epic.py` 从原画生成。
+
+2026-11-25，OpenAI ImageGen。安开俄斯（`merc_captain`）与福洛斯（`merc_lancer`）的两面六姿势原画和配套半身像，以项目原画为画风参考。安开俄斯另有横扫蓄力稿。文件位于 `art/originals/` 及其 `portraits/` 目录。
+
+2026-11-25，OpenAI ImageGen。伊菲克勒斯（`merc_sword`）和法勒洛斯（`merc_archer`）的六姿势原画与半身像以本项目的希腊水粉原画为画风参考，位于 `art/originals/` 及其 `portraits/` 目录。
+
+2026-11-25，第六批。阿尔卡斯的三套进阶战场外观由本项目原画分区着色并沿用原动作。三张进阶半身像与五张神力特效主画面由 OpenAI ImageGen 生成；特效主画面位于 `art/originals/fx/divine-keys/`，依照各招的发动、落点和回落节奏逐帧处理。
+
+2026-11-25，第七批。营地两顶帐篷与八种道具由本项目建模，文件位于 `prototype/art/camp/`。基础材质、黑绘陶纹和猫头鹰盾绘以项目行商原画为画风参考，由 OpenAI ImageGen 生成并整理为一张基础色贴图。三张绘制源图位于 `art/originals/camp/`。
+
+2026-11-25，第八批。捕网、脚踝束缚和升级月桂光环由项目原创绘制，制作脚本为 `art/tools/draw_status_fx.py`，透明序列图位于 `art/originals/fx/` 与 `prototype/art/original/fx/`。
+
+2026-11-25，第八批首页标志。陶罐与回纹装饰由 OpenAI ImageGen 为本项目生成。中英文分别取自项目内的缝合像素字体 12 像素与 10 像素字形，沿像素格排版。字体署名与 OFL 许可见上方 fusion-pixel 条目。源稿位于 `art/originals/title/`。
+
+第八批商店页主视觉由 OpenAI ImageGen 以本项目的阿尔卡斯、阿塔兰忒、喀戎和美狄亚原画为参考生成，源图位于 `art/originals/title/pandora-key-art-source.png`。宣传版沿用首页标志。
+
+第八批神力招式图标。雷矢、天火、雷行、天穹、天罚、雷躯均为本项目原创的陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批持盾主角的 14 枚招式与特性图标为本项目原创陶绘剪影，矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。

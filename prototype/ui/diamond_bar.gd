@@ -318,7 +318,7 @@ func _draw() -> void:
 
 func _stamp(name: String) -> Texture2D:
 	var art: String = Hud.ACTION_ART.get(name,name)
-	if not ResourceLoader.exists("res://art/thirdparty/game-icons/%s.svg" % art): art = "skills"
+	if not ResourceLoader.exists(Px.icon_path(art)): art = "skills"
 	return Px.icon(art,32)
 
 

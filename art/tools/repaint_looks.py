@@ -117,12 +117,6 @@ def captain(paint, plates=True):
     dye(paint, MANTLE, 186, .46, gain=1.35, lift=.03)
 
 
-def idas(paint, plates=True):
-    """伊达斯: the chief in saffron, under a black crest."""
-    plume(paint, .15, .34)
-    dye(paint, MANTLE, 33, .80, gain=2.0, lift=.02)
-
-
 def swordsman(paint, plates=True):
     """佣兵剑士: the raider in undyed linen with a blue scarf."""
     h, s, v = hsv(paint[..., :3])
@@ -167,21 +161,10 @@ def lancer(paint, plates=True):
     horse(paint, plates, (212, .55), (.07, 1.5, .08))
 
 
-def eurytion(paint, plates=True):
-    """欧律提翁: a black centaur with a gold sash."""
-    horse(paint, plates, (42, .85), (.10, .5, 0))
-
-
 LOOKS = {
     "npc_drill": ("bandit_chief", drillmaster),
-    "merc_captain": ("bandit_chief", captain),
-    "idas": ("bandit_chief", idas),
-    "merc_sword": ("bandit", swordsman),
-    "merc_archer": ("bandit_archer", archer),
     "npc_guide": ("bandit_archer", guide),
     "npc_trader": ("refugee", trader),
-    "merc_lancer": ("centaur", lancer),
-    "eurytion": ("centaur", eurytion),
 }
 # Sheets the base kind bakes from other drawings than its six poses. They are repainted
 # after the bake, without the boxes that belong to the poses.

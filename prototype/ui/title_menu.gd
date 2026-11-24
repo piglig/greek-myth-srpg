@@ -7,6 +7,7 @@ const Checkpoint := preload("res://core/campaign_checkpoint.gd")
 const BATTLE := "res://main.tscn"
 const CAMP := "res://camp.tscn"
 const TITLE := "res://title.tscn"
+const TITLE_MARK := preload("res://art/original/interface/pandora-title.png")
 
 var in_battle := false
 ## Set by the battle scene; kept so older callers keep working. The pause menu no longer uses it.
@@ -100,13 +101,15 @@ func _show(which: String, selected := 0) -> void:
 		var shade := TextureRect.new()
 		var fade := GradientTexture2D.new()
 		fade.gradient = Gradient.new()
-		fade.gradient.colors = PackedColorArray([Color(Px.INK,.78),Color(Px.INK,0)])
+		fade.gradient.offsets = PackedFloat32Array([0.0, .46, 1.0])
+		fade.gradient.colors = PackedColorArray([Color(Px.INK,.84), Color(Px.INK,.61), Color(Px.INK,0)])
+		fade.width = 512
+		fade.height = 288
 		fade.fill = GradientTexture2D.FILL_RADIAL
-		fade.fill_from = Vector2(0,1)
-		fade.fill_to = Vector2(1,1)
+		fade.fill_from = Vector2(.13,.79)
+		fade.fill_to = Vector2(.65,.79)
 		shade.texture = fade
-		shade.size = Vector2(620,420)
-		shade.position = Vector2(0,Px.SIZE.y-420)
+		shade.size = Px.SIZE
 		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		body.add_child(shade)
 	var y := top
@@ -117,10 +120,10 @@ func _show(which: String, selected := 0) -> void:
 				y = _line("战斗暂停",Vector2(left,y),Px.TITLE,Px.IVORY)+10
 				entries = [["继续战斗",_resume_battle],["设置",_show.bind("settings")],["操作说明",_show.bind("controls")],["撤回营地",_show.bind("leave")]]
 			else:
-				_line("HEIR OF PANDORA",Vector2(left+2,y-16),Px.SMALL,Px.OCHRE)
-				y = _line("潘多拉之裔",Vector2(left,y),Px.DISPLAY,Px.IVORY)+8
-				Px.rule(body,Vector2(left,y),180,Px.OCHRE)
-				y += 12
+				var mark := Px.picture(body,TITLE_MARK,Rect2(left-10,201,288,138))
+				mark.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+				mark.accessibility_name = "潘多拉之裔"
+				y = mark.position.y + mark.size.y + 22
 				if saved_entry.is_empty():
 					entries = [["踏上征程",_begin_new]]
 				else:

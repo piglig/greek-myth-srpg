@@ -47,6 +47,16 @@ SPEAR_GUIDES = [
 ]
 
 
+# Medea's registration marks: crown, casting fingers, elbow, vial hand,
+# hip, two sandals and the trailing hem. Keep the throwing hand attached.
+MEDEA_GUIDES = [
+    {0:[(157,37),(140,104),(128,100),(153,103),(157,140),(149,229),(177,226),(193,200)],
+     2:[(157,37),(76,44),(111,59),(161,104),(153,140),(102,229),(204,226),(218,199)]},
+    {0:[(156,37),(193,100),(185,99),(144,104),(157,140),(145,229),(177,226),(186,200)],
+     2:[(157,37),(249,46),(209,62),(116,101),(155,140),(100,226),(207,229),(90,200)]},
+]
+
+
 def guide_maps(source, target, t, intermediate=None, size=(WD,HT)):
     width,height=size
     gy,gx=(yy,xx) if size==(WD,HT) else np.mgrid[:height,:width].astype(np.float32)
@@ -116,7 +126,7 @@ def bake(path):
     for side in range(2):
         poses = [prepare(source.crop((i*WD,side*HT,(i+1)*WD,(side+1)*HT))) for i in range(count)]
         for pair, (a,b) in enumerate(pairs):
-            landmarks = SPEAR_GUIDES[side] if path.stem == "hero" else {}
+            landmarks = SPEAR_GUIDES[side] if path.stem == "hero" else MEDEA_GUIDES[side] if path.stem == "medea" else {}
             guides = (landmarks[a], landmarks[b]) if a in landmarks and b in landmarks else None
             for i, frame in enumerate(between(poses[a], poses[b], guides)):
                 index = pair*SUBSTEPS+i

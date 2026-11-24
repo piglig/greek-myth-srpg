@@ -87,7 +87,7 @@ def envelope(t,heavy):
     times=[0,.10,.34,.57,.86,1] if heavy else [0,.17,.34,.62,1]
     return np.interp(t,times,[0,.78,1,.78,.12,0] if heavy else [0,1,.72,.18,0])
 
-def bake(kind):
+def bake(kind, look=None):
     offsets=pigment_offsets(kind)
     folder=dst/kind
     folder.mkdir(parents=True,exist_ok=True)
@@ -234,7 +234,10 @@ def bake(kind):
                     pic=warp(pic,-1 if d<=4 else 1,t*4,t*2)
                     sheet.paste(pic,(160*k,128*d))
             save_sheet(sheet,folder/(action+".png"),offsets)
-    if kind=="centaur":
+    if look in ("idas","eurytion","merc_captain","merc_lancer"):
+        from bake_epic import attack_strip
+        save_sheet(attack_strip(look,source,pixelize),folder/("axe.png" if kind=="bandit_chief" else "spear.png"),offsets)
+    elif kind=="centaur":
         from bake_centaur_spear import bake as bake_spear
         save_sheet(bake_spear(root/"art/originals",pixelize),folder/"spear.png",offsets)
     if kind=="chiron":
@@ -246,15 +249,15 @@ def bake(kind):
         from bake_evade_break import bake as bake_evade_break
         hunter=kind=="atalanta"
         save_sheet(bake_evade_break([near,rear],hunter),folder/("evade.png" if hunter else "break.png"),offsets)
-    if kind=="refugee":
+    if kind in ("refugee","medea"):
         from bake_villager_fall import bake as bake_villager_fall
         save_sheet(bake_villager_fall([near,rear]),folder/"fall.png",offsets)
     if kind in ("bandit_archer","bandit_chief"):
         from bake_raider_falls import bake as bake_raider_fall
         save_sheet(bake_raider_fall([near,rear],kind=="bandit_archer"),folder/"fall.png",offsets)
     if kind=="bandit_archer":
-        from bake_bandit_release import bake_release
-        bake_release(folder)
+        from bake_bandit_release import bake_release, release, phalerus_release
+        bake_release(folder, phalerus_release if look == "merc_archer" else release)
     if kind in ("hero","atalanta"):
         from bake_player_falls import bake as bake_player_fall
         shields=[shield_layer(near,1),shield_layer(rear,-1)] if kind=="hero" else None

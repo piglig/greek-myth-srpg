@@ -327,6 +327,11 @@ static func tier_of(relics: int) -> int:
 static func tier(entry: Dictionary) -> int:
 	return tier_of(int(entry.get("divinity",0)))
 
+static func hero_look(entry: Dictionary) -> String:
+	var rank := tier(entry)
+	return "hero-tier%d" % rank if rank > 0 else "hero"
+
+
 ## Whether a tier has been reached whose technique is not yet chosen.
 static func owes_power(entry: Dictionary) -> bool:
 	return (entry.get("powers",[]) as Array).size() < tier(entry)

@@ -212,6 +212,15 @@ func bow_grip(tension: float) -> Vector3:
 	return _sprite.global_position+(basis.x*lateral+basis.y*height)*_sprite.pixel_size*_art_scale+basis.z*.12
 
 
+## Fingertips measured on the two registered 320 × 256 casting plates.
+func medea_release_point() -> Vector3:
+	var tip := Vector2(249,46) if _sprite.frame_coords.y==1 else Vector2(76,44)
+	var x := (tip.x-160.)*(-1. if _sprite.flip_h else 1.)
+	var height := _sprite.offset.y/_art_scale+128.-tip.y
+	var basis := get_viewport().get_camera_3d().global_basis
+	return _sprite.global_position+(basis.x*x+basis.y*height)*_sprite.pixel_size*_art_scale+basis.z*.04
+
+
 func lower_bow() -> void:
 	_bow_target = null
 	set_pose(-1, .15)

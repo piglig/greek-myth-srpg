@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64">
+  <g fill="white">
+    <!-- Ears, muzzle, fangs and the open face distinguish the pelt from a human helmet. -->
+    <path fill-rule="evenodd" d="m9 24 4-7q-5-11 5-11l6 5q9-4 17 0l6-5q10 1 5 12l6 8-6 2 5 9-7-2 2 12-7-5-2 13-7-7-4 10-5-9-8 7-1-12-8 5 3-13-7 3 5-10Zm10 4 4 15 9 7 10-9 4-14-8 1-6-5-5 5Z M16 18l9 2-2 3-7-2Z M39 20l9-3-1 4-6 2Z"/>
+    <path d="m27 31 10-1 1 7-6 7-5-5Z"/>
+  </g>
+</svg>

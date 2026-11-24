@@ -325,11 +325,18 @@ static func clear(parent: Control) -> void:
 		child.queue_free()
 
 
-## A game-icons.net silhouette, redrawn at `size` pixels in one colour. Tint with `modulate`.
+static func icon_path(name: String) -> String:
+	var original := "res://art/original/icons/%s.svg" % name
+	if ResourceLoader.exists(original):
+		return original
+	return "res://art/thirdparty/game-icons/%s.svg" % name
+
+
+## Rasterize the stamp at its display size before applying the interface tint.
 static func icon(name: String, size := 16) -> Texture2D:
 	var key := "icon/%s/%d" % [name,size]
 	if not _cache.has(key):
-		var path := "res://art/thirdparty/game-icons/%s.svg" % name
+		var path := icon_path(name)
 		var image: Image
 		if ResourceLoader.exists(path):
 			image = (load(path) as Texture2D).get_image()

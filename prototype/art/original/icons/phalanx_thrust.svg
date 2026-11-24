@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 64 64">
+  <g fill="white">
+    <path id="p" d="m4 33 29-19-2-3 16-6-9 15-3-3L7 38Z"/>
+    <use xlink:href="#p" x="6" y="11"/><use xlink:href="#p" x="12" y="22"/>
+  </g>
+</svg>

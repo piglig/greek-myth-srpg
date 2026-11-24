@@ -21,7 +21,7 @@
 
 ### 1.1 九个借用形象的人物原画
 
-这九个人没有自己的原画，现在是在敌人的定稿原画上改色凑出来的。规格见 6.1：一张图 6 个姿势。
+这九人已完成各自的六姿势原画。规格见 6.1：一张图 6 个姿势。
 
 **共用的后半段**（下面每条提示词都以它结尾，已经写全，不用再拼）：
 
@@ -29,7 +29,7 @@
 
 设计上要注意：上战场的六位，武器种类不能变（剑、弓、斧、矛），否则攻击动作对不上；头部和主色要和所借用的敌人拉开。
 
-#### [ ] 行商阿齐尔 `npc_trader`（先做）
+#### [x] 行商阿齐尔 `npc_trader`（先做）
 
 不上战场，可以完全换体型。
 
@@ -37,13 +37,13 @@
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same stout middle-aged Greek travelling merchant, round belly, short curly black beard, deep purple cloak pinned at one shoulder over a saffron tunic, a bulging pack of wares on his back and a small bronze hand scale hanging from his belt, no weapon, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, holding out the hand scale to weigh coins. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 教习达蒙 `npc_drill`（先做）
+#### [x] 教习达蒙 `npc_drill`（先做）
 
 ```
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same old Greek drillmaster, lean and upright, grey beard, plain bronze helmet without a crest, undyed cream wool cloak, scarred bare forearms, a long wooden training staff, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle leaning on the staff, walking, striking downward with the staff. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 领路人伊俄 `npc_guide`（先做）
+#### [x] 领路人伊俄 `npc_guide`（先做）
 
 设计文档里没有写伊俄的性别和年龄，我按"年轻的女斥候"写的；不合适就改提示词里的 `young Greek woman scout`。
 
@@ -51,7 +51,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same young Greek woman scout, wiry build, sun-browned skin, madder red hood pushed back over braided dark hair, worn leather jerkin, short bow across her back and a coiled rope at her hip, dusty sandals, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle shading her eyes to look ahead, walking, pointing the way with an outstretched arm. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 伊达斯 `idas`（史诗，其次）
+#### [x] 伊达斯 `idas`（史诗，其次）
 
 墨塞涅的力士，自称世上最强壮的凡人。武器必须是斧。
 
@@ -59,7 +59,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same huge Greek strongman warrior, enormously broad shoulders and thick neck, bronze helmet with a tall black horsehair crest, saffron yellow cloak thrown back, bare chest crossed by a leather strap, heavy two-handed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with an overhead axe chop. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 欧律提翁 `eurytion`（史诗，其次）
+#### [x] 欧律提翁 `eurytion`（史诗，其次）
 
 半人马首领。四足，参考图用 `pholoe-centaurs.png`。武器必须是长矛。
 
@@ -67,7 +67,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same centaur chieftain, glossy black horse body, muscular bearded human torso, wild dark hair, a gold sash across the chest, long bronze-tipped spear, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, trotting, attacking with a spear thrust. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 安开俄斯 `merc_captain`（稀有）
+#### [x] 安开俄斯 `merc_captain`（稀有）
 
 阿卡迪亚人，披熊皮，使双刃斧。武器必须是斧。
 
@@ -75,7 +75,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same burly Arcadian Greek axeman, a brown bearskin worn over head and shoulders with the bear's muzzle as a hood, sea green tunic, thick bare arms, double-headed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with a wide axe swing. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 福洛斯 `merc_lancer`（稀有）
+#### [x] 福洛斯 `merc_lancer`（稀有）
 
 福洛厄山的半人马，好客的主人。四足。武器必须是长矛。
 
@@ -83,7 +83,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same gentle elderly centaur, dappled grey-white horse body, lean human torso, long grey beard, a blue sash and a wineskin slung at his side, plain wooden lance, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, trotting, attacking with a lance thrust. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 伊菲克勒斯 `merc_sword`（普通）
+#### [x] 伊菲克勒斯 `merc_sword`（普通）
 
 赫拉克勒斯的孪生兄弟，身上没有一滴神的血。武器必须是短剑。
 
@@ -91,7 +91,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same ordinary Theban Greek foot soldier, sturdy but unremarkable build, short brown hair, undyed linen tunic, blue scarf and blue headband, small round wooden shield and short iron sword, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with a sword cut. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 法勒洛斯 `merc_archer`（普通）
+#### [x] 法勒洛斯 `merc_archer`（普通）
 
 雅典的弓手，小时候被蛇缠住。武器必须是弓。
 
@@ -103,7 +103,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 她目前只有待机和行走。交一张完整的 6 姿势原画，受击和倒地由脚本生成。参考图用她现有的原画，保证是同一个人。
 
-#### [ ] 美狄亚完整原画 `medea`
+#### [x] 美狄亚完整原画 `medea`
 
 ```
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same Colchian sorceress, tall and narrow, long dark robe with a saffron hem, black hair bound with a gold band, several small clay vials hanging from her belt, no weapon, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, casting by snapping the wax seal of a vial and flinging fire seed in an arc with the other hand. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
@@ -117,57 +117,55 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 > …Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 
-#### [ ] 主角阿尔卡斯 `hero`
+#### [x] 主角阿尔卡斯 `hero`
 
 ```
 A young Greek shepherd turned spearman, about twenty, sun-browned skin, short dark curls, a red cord tied round his right wrist, ochre cloak worn off one shoulder, the rim of a round shield at his back. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
-#### [ ] 阿塔兰忒 `atalanta`
+#### [x] 阿塔兰忒 `atalanta`
 
 ```
 A Greek huntress in her twenties, lean and alert, tawny hair tied back tightly, a short close-fitting cloak, the curve of a long bow and a slanted quiver behind her shoulder. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
-#### [ ] 喀戎 `chiron`
+#### [x] 喀戎 `chiron`
 
 ```
 An old wise centaur healer shown from the human chest up, long grey hair and beard, kind tired eyes, a pale shawl over bare shoulders, the strap of a medicine bag across his chest. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
-#### [ ] 美狄亚 `medea`
+#### [x] 美狄亚 `medea`
 
 ```
 A Colchian sorceress in her late twenties, sharp narrow face, black hair bound with a thin gold band, dark robe with a saffron edge, a small clay vial hanging from a cord at her collarbone. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
-#### [ ] 赫拉克勒斯 `heracles`
+#### [x] 赫拉克勒斯 `heracles`
 
 ```
 The Greek hero Heracles as a weary man in his forties, massive bare shoulders, heavy brow, thick dark beard streaked with grey, a fresh wound bound with cloth on one arm, the knotted head of a wooden club resting on his shoulder. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
-#### [ ] 营地三人与六位英雄
+#### [x] 营地三人与六位英雄
 
 跟着 1.1 的原画一起做。提示词 = 1.1 里那个人的外貌描述（"Same …" 之后到 "in all six cells" 之前的那一段）+ 上面共用的后半段。
 
 | 完成 | 人物 | 标识 |
 |---|---|---|
-| [ ] | 行商阿齐尔 | `npc_trader` |
-| [ ] | 教习达蒙 | `npc_drill` |
-| [ ] | 领路人伊俄 | `npc_guide` |
-| [ ] | 伊达斯 | `idas` |
-| [ ] | 欧律提翁 | `eurytion` |
-| [ ] | 安开俄斯 | `merc_captain` |
-| [ ] | 福洛斯 | `merc_lancer` |
-| [ ] | 伊菲克勒斯 | `merc_sword` |
-| [ ] | 法勒洛斯 | `merc_archer` |
+| [x] | 行商阿齐尔 | `npc_trader` |
+| [x] | 教习达蒙 | `npc_drill` |
+| [x] | 领路人伊俄 | `npc_guide` |
+| [x] | 伊达斯 | `idas` |
+| [x] | 欧律提翁 | `eurytion` |
+| [x] | 安开俄斯 | `merc_captain` |
+| [x] | 福洛斯 | `merc_lancer` |
+| [x] | 伊菲克勒斯 | `merc_sword` |
+| [x] | 法勒洛斯 | `merc_archer` |
 
 ### 1.4 营地场景
 
-营地现在用的是两套免费三维素材，帐篷偏卡通，道具是中世纪通用款。规格见 6.4。
-
-**出图工具出不了三维模型。** 两条路：用下面的提示词出一张单件的参考图，再交给"图生三维"的工具；或者直接买现成的（Artisau 的 Ancient Greece 素材包，约 4.99 美元，CC0，道具可用）。
+十件营地模型已完成，位于 `prototype/art/camp/`，共用 `camp-pigments.jpg` 基础色贴图。行商帐边陈列双耳瓶与黑绘陶罐，教习身后是矛架、圆盾和兽皮架。营火使用炭火盆，后方的小祭坛与青铜鼎共用一处空地。
 
 **共用的后半段**：
 
@@ -175,16 +173,16 @@ The Greek hero Heracles as a weary man in his forties, massive bare shoulders, h
 
 | 完成 | 道具 | 提示词的前半段（后面接共用的后半段） |
 |---|---|---|
-| [ ] | 行军帐篷（大） | `An ancient Greek military campaign tent, undyed cream canvas over a wooden frame with a ridge pole, one side flap tied open, a red painted meander band along the lower edge.` |
-| [ ] | 行军帐篷（小） | `A small ancient Greek lean-to shelter, a single sheet of weathered cream canvas pegged over two crossed spears, bedroll visible inside.` |
-| [ ] | 双耳瓶 | `An ancient Greek transport amphora, tall terracotta jar with two handles and a pointed foot, leaning in a simple wooden stand.` |
-| [ ] | 陶罐 | `An ancient Greek black-figure hydria water jar, terracotta with a band of black painted figures round the shoulder.` |
-| [ ] | 三脚鼎 | `An ancient Greek bronze tripod cauldron on three tall legs with ring handles, greenish patina.` |
-| [ ] | 小祭坛 | `A small ancient Greek stone field altar, a low limestone block with a shallow bowl on top holding ash and a few olive twigs.` |
-| [ ] | 矛架 | `A wooden rack holding four ancient Greek bronze-tipped spears upright, leather binding at the joints.` |
-| [ ] | 盾 | `An ancient Greek round hoplite shield of bronze-faced wood leaning on its rim, a simple painted ochre device, worn leather grip visible at the back.` |
-| [ ] | 兽皮 | `A tanned wolf pelt stretched on a simple wooden drying frame.` |
-| [ ] | 火盆 | `An ancient Greek bronze brazier on three short legs holding glowing coals.` |
+| [x] | 行军帐篷（大） | `An ancient Greek military campaign tent, undyed cream canvas over a wooden frame with a ridge pole, one side flap tied open, a red painted meander band along the lower edge.` |
+| [x] | 行军帐篷（小） | `A small ancient Greek lean-to shelter, a single sheet of weathered cream canvas pegged over two crossed spears, bedroll visible inside.` |
+| [x] | 双耳瓶 | `An ancient Greek transport amphora, tall terracotta jar with two handles and a pointed foot, leaning in a simple wooden stand.` |
+| [x] | 陶罐 | `An ancient Greek black-figure hydria water jar, terracotta with a band of black painted figures round the shoulder.` |
+| [x] | 三脚鼎 | `An ancient Greek bronze tripod cauldron on three tall legs with ring handles, greenish patina.` |
+| [x] | 小祭坛 | `A small ancient Greek stone field altar, a low limestone block with a shallow bowl on top holding ash and a few olive twigs.` |
+| [x] | 矛架 | `A wooden rack holding four ancient Greek bronze-tipped spears upright, leather binding at the joints.` |
+| [x] | 盾 | `An ancient Greek round hoplite shield of bronze-faced wood leaning on its rim, a simple painted ochre device, worn leather grip visible at the back.` |
+| [x] | 兽皮 | `A tanned wolf pelt stretched on a simple wooden drying frame.` |
+| [x] | 火盆 | `An ancient Greek bronze brazier on three short legs holding glowing coals.` |
 
 ---
 
@@ -206,25 +204,25 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 灼烧 | `kindling` | `a single tongue of flame` |
-| [ ] | 中毒 | `st_poison` | `a small vial with one drop falling from its lip` |
-| [ ] | 束缚 | `bind_hex` | `an ankle shackle with three chain links` |
-| [ ] | 眩晕 | `st_stun` | `three small stars circling in a ring` |
-| [ ] | 防御 | `act_guard` | `a round hoplite shield seen from the front with a single boss` |
-| [ ] | 闪避 | `st_dodge` | `a running figure leaning sharply to one side` |
-| [ ] | 不坏之皮 | `st_shield` | `a lion's pelt hung by its forepaws` |
-| [ ] | 被标记 | `act_mark` | `an arrow striking the centre of a ring` |
+| [x] | 灼烧 | `kindling` | `a single tongue of flame` |
+| [x] | 中毒 | `st_poison` | `a small vial with one drop falling from its lip` |
+| [x] | 束缚 | `bind_hex` | `an ankle shackle with three chain links` |
+| [x] | 眩晕 | `st_stun` | `three small stars circling in a ring` |
+| [x] | 防御 | `act_guard` | `a round hoplite shield seen from the front with a single boss` |
+| [x] | 闪避 | `st_dodge` | `a running figure leaning sharply to one side` |
+| [x] | 不坏之皮 | `st_shield` | `a lion's pelt hung by its forepaws` |
+| [x] | 被标记 | `act_mark` | `an arrow striking the centre of a ring` |
 
 #### 指令（6 个，先做）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 移动 | `act_move` | `a striding sandalled foot` |
-| [ ] | 攻击 | `act_slash` | `a spear head with a short length of shaft, pointing up and right` |
-| [ ] | 技能 | `skills` | `an open hand with three rays above the palm` |
-| [ ] | 物品 | `act_item` | `a drawstring leather pouch` |
-| [ ] | 待机 | `act_wait` | `an hourglass` |
-| [ ] | 撤销移动 | `act_undo` | `an arrow curling back on itself to the left` |
+| [x] | 移动 | `act_move` | `a striding sandalled foot` |
+| [x] | 攻击 | `act_slash` | `a spear head with a short length of shaft, pointing up and right` |
+| [x] | 技能 | `skills` | `an open hand with three rays above the palm` |
+| [x] | 物品 | `act_item` | `a drawstring leather pouch` |
+| [x] | 待机 | `act_wait` | `an hourglass` |
+| [x] | 撤销移动 | `act_undo` | `an arrow curling back on itself to the left` |
 
 #### 圣物（7 个）
 
@@ -232,13 +230,13 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 涅墨亚狮皮 | `art_pelt` | `a lion's pelt with the head and mane, spread flat` |
-| [ ] | 蛇血 | `relic_blood` | `a small round flask with a serpent coiled round its neck` |
-| [ ] | 铜羽 | `art_feather` | `a single stiff feather with a blade-sharp edge` |
-| [ ] | 阿里阿德涅之线 | `art_thread` | `a ball of thread with one loose end trailing away` |
-| [ ] | 蛇发之首 | `brooch` | `the head of Medusa seen from the front, snakes for hair, eyes closed` |
-| [ ] | 冥河之水 | `relic_styx` | `a shallow two-handled cup with dark water and one drop above it` |
-| [ ] | 泰坦之力 | `relic_titan` | `a huge clenched fist bound by a broken chain` |
+| [x] | 涅墨亚狮皮 | `art_pelt` | `a lion's pelt with the head and mane, spread flat` |
+| [x] | 蛇血 | `relic_blood` | `a small round flask with a serpent coiled round its neck` |
+| [x] | 铜羽 | `art_feather` | `a single stiff feather with a blade-sharp edge` |
+| [x] | 阿里阿德涅之线 | `art_thread` | `a ball of thread with one loose end trailing away` |
+| [x] | 蛇发之首 | `brooch` | `the head of Medusa seen from the front, snakes for hair, eyes closed` |
+| [x] | 冥河之水 | `relic_styx` | `a shallow two-handled cup with dark water and one drop above it` |
+| [x] | 泰坦之力 | `relic_titan` | `a huge clenched fist bound by a broken chain` |
 
 #### 首领的剪影（6 个）
 
@@ -246,42 +244,46 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 许德拉 | `boss_hydra` | `the Hydra, a serpent body with five rearing heads` |
-| [ ] | 铜羽鸟 | `boss_bird` | `a great bird of prey with wings spread and metal-edged feathers` |
-| [ ] | 米诺陶洛斯 | `boss_minotaur` | `the Minotaur standing, bull's head and horns on a man's body` |
-| [ ] | 美杜莎 | `boss_medusa` | `Medusa standing in profile, a long robe, a mass of snakes for hair` |
-| [ ] | 刻耳柏洛斯 | `boss_cerberus` | `Cerberus, a three-headed hound with a serpent tail` |
-| [ ] | 泰坦 | `boss_titan` | `a chained giant on one knee, far broader than a man` |
+| [x] | 许德拉 | `boss_hydra` | `the Hydra, a serpent body with five rearing heads` |
+| [x] | 铜羽鸟 | `boss_bird` | `a great bird of prey with wings spread and metal-edged feathers` |
+| [x] | 米诺陶洛斯 | `boss_minotaur` | `the Minotaur standing, bull's head and horns on a man's body` |
+| [x] | 美杜莎 | `boss_medusa` | `Medusa standing in profile, a long robe, a mass of snakes for hair` |
+| [x] | 刻耳柏洛斯 | `boss_cerberus` | `Cerberus, a three-headed hound with a serpent tail` |
+| [x] | 泰坦 | `boss_titan` | `a chained giant on one knee, far broader than a man` |
 
 #### 神力招式（6 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 雷矢 | `thunder_bolt` | `a single jagged thunderbolt shaped like a thrown javelin` |
-| [ ] | 天火 | `sky_fire` | `a ball of fire falling from above with a short tail` |
-| [ ] | 雷行 | `thunder_step` | `a footprint split by a lightning fork` |
-| [ ] | 天穹 | `sky_dome` | `a half dome arching over three small standing figures` |
-| [ ] | 天罚 | `sky_wrath` | `three thunderbolts striking down side by side onto a patch of ground` |
-| [ ] | 雷躯 | `thunder_body` | `a standing man with lightning forking outward from his whole outline` |
+| [x] | 雷矢 | `thunder_bolt` | `a single jagged thunderbolt shaped like a thrown javelin` |
+| [x] | 天火 | `sky_fire` | `a ball of fire falling from above with a short tail` |
+| [x] | 雷行 | `thunder_step` | `a footprint split by a lightning fork` |
+| [x] | 天穹 | `sky_dome` | `a half dome arching over three small standing figures` |
+| [x] | 天罚 | `sky_wrath` | `three thunderbolts striking down side by side onto a patch of ground` |
+| [x] | 雷躯 | `thunder_body` | `a standing man with lightning forking outward from his whole outline` |
+
+六枚共用同一套陶绘剪影。营地升阶以 24 像素图标显示当阶两项选择，战斗指令与悬停说明沿用各招的同一剪影。
 
 #### 主角的招式和特性（14 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 矛刺 | `act_spear` | `a spear thrusting straight forward` |
-| [ ] | 盾击 | `act_shield` | `a round shield pushed forward with impact lines in front of it` |
-| [ ] | 过肩摔 | `act_grapple` | `one wrestler throwing another over his shoulder` |
-| [ ] | 盾墙 | `shield_wall` | `three overlapping round shields in a row` |
-| [ ] | 截击 | `intercept` | `a shield stepping between an arrow and a standing figure` |
-| [ ] | 盾缘猛推 | `shield_drive` | `a shield rim driving a falling figure backward` |
-| [ ] | 执盾如山 | `bulwark` | `a round shield planted on the ground in front of a mountain peak` |
-| [ ] | 方阵贯刺 | `phalanx_thrust` | `three parallel spears pointing the same way` |
-| [ ] | 铁臂 | `iron_arm` | `a flexed forearm with a clenched fist` |
-| [ ] | 破势之拳 | `stagger_fist` | `a fist striking a cracked breastplate` |
-| [ ] | 扫膝 | `heel_strike` | `a foot sweeping another figure's leg from under it` |
-| [ ] | 角力呼吸 | `wrestler` | `a wrestler crouched in a ready stance, arms forward` |
-| [ ] | 碎阵重击 | `breaker` | `a shield shattering into three pieces` |
-| [ ] | 不坏之皮 | `impervious_hide` | `a man wearing a lion's head as a hood` |
+| [x] | 矛刺 | `act_spear` | `a spear thrusting straight forward` |
+| [x] | 盾击 | `act_shield` | `a round shield pushed forward with impact lines in front of it` |
+| [x] | 过肩摔 | `act_grapple` | `one wrestler throwing another over his shoulder` |
+| [x] | 盾墙 | `shield_wall` | `three overlapping round shields in a row` |
+| [x] | 截击 | `intercept` | `a shield stepping between an arrow and a standing figure` |
+| [x] | 盾缘猛推 | `shield_drive` | `a shield rim driving a falling figure backward` |
+| [x] | 执盾如山 | `bulwark` | `a round shield planted on the ground in front of a mountain peak` |
+| [x] | 方阵贯刺 | `phalanx_thrust` | `three parallel spears pointing the same way` |
+| [x] | 铁臂 | `iron_arm` | `a flexed forearm with a clenched fist` |
+| [x] | 破势之拳 | `stagger_fist` | `a fist striking a cracked breastplate` |
+| [x] | 扫膝 | `heel_strike` | `a foot sweeping another figure's leg from under it` |
+| [x] | 角力呼吸 | `wrestler` | `a wrestler crouched in a ready stance, arms forward` |
+| [x] | 碎阵重击 | `breaker` | `a shield shattering into three pieces` |
+| [x] | 不坏之皮 | `impervious_hide` | `a man wearing a lion's head as a hood` |
+
+营地找达蒙选「操练」，可在主角的战阵、搏击两支查看 10 枚节点图标。树顶另列三项随身招式，装备狮皮时显示「不坏之皮」。战斗指令及悬停说明沿用已携带招式的同一剪影。
 
 #### 阿塔兰忒（11 个）
 
@@ -452,38 +454,51 @@ Pixel art visual effect sprite sheet for a 2D game: {内容}. Exactly {帧数} f
 
 | 完成 | 特效 | 文件名 | {内容} | {帧数} | 循环 |
 |---|---|---|---|---|---|
-| [ ] | 雷击落点（雷矢、天罚、升阶落雷） | `lightning.png` | `a white-gold lightning bolt striking straight down onto the ground, forking at the point of impact, then a brief ring of sparks spreading outward and fading` | 10 | 否 |
-| [ ] | 天火落下 | `skyfire.png` | `a ball of fire dropping from the top of the frame, bursting on the ground into a low spreading flame that dies down to embers` | 12 | 否 |
-| [ ] | 雷行的落点 | `thunderstep.png` | `a figure-sized column of blue-white light snapping into existence with small arcs of electricity crawling outward along the ground, then vanishing` | 8 | 否 |
-| [ ] | 天穹护盾 | `dome.png` | `a translucent pale gold half dome rising over a spot on the ground, shimmering once, then fading` | 10 | 否 |
-| [ ] | 雷躯（附在身上） | `thunderbody.png` | `thin arcs of white-gold electricity crawling over an invisible standing human shape, endlessly` | 8 | 是 |
-| [ ] | 捕网张开 | `net.png` | `a rope net flying in folded, opening wide in the air, and dropping flat` | 8 | 否 |
-| [ ] | 升级 | `levelup.png` | `a ring of warm ochre light rising from the feet to above the head of an invisible standing figure, ending in a small burst of laurel leaves` | 10 | 否 |
-| [ ] | 束缚（附在脚踝） | `rooted.png` | `two loops of rope tightening round a pair of invisible ankles, creaking slightly, endlessly` | 6 | 是 |
+| [x] | 雷击落点（雷矢、天罚、升阶落雷） | `lightning.png` | `a white-gold lightning bolt striking straight down onto the ground, forking at the point of impact, then a brief ring of sparks spreading outward and fading` | 10 | 否 |
+| [x] | 天火落下 | `skyfire.png` | `a ball of fire dropping from the top of the frame, bursting on the ground into a low spreading flame that dies down to embers` | 12 | 否 |
+| [x] | 雷行的落点 | `thunderstep.png` | `a figure-sized column of blue-white light snapping into existence with small arcs of electricity crawling outward along the ground, then vanishing` | 8 | 否 |
+| [x] | 天穹护盾 | `dome.png` | `a translucent pale gold half dome rising over a spot on the ground, shimmering once, then fading` | 10 | 否 |
+| [x] | 雷躯（附在身上） | `thunderbody.png` | `thin arcs of white-gold electricity crawling over an invisible standing human shape, endlessly` | 8 | 是 |
+| [x] | 捕网张开 | `net.png` | `a rope net flying in folded, opening wide in the air, and dropping flat` | 8 | 否 |
+| [x] | 升级 | `levelup.png` | `a ring of warm ochre light rising from the feet to above the head of an invisible standing figure, ending in a small burst of laurel leaves` | 10 | 否 |
+| [x] | 束缚（附在脚踝） | `rooted.png` | `two loops of rope tightening round a pair of invisible ankles, creaking slightly, endlessly` | 6 | 是 |
+
+五张神力序列位于 `art/originals/fx/`，单帧 96×96。雷击约 20 帧/秒，天火约 19 帧/秒，雷行落点约 17 帧/秒，天穹约 13 帧/秒，均为单次播放。雷躯以 10 帧/秒循环至状态消失。
+
+捕网、束缚和升级各使用一张 96×96 单帧的透明序列图。捕网在飞行途中张开，下落时收拢，末帧与脚踝绳圈的首帧相同。束缚持续时循环，解除时消失。战后经验跨过等级门槛时，赭金色月桂光环沿角色轮廓上升。
 
 雷和火要按神性的阶位换颜色（受火偏蓝、半神偏金、僭神白金）。只交一套白色或白金色的即可，颜色由游戏叠上去。
 
 ### 2.3 标题画面
 
-#### [ ] 游戏标志
+#### [x] 游戏标志
 
-出图工具写不准中文字。建议只用它出装饰部分，"潘多拉之裔"五个字另外用字体排。
+首页已使用正式标志。「潘多拉之裔」五字使用与菜单相同的缝合像素字体（12 像素字形四倍排印），英文副题使用同系列 10 像素字形，陶罐、烟缕和回纹作为独立装饰。排版源稿与装饰原图位于 `art/originals/title/`，游戏使用 `prototype/art/original/interface/pandora-title.png`。
 
 ```
 A wide horizontal emblem for a game title in the manner of ancient Greek black-figure vase painting: an open storage jar (pithos) lying on its side at the centre, a thin wisp rising from its mouth, flanked left and right by a running Greek key meander border that fades out at both ends. Flat terracotta orange and black glaze colours only, with thin incised white lines. Transparent background, generous empty space in the middle band for lettering to be added later. No text, no letters.
 ```
 
-#### [ ] 主视觉图（可选）
+#### [x] 主视觉图（可选）
 
-用于商店页和宣传，不是游戏内必需。
+商店页和宣传用的两版横图均为 1920×1080。无字版为 [pandora-key-art.png](art/originals/title/pandora-key-art.png)，宣传版为 [pandora-key-art-titled.png](art/originals/title/pandora-key-art-titled.png)。两版共用一幅画，宣传版在左侧天空叠放首页像素字标。[生成原稿](art/originals/title/pandora-key-art-source.png)保留原始尺寸。
 
 ```
 Key art for a tactical role-playing game set in mythic ancient Greece. A young spearman with a red cord on his wrist stands on a limestone ridge at dawn, seen from behind and slightly above, a round shield on his back; on the ground beside him lies a great broken storage jar. Far ahead, storm light gathers over a mountain crowned with white columns. Three companions stand a few steps behind him: a huntress with a long bow, an old centaur, a dark-robed sorceress. Ancient Mediterranean gouache illustration, broad rich earthy colour planes, warm white limestone against a deep blue sky, visible brushwork, strong diagonal composition, wide 16:9 format. No text, no logo.
 ```
 
+<details>
+<summary>横版主视觉的实用提示词与参考原画</summary>
+
+ImageGen 参考图依次为 `portraits/hero.png`、`figures.png`、`pholoe-centaurs-rear.png` 和 `medea.png`，均来自 `art/originals/`。正式字标在出图后单独合成。
+
+> Paint the actual finished, full-bleed, 16:9 landscape store key art, landscape 2048×1152 if possible. Mythic ancient Greece at dawn. Imagine a painted book cover commissioned from the artist of these character originals, using the attached references for the EXACT character designs, cloth colours, builds, hair, materials and hand-painted gouache finish. Ref 1 the curly-haired young hero's portrait. Ref 2, use only rows 1 and 2 (young spearman and huntress); ref 3 use ONLY the elderly silver-haired WHITE HORSE centaur in the bottom row; ref 4 Medea in burgundy. References are model sheets, NOT the scene layout. Only FOUR people in the entire picture. Make a single continuous narrative landscape image: from a slightly elevated viewpoint behind the party, a broad limestone spur cuts diagonally up from the lower right toward the middle of the frame. At its forward edge, just right of centre at x .57, the young curly dark-haired spearman pauses in a strong three-quarter rear silhouette. Dusty oxide-red chlamys and rough ivory short chiton, sandals, round bronze shield strapped to his BACK, one long straight wooden spear gripped in his right hand with an unmistakable red cord tied round his bare wrist, spare cord end in the wind. Make him a bold focal point with a little of his sunlit cheek visible. At his feet in the near foreground, a very LARGE broken open storage jar with warm clay interior, chipped rim, ochre and black Greek key bands, distinct hand-sized shards, hint of pale vapour crossing the rock. A few paces behind him, spaced from one another on the right slope, the companions in character: Atalanta (brown hair tied up, tawny layered hunter's cloak, quiver and longbow), Chiron (wise aged white-bearded centaur in teal drape, physically single body with a complete white dappled equine lower half and FOUR horse legs, no rider), Medea (dark curls and wine-coloured gold-edged robe, little earthenware vial, no staff). Let us recognize each silhouette at thumbnail scale; vary the angles of their heads and poses, unify by their shared gaze. Across a huge blue Aegean gulf far ahead, storm light strikes a distant mountain crowned with a cluster of white Greek columns under a break in the cloud, lending the party a destination. Dawn bronze highlights touch their windblown clothes while an indigo storm front occupies the sky. Strong clear silhouettes, rich earthy color planes with warm chalk-white limestone in the foreground, deep marine blue, ochre and iron red; confident hand-painted dry gouache strokes across rock, fabric and sky, restrained paper tooth, beautifully observed gestures. A mythic journey, ominous and hopeful. Compose a quiet middle-dark expanse of natural sky/sea on the LEFT third in its upper/middle area so a title can be added later without covering faces or temple. Let sky and sea feel like a convincing continuation of the terrain there, not an artificial graphic vignette or flat blank field. Wide horizontal premium narrative illustration with foreground, middle distance and far-off architecture. No text, letters, logo, UI, frame, watermarks, modern objects, figurine bases, pixelated edges or photographic/CGI gloss.
+
+</details>
+
 ### 2.4 主角的神性外观
 
-[15 §2](15-relics-boons.md) 规定主角每升一阶换一次外观，目前游戏里没有接入，四阶都是同一套。
+[15 §2](15-relics-boons.md) 规定主角每升一阶换一次外观。战场与营地均按圣物数量显示当前阶位。
 
 交四张图，**姿势和构图完全不变，只改颜色和光**。用主角现有的原画做参考图（`art/originals/figures.png` 里他的那一组；转身的八个朝向在 `hero-turn.png`），让工具只改指定的部分。
 
@@ -494,9 +509,9 @@ Key art for a tactical role-playing game set in mythic ancient Greece. A young s
 | 完成 | 阶 | 文件名 | 接在共用前半段后面 |
 |---|---|---|---|
 | [x] | 凡人 | 现有原画 | 不用改 |
-| [ ] | 受火 | `hero-tier1.png` | `the irises of his eyes become pale blue, and the ochre cloak gains a single narrow edging of bright blue along its hem. Everything else stays earthy and human.` |
-| [ ] | 半神 | `hero-tier2.png` | `the cloak becomes deep blue with a gold border, the spearhead and shield rim become polished gold, and a thin rim of pale light outlines his whole figure. His skin is still warm and human.` |
-| [ ] | 僭神 | `hero-tier3.png` | `nearly everything he wears and carries becomes blue and gold, his skin loses its warmth and turns pale as marble, his eyes glow faintly white, and thin threads of lightning cling to the spear. The red cord on his wrist remains the only warm colour left on him.` |
+| [x] | 受火 | `hero-tier1.png` | `the irises of his eyes become pale blue, and the ochre cloak gains a single narrow edging of bright blue along its hem. Everything else stays earthy and human.` |
+| [x] | 半神 | `hero-tier2.png` | `the cloak becomes deep blue with a gold border, the spearhead and shield rim become polished gold, and a thin rim of pale light outlines his whole figure. His skin is still warm and human.` |
+| [x] | 僭神 | `hero-tier3.png` | `nearly everything he wears and carries becomes blue and gold, his skin loses its warmth and turns pale as marble, his eyes glow faintly white, and thin threads of lightning cling to the spear. The red cord on his wrist remains the only warm colour left on him.` |
 
 半身像同样四个版本，文件名 `portraits/hero-tier1.png` 等，提示词用 1.3 里主角的那一条加上表里对应的一句。
 
@@ -622,14 +637,14 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 ## 4. 建议的制作顺序
 
-1. 营地三人的原画和半身像（1.1 的前三位、1.3）。每次回营地都看到，投入最少、改观最大。
-2. 五位主线人物的半身像（1.3）。
-3. 状态徽章、指令、圣物和首领剪影（2.1 的前四批，共 27 个）。新做的"夺圣物 / 放过"界面正在用。
-4. 美狄亚补动作（1.2）。
-5. 六位英雄的原画（1.1 的后六位），先做两位史诗。
-6. 主角的四阶外观（2.4）和神力的特效（2.2）。这两样到第二章首领战做出来才用得上。
-7. 营地帐篷和希腊道具（1.4）。
-8. 其余按需。
+1. [x] 营地三人的原画和半身像（1.1 的前三位、1.3）。每次回营地都看到，投入最少、改观最大。
+2. [x] 五位主线人物的半身像（1.3）。
+3. [x] 状态徽章、指令、圣物和首领剪影（2.1 的前四批，共 27 个）。新做的"夺圣物 / 放过"界面正在用。
+4. [x] 美狄亚补动作（1.2）。
+5. [x] 六位英雄的原画和配套半身像（1.1、1.3）。已完成 6/6。
+6. [x] 主角四阶外观与配套半身像（2.4），以及六招神力使用的五张特效序列（2.2）。
+7. [x] 营地帐篷和希腊道具（1.4），10/10 已接入营地。
+8. 其余按需。已完成 2.1 的六枚神力招式图标与主角的 14 枚招式和特性图标、2.2 的捕网张开、脚踝束缚与升级特效，以及 2.3 的首页游戏标志、商店页与宣传横版主视觉。
 
 ## 5. 素材数量一览
 

@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory() as work:
     bake_motion.bake(plates)
     bake_pixel_cast.src = work / "original"
     bake_pixel_cast.dst = work / "pixel"
-    bake_pixel_cast.bake(base)
+    bake_pixel_cast.bake(base, look)
     target = bake_pixel_cast.root / "prototype/art/pixel" / look
     target.mkdir(exist_ok=True)
     for baked in (work / "pixel" / base).glob("*.png"):
