@@ -213,7 +213,7 @@ func TestOverlayAndOverrides(t *testing.T) {
 		t.Fatal(err)
 	}
 	check(t, s.Unit("chief") != nil && s.Unit("archer") != nil, "overlay battle has its own units")
-	check(t, s.Unit("hero").Traits.Slam && s.Unit("atalanta").HasSkill("vital_shot"), "default picks applied")
+	check(t, s.Unit("hero").Traits.IronArm && s.Unit("atalanta").HasSkill("vital_shot"), "default picks applied")
 
 	_, err = LoadData(DataOptions{Sets: []string{"units:wolf.speed=3"}})
 	check(t, err != nil, "overrides may only change existing keys")

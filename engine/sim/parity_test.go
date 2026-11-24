@@ -24,7 +24,10 @@ import (
 // 规则有意改动之后，受影响的战斗不可能再和原引擎一致。这些用例标了 rebased：它们的基准
 // 改由 Go 引擎自己生成，只用来发现无意的改动。重新生成：
 //
-//	SRPG_REBASE=1 go test ./sim -run TestRowsMatchGodot
+//	SRPG_REBASE=1 go test ./sim -run "TestRowsMatchGodot|TestReplayMatchesGodot"
+//
+// 2026-11-25：全部用例和三份回放都改为 rebased。擒抱（及摔投、挣脱值）整个删掉，主角和
+// 赫拉克勒斯改带过肩摔，巨石改成谁推都一次到位，所以每一场有主角的战斗都和原引擎不同了。
 //
 // 2026-11-24：1-5 的六个用例改为 rebased。涅墨亚狮子的咆哮从「恐惧」改成了「震退 1 格」
 // （游戏只保留灼烧、中毒、束缚、眩晕四种异常状态，见 06-decisions）。
@@ -32,7 +35,7 @@ import (
 const parityDir = "../testdata/parity/"
 
 var picksVariant = map[string][]string{
-	"hero":     {"shield_wall", "intercept", "slam"},
+	"hero":     {"shield_wall", "intercept", "iron_arm"},
 	"atalanta": {"skirmish", "leap_shot", "vital_shot"},
 }
 
@@ -41,17 +44,17 @@ var goldenCases = []struct {
 	opts    Options
 	rebased bool
 }{
-	{"godot_1-4_novice", Options{Battle: "1-4", Bot: "novice"}, false},
-	{"godot_1-4_skilled", Options{Battle: "1-4", Bot: "skilled"}, false},
+	{"godot_1-4_novice", Options{Battle: "1-4", Bot: "novice"}, true},
+	{"godot_1-4_skilled", Options{Battle: "1-4", Bot: "skilled"}, true},
 	{"godot_1-5_novice", Options{Battle: "1-5", Bot: "novice"}, true},
 	{"godot_1-5_skilled", Options{Battle: "1-5", Bot: "skilled"}, true},
-	{"godot_test_novice", Options{Battle: "test", Bot: "novice"}, false},
-	{"godot_test_skilled", Options{Battle: "test", Bot: "skilled"}, false},
-	{"godot_overlay_1-4x_novice", Options{Battle: "1-4x", Bot: "novice", DataDir: parityDir + "overlay"}, false},
-	{"godot_overlay_1-4x_skilled", Options{Battle: "1-4x", Bot: "skilled", DataDir: parityDir + "overlay"}, false},
+	{"godot_test_novice", Options{Battle: "test", Bot: "novice"}, true},
+	{"godot_test_skilled", Options{Battle: "test", Bot: "skilled"}, true},
+	{"godot_overlay_1-4x_novice", Options{Battle: "1-4x", Bot: "novice", DataDir: parityDir + "overlay"}, true},
+	{"godot_overlay_1-4x_skilled", Options{Battle: "1-4x", Bot: "skilled", DataDir: parityDir + "overlay"}, true},
 	{"godot_overlay_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", DataDir: parityDir + "overlay"}, true},
-	{"godot_set_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Sets: []string{"units:wolf.str=9", "units:heracles.max_hp=70"}}, false},
-	{"godot_picks_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Picks: picksVariant}, false},
+	{"godot_set_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Sets: []string{"units:wolf.str=9", "units:heracles.max_hp=70"}}, true},
+	{"godot_picks_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Picks: picksVariant}, true},
 	{"godot_picks_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", Picks: picksVariant}, true},
 	{"godot_picks_1-5_novice", Options{Battle: "1-5", Bot: "novice", Picks: picksVariant}, true},
 	{"godot_maxrounds_1-5_novice", Options{Battle: "1-5", Bot: "novice", MaxRounds: 3}, true},
@@ -207,6 +210,12 @@ func TestReplayMatchesGodot(t *testing.T) {
 		got, err := rep.JSON()
 		if err != nil {
 			t.Fatal(err)
+		}
+		if os.Getenv("SRPG_REBASE") != "" {
+			if err := os.WriteFile(parityDir+rc.file+".json", append(got, 10), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			continue
 		}
 		if !bytes.Equal(got, bytes.TrimSpace(want)) {
 			t.Errorf("%s 与 Godot 的回放不一致\nGodot: %s\nGo:    %s", rc.file, firstDiff(want, got), firstDiff(got, want))

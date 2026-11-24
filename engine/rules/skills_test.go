@@ -18,9 +18,9 @@ func ataWith(s *BattleState, pos Cell, picks []string) *UnitState {
 
 func TestBudgetAndPrerequisites(t *testing.T) {
 	d := testData
-	eq(t, d.ValidatePicks("hero", []string{"slam", "iron_arm", "shield_wall"}), "", "4 points ok")
-	eq(t, d.ValidatePicks("hero", []string{"slam", "iron_arm", "shield_wall", "intercept"}), "over budget", "6 points")
-	eq(t, d.ValidatePicks("hero", []string{"iron_arm"}), "missing prerequisite", "node 2 needs node 1")
+	eq(t, d.ValidatePicks("hero", []string{"iron_arm", "stagger_fist", "shield_wall"}), "", "4 points ok")
+	eq(t, d.ValidatePicks("hero", []string{"iron_arm", "stagger_fist", "shield_wall", "intercept"}), "over budget", "6 points")
+	eq(t, d.ValidatePicks("hero", []string{"stagger_fist"}), "missing prerequisite", "node 2 needs node 1")
 	eq(t, d.ValidatePicks("atalanta", d.DefaultPicks()["atalanta"]), "", "default atalanta")
 	eq(t, len(d.AllBuilds("hero")), 12, "hero builds within 4 points")
 }
@@ -55,35 +55,25 @@ func TestInterceptRedirectsOncePerRound(t *testing.T) {
 	check(t, s.Unit("ata").HP < 30, "second bite lands")
 }
 
-func TestIronArmChokeAndDamageReduction(t *testing.T) {
+func TestIronArmHurtsWhoeverIsThrown(t *testing.T) {
 	s := flat(8, 8)
-	heroWith(s, c(2, 2), []string{"slam", "iron_arm"})
+	heroWith(s, c(2, 2), []string{"iron_arm"})
 	foe(s, "bandit", "b", c(3, 2))
 	StartBattle(s)
-	Perform(s, Grapple("hero", c(3, 2)))
-	EndPhase(s)
-	o := Perform(s, UseSkill("b", "slash", c(2, 2)))
-	// (10 - 6) = 4 x0.7 被擒抱 x0.8 铁臂 = 2.24 -> 2
-	eq(t, sumDamage(o.Events, "slash"), 2, "reduced")
-	ev := EndPhase(s)
-	eq(t, sumDamage(ev, "choke"), 7, "4 + 3 choke")
+	o := Perform(s, UseSkill("hero", "shoulder_throw", c(3, 2)))
+	check(t, o.OK, o.Error)
+	// 12 x0.5 = 6 - 防御 3 = 3，再加铁臂的 3 点真实伤害
+	eq(t, sumDamage(o.Events, "shoulder_throw"), 6, "the hit, then 3 more on landing")
 }
 
-func TestSlamThrowsOffALedge(t *testing.T) {
-	s := mkState([]string{"2200", "2200"})
-	heroWith(s, c(0, 0), []string{"slam"})
-	foe(s, "wolf", "wolf", c(1, 0))
+func TestStaggerFistAddsToPushesAndThrows(t *testing.T) {
+	s := flat(8, 8)
+	heroWith(s, c(1, 2), []string{"iron_arm", "stagger_fist"})
+	lion := foe(s, "lion", "lion", c(2, 2), West)
 	StartBattle(s)
-	Perform(s, Grapple("hero", c(1, 0)))
-	EndPhase(s)
-	EndPhase(s)
-	o := Perform(s, Slam("hero", c(2, 0)))
+	o := Perform(s, UseSkill("hero", "shield_bash", c(2, 2)))
 	check(t, o.OK, o.Error)
-	eq(t, s.Unit("wolf").Pos, c(2, 0), "thrown east")
-	eq(t, sumDamage(o.Events, "fall"), 6, "2 levels")
-	eq(t, s.Unit("hero").GrapplingID, "", "grapple over")
-	s.Unit("hero").HasActed = false
-	eq(t, Preview(s, Slam("hero", c(3, 0))).Error, "cannot slam", "needs a hold")
+	eq(t, lion.Stagger, StaggerKnockback+StaggerFist, "front hit adds nothing; the push adds 15 + 8")
 }
 
 func TestPatienceRewardsStandingStill(t *testing.T) {

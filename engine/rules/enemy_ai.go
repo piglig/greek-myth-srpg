@@ -32,17 +32,6 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 	sim := asActing(s, u)
 	su := sim.Unit(u.ID)
 
-	if su.GrappledByID != "" {
-		g := sim.Unit(su.GrappledByID)
-		for _, sk := range su.Skills {
-			act := UseSkill(su.ID, sk.ID, g.Pos)
-			if Validate(sim, act) == "" && kills(Preview(sim, act), g.ID) {
-				return Plan{Action: act}
-			}
-		}
-		return Plan{Action: Simple(ActStruggle, su.ID)}
-	}
-
 	if su.DefID == "centaur" {
 		if p, ok := feastLane(sim, su); ok {
 			return p
@@ -120,7 +109,7 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 	}
 	su.Pos = home
 	su.HasMoved = wasMoved
-	if !wasMoved && su.GrapplingID == "" {
+	if !wasMoved {
 		for _, sk := range su.Skills {
 			if !sk.HasLeap || su.Cooldown(sk.ID) > 0 {
 				continue
@@ -184,7 +173,7 @@ func CaveAction(s *BattleState, u *UnitState) (Action, bool) {
 		}
 		return Emerge(u.ID, entrance), true
 	}
-	if u.HP > s.Cave.TriggerHP || u.GrappledByID != "" || u.HasActed || u.HasMoved {
+	if u.HP > s.Cave.TriggerHP || u.HasActed || u.HasMoved {
 		return Action{}, false
 	}
 	if u.ActionsLeft != u.ActionsPerTurn || s.openEntranceCount() == 0 {

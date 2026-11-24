@@ -50,26 +50,26 @@
         "branch": "搏击",
         "nodes": [
           {
-            "id": "slam",
-            "name": "摔投",
-            "cost": 1,
-            "trait": "slam",
-            "desc": "把擒抱中的目标向任一方向摔出 1 格，结算坠落，结束擒抱"
-          },
-          {
             "id": "iron_arm",
             "name": "铁臂",
-            "cost": 2,
+            "cost": 1,
             "trait": "iron_arm",
-            "desc": "窒息伤害 +3；擒抱期间受到的伤害 −20%",
-            "parent": "slam"
+            "desc": "过肩摔的目标落地时，追加 3 点真实伤害"
+          },
+          {
+            "id": "stagger_fist",
+            "name": "破势之拳",
+            "cost": 2,
+            "trait": "stagger_fist",
+            "desc": "击退或摔出敌人时，额外积累 8 点破势",
+            "parent": "iron_arm"
           },
           {
             "id": "heel_strike",
             "name": "扫膝",
             "skill": "heel_strike",
             "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
-            "parent": "slam",
+            "parent": "iron_arm",
             "cost": 2
           },
           {
@@ -77,7 +77,7 @@
             "name": "角力呼吸",
             "trait": "wrestler",
             "desc": "永久增加 8 点生命上限。",
-            "parent": "iron_arm",
+            "parent": "stagger_fist",
             "cost": 3
           },
           {
@@ -696,8 +696,8 @@
   },
   "default_picks": {
     "hero": [
-      "slam",
       "iron_arm",
+      "stagger_fist",
       "shield_wall"
     ],
     "atalanta": [

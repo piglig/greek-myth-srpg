@@ -12,6 +12,6 @@ bots:
     rounds_mean: [6.0, 10.0]             # finer-grained than the integer median
     party_hp_left_p50: [0.35, 0.75]
     battles_with_fall: [0.50, 1.00]      # docs/09: 这一关要教会"推下悬崖"
-    battles_with_grapple: [0.50, 1.00]   # docs/09: 赫拉克勒斯示范擒抱
+    battles_with_throw: [0.50, 1.00]   # docs/09: 赫拉克勒斯示范过肩摔
   novice:
     win_rate: [0.30, 0.65]

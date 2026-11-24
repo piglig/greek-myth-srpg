@@ -69,26 +69,11 @@ func TestBoulderBlocksAndSeals(t *testing.T) {
 	eq(t, Validate(s, PushBoulder("hero", c(5, 5))), "no boulder there", "empty cell")
 	o := Perform(s, PushBoulder("hero", c(0, 6)))
 	check(t, o.OK, o.Error)
-	check(t, !s.Cave.Entrance("west").Sealed, "an ordinary unit needs two pushes")
-	EndPhase(s)
-	Perform(s, Wait("lion"))
-	EndPhase(s)
-	o = Perform(s, PushBoulder("hero", c(0, 6)))
-	check(t, hasEvent(o.Events, EvSealed), "second push seals the west entrance")
+	check(t, hasEvent(o.Events, EvSealed), "anyone seals an entrance with one push")
+	check(t, s.BoulderAt(c(0, 6)) == "", "the boulder left its cell")
 	check(t, slices.Equal(s.OpenEntrances(), []string{"east"}), "one entrance left")
 	check(t, len(Reachable(s, s.Unit("her"), -1).Dests()) > 0, "movement still works")
 	eq(t, Validate(s, PushBoulder("her", c(11, 6))), "cannot seal the last entrance", "the lair always keeps one way out")
-}
-
-func TestStrongUnitSealsInOnePush(t *testing.T) {
-	s := lair()
-	ally(s, "hero", "hero", c(5, 6))
-	ally(s, "heracles", "her", c(10, 6))
-	foe(s, "lion", "lion", c(5, 1))
-	StartBattle(s)
-	o := Perform(s, PushBoulder("her", c(11, 6)))
-	check(t, hasEvent(o.Events, EvSealed), "Heracles rolls it home at once")
-	check(t, s.BoulderAt(c(11, 6)) == "", "the boulder left its cell")
 }
 
 func TestWoundedLionRetreatsThenBurstsOutNearTheSoftestPlayer(t *testing.T) {
@@ -130,21 +115,4 @@ func TestSealedEntranceForcesTheOtherOne(t *testing.T) {
 	s.Cave.Entrance("east").Sealed = true
 	lion.Hidden = true
 	eq(t, CaveEntrance(s, lion), "west", "only the west entrance is open")
-}
-
-func TestHeldLionCannotRetreatAndBreaksFreeWithOneAction(t *testing.T) {
-	s := lair()
-	ally(s, "heracles", "her", c(4, 2))
-	ally(s, "hero", "hero", c(2, 6))
-	lion := foe(s, "lion", "lion", c(5, 2))
-	lion.HP = 20
-	StartBattle(s)
-	check(t, Perform(s, Grapple("her", c(5, 2))).OK, "grapple")
-	eq(t, lion.Escape, 3, "reference Heracles holds the lion at the boss cap")
-	EndPhase(s)
-	ev := enemyTurn(t, s)
-	check(t, !hasEvent(ev, EvRetreat), "a held lion cannot slip back into the cave")
-	check(t, hasEvent(ev, EvStruggle), "it struggles instead")
-	eq(t, lion.GrappledByID, "", "two boss struggles (2 points each) break a hold of 3")
-	check(t, !lion.Hidden, "still outside")
 }

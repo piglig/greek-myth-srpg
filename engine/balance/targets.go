@@ -42,7 +42,7 @@ var Metrics = []Metric{
 	{"rounds_mean", "胜局平均回合数", false, func(d Frame, l float64) Estimate { return Mean(d.Wins().Col("rounds"), l) }},
 	{"party_hp_left_p50", "胜局剩余生命中位数", true, func(d Frame, l float64) Estimate { return Median(d.Wins().Col("party_hp_left"), l) }},
 	{"battles_with_fall", "胜局中有敌人坠落的比例", true, winShare("counts.fall_enemy")},
-	{"battles_with_grapple", "胜局中用过擒抱的比例", true, winShare("counts.grapple_start")},
+	{"battles_with_throw", "胜局中用过过肩摔的比例", true, winShare("counts.throw")},
 	{"battles_with_break", "胜局中打出过破势的比例", true, winShare("counts.broken")},
 	{"phase2_reached", "胜局中 Boss 进入第二阶段的比例", true, winShare("phase2_round")},
 	{"battles_with_seal", "胜局中封住过入口的比例", true, winShare("counts.sealed")},

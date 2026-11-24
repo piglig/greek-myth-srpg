@@ -1,12 +1,11 @@
 class_name BattleOverlay
 extends Control
-## Native-resolution overlay over the pixelated world: HP and stagger bars, escape values,
+## Native-resolution overlay over the pixelated world: HP and stagger bars,
 ## floating combat text, tactical height labels and the hovered enemy's intent arrow.
 
 var controller: Node  ## battle_controller.gd
 var popups: Array = []  ## {world, text, color, age}
 var marker_hits := {}
-var holds := {}
 var fall_preview := {}
 var charge_lanes: Array = []
 var rescue_route: Array[Vector2i] = []
@@ -75,16 +74,6 @@ func _draw() -> void:
 	var fs := 20
 	var state: BattleState = controller.state
 
-	for holder_id in holds:
-		var holder: UnitView = controller.unit_views[holder_id]
-		var held: UnitView = controller.unit_views[holds[holder_id]]
-		var a: Vector2 = controller.world_to_screen(holder.position)
-		var b: Vector2 = controller.world_to_screen(held.position)
-		var mid := a.lerp(b,.5)
-		draw_line(a,b,Color("#442f26"),5*s,true)
-		draw_line(a,b,Color("#e3b66f"),2*s,true)
-		for offset in [-3.,3.]:
-			draw_arc(mid+a.direction_to(b)*offset*s,4.5*s,0,TAU,18,Color("#ffe0a3"),2*s,true)
 	if not fall_preview.is_empty():
 		var pos: Vector2 = controller.world_to_screen(fall_preview.world)
 		var caption := "落差 %d 层" % fall_preview.levels
@@ -236,7 +225,6 @@ func _draw() -> void:
 		var worn: Array = []
 		for badge: Array in BADGES:
 			if u.has_status(badge[0]): worn.append(badge)
-		if u.grappled_by_id != "": worn.append(["grappled","act_grapple","#ffc09b"])
 		if u.id in [state.marked_id,state.previous_mark]: worn.append(["marked","act_mark","#ffe08a"])
 		for n in worn.size():
 			var tint := Color(str(worn[n][2]))
@@ -275,13 +263,6 @@ func _draw() -> void:
 			var ratio := 1.0 if full else float(u.stagger) / u.stagger_max
 			draw_rect(Rect2(sr.position, Vector2(bw * ratio, sr.size.y)),
 				Color(1.0, 0.85, 0.2) if full else Color(0.95, 0.55, 0.15))
-		var tags: Array[String] = []
-		if u.grappled_by_id != "":
-			tags.append("挣脱 %d" % u.escape)
-		if not tags.is_empty() and (detailed or u.grappled_by_id != "" or u.has_status("staggered")):
-			var t := " ".join(tags)
-			var tw := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-			_text(font, Vector2(head.x - tw / 2, y), t, fs, Color(1.0, 0.92, 0.55))
 		if detailed and not resolving and u.team == Defs.Team.PLAYER and u.has_acted and state.phase == Defs.Phase.PLAYER:
 			_text(font, Vector2(r.end.x + 3 * s, r.end.y + 2 * s), "可再移动" if u.post_move > 0 else "✓", fs, Color(0.75, 0.75, 0.75))
 

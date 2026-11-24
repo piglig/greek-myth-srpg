@@ -14,14 +14,14 @@ var statusNames = map[string]string{
 }
 
 var sourceNames = map[string]string{
-	"fall": "坠落", "choke": "窒息", "collision": "撞击", "edge": "坠出边缘",
+	"fall": "坠落", "collision": "撞击", "edge": "坠出边缘",
 	"assist": "援护", "burning": "灼烧", "poisoned": "中毒", "styx": "冥河",
 }
 
 var noteTexts = map[string]string{
 	"kindling": "助燃", "charge": "冲锋", "block": "格挡", "high_ground": "高处", "cover": "掩体", "marked": "标记",
-	"flanked": "包夹", "guard": "防御姿态", "broken": "破势中", "grappled": "被擒抱",
-	"physical_immune": "物理免疫", "patience": "猎人耐心", "iron_arm": "铁臂", "shield_wall": "盾墙",
+	"flanked": "包夹", "guard": "防御姿态", "broken": "破势中",
+	"physical_immune": "物理免疫", "patience": "猎人耐心", "shield_wall": "盾墙",
 }
 
 var relationNames = [...]string{"正面", "侧面", "背面"}
@@ -30,22 +30,15 @@ var entranceNames = map[string]string{"west": "西侧", "east": "东侧", "north
 
 var errorTexts = map[string]string{
 	"wounded ally": "负伤的喀戎会自行射击", "no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
-	"grappled": "正被擒抱", "grappling": "正在擒抱", "cannot move now": "现在不能移动",
-	"unreachable": "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
+	"cannot move now": "现在不能移动",
+	"unreachable":     "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
 	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "no enemy there": "那里没有敌人",
-	"grappled: can only strike the grappler": "被擒抱时只能攻击擒抱者", "out of range": "超出射程",
-	"not in line": "不在直线上", "no line of sight": "视线被挡住", "cannot grapple": "不会擒抱",
-	"not adjacent": "不相邻", "cannot grapple that": "不能擒抱这个目标", "already grappled": "已被擒抱",
-	"not grappling": "没有在擒抱", "not grappled": "没有被擒抱", "facing locked": "朝向被锁定",
+	"out of range": "超出射程",
+	"not in line":  "不在直线上", "no line of sight": "视线被挡住",
+	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标",
 	"bad facing": "朝向无效", "cannot mark": "不能标记", "need landing": "先选择落点",
 	"bad landing": "不能落在那里", "no boulder there": "那里没有巨石", "already sealed": "这个入口已经封住",
 	"cannot seal the last entrance": "不能封住最后一个入口", "no one in range": "范围内没有目标",
-	"cannot slam": "没有可摔投的目标", "bad slam direction": "只能摔向目标相邻的格子",
-}
-
-var endReasons = map[string]string{
-	"escaped": "挣脱", "released": "松开", "displaced": "被击退", "ko": "倒下", "controlled": "受控",
-	"slam": "摔投",
 }
 
 func lookup(m map[string]string, k string) string {
@@ -138,16 +131,6 @@ func describeOne(s *BattleState, e *Event) string {
 		return fmt.Sprintf("★ %s 破势！跳过行动并失去免疫", nameOf(s, e.Target))
 	case EvKO:
 		return fmt.Sprintf("✖ %s 倒下", nameOf(s, e.Target))
-	case EvGrappleStart:
-		return fmt.Sprintf("%s 擒抱 %s（挣脱值 %d）", nameOf(s, e.Grappler), nameOf(s, e.Target), e.Escape)
-	case EvGrappleEnd:
-		return fmt.Sprintf("  %s 的擒抱结束（%s）", nameOf(s, e.Grappler), lookup(endReasons, e.Why))
-	case EvStruggle:
-		return fmt.Sprintf("%s 挣扎（挣脱值 %d）", nameOf(s, e.Unit), e.Escape)
-	case EvReinforce:
-		return fmt.Sprintf("%s 加固擒抱（挣脱值 %d）", nameOf(s, e.Unit), e.Escape)
-	case EvEscapeTick:
-		return fmt.Sprintf("  %s 的挣脱值降到 %d", nameOf(s, e.Target), e.Escape)
 	case EvStatus:
 		return fmt.Sprintf("  %s 获得%s", nameOf(s, e.Target), lookup(statusNames, e.Status))
 	case EvStatusEnd:
@@ -178,7 +161,7 @@ func describeOne(s *BattleState, e *Event) string {
 		return fmt.Sprintf("%s 从%s入口冲出，落在 %s", nameOf(s, e.Unit), lookup(entranceNames, e.Entrance), cellText(e.To))
 	case EvIntercept:
 		return fmt.Sprintf("%s 截击，替 %s 挡下攻击", nameOf(s, e.Unit), nameOf(s, e.Protected))
-	case EvSlam:
+	case EvThrow:
 		return fmt.Sprintf("%s 把 %s 摔了出去", nameOf(s, e.Unit), nameOf(s, e.Target))
 	}
 	return ""

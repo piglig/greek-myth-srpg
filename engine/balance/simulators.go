@@ -130,13 +130,13 @@ func FakeRow(battle, bot string, seed int, winRate float64) RawRow {
 	if win {
 		hp = roundTo(0.2+0.6*u(), 4)
 	}
-	fall, grapple := int(rng.Below(3)), int(rng.Below(2))
+	fall, throw := int(rng.Below(3)), int(rng.Below(2))
 	x, y := int(rng.Below(8)), int(rng.Below(8))
 	cell := fmt.Sprintf("%d,%d", x, y)
 	dealt := 20 + int(rng.Below(40))
 	row := oj.Obj(
 		"battle", battle, "bot", bot,
-		"counts", oj.Obj("broken", 0, "fall_enemy", fall, "grapple_start", grapple, "knockback", fall, "mark", 1),
+		"counts", oj.Obj("broken", 0, "fall_enemy", fall, "throw", throw, "knockback", fall, "mark", 1),
 		"dmg_cells", oj.Obj(cell, dealt),
 		"dmg_to_enemy", oj.Obj("spear", dealt, "fall", 3*fall),
 		"dmg_to_player", oj.Obj("bite", 7),

@@ -59,6 +59,8 @@ type Skill struct {
 	Rounds        int
 	// Pierce 表示这一击不计算目标的物理防御。
 	Pierce bool
+	// Throw 表示过肩摔：命中后把目标摔到自己另一侧的相邻格（见 effects.go 的 Throw）。
+	Throw bool
 }
 
 func (sk *Skill) IsArea() bool { return sk.AreaStatus != "" || sk.AreaKnockback > 0 }
@@ -75,7 +77,7 @@ func (sk *Skill) Mends() bool { return sk.Heal > 0 || sk.Cleanse > 0 }
 // TraitValue 是单位定义里的一个特性（保持表里的顺序）。
 type TraitValue struct {
 	Key   string
-	Value int // 数值型特性的值（grapple 的窒息伤害）；布尔型为 1 / 0
+	Value int // 数值型特性的值；布尔型为 1 / 0
 }
 
 // UnitDef 是单位定义（units.json）。
@@ -428,6 +430,7 @@ func (d *Data) loadSkills() error {
 		sk.AreaStatus = raw.str("area_status", "")
 		sk.AreaKnockback = raw.int("area_knockback", 0)
 		sk.Pierce, _ = raw.m["pierce"].(bool)
+		sk.Throw, _ = raw.m["throw"].(bool)
 		for _, given := range []string{sk.Status, sk.AreaStatus} {
 			if given != "" && !IsAilment(given) {
 				return fmt.Errorf("招式 %s 的状态 %s 不是四种异常状态（灼烧、中毒、束缚、眩晕）之一", id, given)

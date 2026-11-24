@@ -2,7 +2,7 @@ package rules
 
 import "testing"
 
-// 敌方 AI：计划是确定的、优先击杀、被擒抱时挣扎、威胁范围。
+// 敌方 AI：计划是确定的、优先击杀、威胁范围。
 
 func TestWolfMovesInAndBites(t *testing.T) {
 	s := flat(8, 8)
@@ -34,18 +34,6 @@ func TestPrefersTheKill(t *testing.T) {
 	StartBattle(s)
 	EndPhase(s)
 	eq(t, PlanFor(s, s.Unit("wolf")).Action.Target, c(3, 1), "finishes atalanta")
-}
-
-func TestGrappledEnemyStrugglesUnlessItCanKill(t *testing.T) {
-	s := flat(8, 8)
-	hero := ally(s, "hero", "hero", c(1, 1))
-	foe(s, "wolf", "wolf", c(2, 1))
-	StartBattle(s)
-	Perform(s, Grapple("hero", c(2, 1)))
-	EndPhase(s)
-	eq(t, PlanFor(s, s.Unit("wolf")).Action.Type, ActStruggle, "struggles")
-	hero.HP = 2
-	eq(t, PlanFor(s, s.Unit("wolf")).Action.Type, ActSkill, "bites the weakened grappler")
 }
 
 func TestIntentPreviewDuringPlayerPhaseDoesNotMutate(t *testing.T) {

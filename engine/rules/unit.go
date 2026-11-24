@@ -11,9 +11,7 @@ type KV struct {
 // Traits 是单位的特性。规则会查询的特性拆成字段；其余只记名字。
 type Traits struct {
 	PhysicalImmune, Block, ForestStride, Flying, CannotAttackAdjacent, HunterMark bool
-	Slam, IronArm, ShieldWall, Intercept, Patience, Skirmish, Strong, Undead      bool
-	HasGrapple                                                                    bool
-	Grapple                                                                       int      // 擒抱的窒息伤害
+	IronArm, ShieldWall, Intercept, Patience, Skirmish, Undead                    bool
 	Other                                                                         []string // 规则不关心的特性（guest、anti_air……）
 }
 
@@ -31,8 +29,6 @@ func (t *Traits) flag(key string) *bool {
 		return &t.CannotAttackAdjacent
 	case "hunter_mark":
 		return &t.HunterMark
-	case "slam":
-		return &t.Slam
 	case "iron_arm":
 		return &t.IronArm
 	case "shield_wall":
@@ -43,12 +39,8 @@ func (t *Traits) flag(key string) *bool {
 		return &t.Patience
 	case "skirmish":
 		return &t.Skirmish
-	case "strong":
-		return &t.Strong
 	case "undead":
 		return &t.Undead
-	case "grapple":
-		return &t.HasGrapple
 	}
 	return nil
 }
@@ -66,13 +58,10 @@ func (t *Traits) Has(key string) bool {
 	return false
 }
 
-// Set 加上一个特性；value 只对 grapple 有意义（窒息伤害）。
+// Set 加上一个特性。value 目前没有特性用到，留着是因为表里的特性可以带数值。
 func (t *Traits) Set(key string, value int) {
 	if p := t.flag(key); p != nil {
 		*p = true
-		if key == "grapple" {
-			t.Grapple = value
-		}
 		return
 	}
 	if !t.Has(key) {
@@ -109,9 +98,6 @@ type UnitState struct {
 	ActionsPerTurn, ActionsLeft                             int
 	HasMoved, HasActed, AssistUsed, MarkUsed, InterceptUsed bool
 	PostMove                                                int // 行动后还能走的步数（游击）
-
-	GrapplingID, GrappledByID string
-	Escape                    int
 
 	Arrival int // Scheduled round, zero after arrival.
 	Alive   bool
@@ -346,7 +332,7 @@ func (u *UnitState) Index() int { return u.index }
 func (t *Traits) Names() []string {
 	var out []string
 	for _, k := range [...]string{"physical_immune", "block", "forest_stride", "flying", "cannot_attack_adjacent",
-		"hunter_mark", "slam", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "strong", "undead", "grapple"} {
+		"hunter_mark", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "undead"} {
 		if t.Has(k) {
 			out = append(out, k)
 		}

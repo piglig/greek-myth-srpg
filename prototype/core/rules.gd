@@ -6,8 +6,8 @@ extends RefCounted
 ##   {"type": "move", "unit": id, "to": Vector2i}
 ##   {"type": "undo_move", "unit": id}
 ##   {"type": "skill", "unit": id, "skill": skill_id, "target": Vector2i, "to": Vector2i（跳跃技能的落点）}
-##   {"type": "slam" | "grapple" | "mark" | "push_boulder", "unit": id, "target": Vector2i}
-##   {"type": "reinforce" | "struggle" | "release" | "wait", "unit": id}
+##   {"type": "mark" | "push_boulder", "unit": id, "target": Vector2i}
+##   {"type": "wait", "unit": id}
 ##   {"type": "face", "unit": id, "facing": Vector2i}
 ## perform() 返回 {"ok": bool, "error": String, "action": Dictionary, "events": Array}。
 

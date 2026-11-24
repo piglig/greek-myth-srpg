@@ -10,6 +10,6 @@ bots:
     party_hp_left_p50: [0.25, 0.70]
     battles_with_break: [0.80, 1.00]    # 破势是本战要教的核心
     phase2_reached: [0.60, 1.00]        # 大多数胜局应该打到洞穴阶段
-    battles_with_grapple: [0.50, 1.00]
+    battles_with_throw: [0.50, 1.00]   # 过肩摔取代了擒抱（2026-11-25），区间沿用，未重新论证
   novice:
     win_rate: [0.15, 0.50]

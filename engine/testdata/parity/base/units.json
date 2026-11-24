@@ -10,11 +10,10 @@
     "jump": 2,
     "skills": [
       "spear",
-      "shield_bash"
+      "shield_bash",
+      "shoulder_throw"
     ],
-    "traits": {
-      "grapple": 4
-    }
+    "traits": {}
   },
   "atalanta": {
     "name": "阿塔兰忒",
@@ -47,12 +46,11 @@
     "jump": 2,
     "skills": [
       "club",
-      "heracles_bow"
+      "heracles_bow",
+      "shoulder_throw"
     ],
     "traits": {
-      "grapple": 7,
-      "guest": true,
-      "strong": true
+      "guest": true
     }
   },
   "wolf": {

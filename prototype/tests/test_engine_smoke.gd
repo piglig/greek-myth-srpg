@@ -34,9 +34,9 @@ func test_engine_starts_and_serves_the_tables() -> void:
 	check(Battles.title("1-4").begins_with("1-4"), "battle title")
 	eq(SkillCatalog.get_skill("spear")["name"], "矛刺", "skill names")
 	check(SkillCatalog.get_skill("pounce").has("leap"), "leap skills are marked")
-	eq(SkillTree.validate("hero", ["slam", "iron_arm", "shield_wall"]), "", "4 points ok")
-	eq(SkillTree.validate("hero", ["slam", "iron_arm", "shield_wall", "intercept"]), "over budget", "6 points")
-	eq(SkillTree.cost("hero", ["slam", "iron_arm"]), 3, "cost")
+	eq(SkillTree.validate("hero", ["iron_arm", "stagger_fist", "shield_wall"]), "", "4 points ok")
+	eq(SkillTree.validate("hero", ["iron_arm", "stagger_fist", "shield_wall", "intercept"]), "over budget", "6 points")
+	eq(SkillTree.cost("hero", ["iron_arm", "stagger_fist"]), 3, "cost")
 	check(SkillTree.trees().has("hero") and SkillTree.trees().has("atalanta"), "trees")
 	eq(UnitCatalog.unit_def("lion")["name"], "涅墨亚狮子", "unit names")
 
@@ -50,7 +50,7 @@ func test_move_attack_and_end_turn() -> void:
 	eq(s.grid.width, 12, "grid width")
 	var hero := s.unit("hero")
 	eq(hero.pos, Vector2i(1, 8), "hero start")
-	check(hero.has_trait("slam") and hero.has_trait("grapple"), "default picks and base traits arrive")
+	check(hero.has_trait("iron_arm") and hero.skills.has("shoulder_throw"), "default picks and the throw arrive")
 
 	# 移动：目的地来自引擎，走完后同一个 UnitState 对象原地更新
 	var dests := Movement.destinations(s, hero)

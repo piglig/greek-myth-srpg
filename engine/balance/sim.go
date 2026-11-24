@@ -32,7 +32,7 @@ type SimOptions struct {
 	Overrides []string        // 参数扫描的数值改写："units:heracles.str=16"，只能改已有的键
 	Workers   int             // 并行数；0 由引擎自己定
 	MaxRounds int             // 超过这么多回合算超时（默认 30）
-	Picks     json.RawMessage // 可选：指定技能树选点，{"hero": ["slam", …]}
+	Picks     json.RawMessage // 可选：指定技能树选点，{"hero": ["iron_arm", …]}
 	// Progress 汇报累计完成数；可以从任意协程调用。
 	Progress func(done, total int)
 }

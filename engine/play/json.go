@@ -34,11 +34,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 		}
 		traits := [][2]any{}
 		for _, name := range u.Traits.Names() {
-			var v any = true
-			if name == "grapple" {
-				v = u.Traits.Grapple
-			}
-			traits = append(traits, [2]any{name, v})
+			traits = append(traits, [2]any{name, true})
 		}
 		units[i] = obj{
 			"id": u.ID, "def": u.DefID, "tree": u.TreeKey(), "name": u.Name, "team": int(u.Team), "pos": xy(u.Pos), "size": u.Size,
@@ -48,8 +44,8 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 			"stagger": u.Stagger, "stagger_max": u.StaggerMax, "boss": u.IsBoss(),
 			"actions_per_turn": u.ActionsPerTurn, "actions_left": u.ActionsLeft,
 			"has_moved": u.HasMoved, "has_acted": u.HasActed, "assist_used": u.AssistUsed, "mark_used": u.MarkUsed,
-			"intercept_used": u.InterceptUsed, "post_move": u.PostMove, "grappling": u.GrapplingID,
-			"grappled_by": u.GrappledByID, "escape": u.Escape, "alive": u.Alive, "hidden": u.Hidden,
+			"intercept_used": u.InterceptUsed, "post_move": u.PostMove,
+			"alive": u.Alive, "hidden": u.Hidden,
 			"can_undo": u.CanUndoMove(), "height": s.UnitHeight(u),
 		}
 	}
@@ -129,19 +125,9 @@ func eventsJSON(events []rules.Event) []obj {
 			m["target"], m["from"], m["to"] = e.Target, xy(e.From), xy(e.To)
 		case rules.EvFall:
 			m["target"], m["levels"] = e.Target, e.Levels
-		case rules.EvGrappleStart:
-			m["grappler"], m["target"], m["escape"] = e.Grappler, e.Target, e.Escape
-		case rules.EvGrappleEnd:
-			m["grappler"], m["target"], m["why"] = e.Grappler, e.Target, e.Why
-		case rules.EvChoke:
-			m["grappler"], m["target"], m["amount"] = e.Grappler, e.Target, e.Amount
-		case rules.EvEscapeTick:
-			m["target"], m["escape"] = e.Target, e.Escape
-		case rules.EvReinforce, rules.EvStruggle:
-			m["unit"], m["escape"] = e.Unit, e.Escape
 		case rules.EvFace:
 			m["unit"], m["facing"] = e.Unit, xy(e.Facing)
-		case rules.EvMark, rules.EvSlam:
+		case rules.EvMark, rules.EvThrow:
 			m["unit"], m["target"] = e.Unit, e.Target
 		case rules.EvMove:
 			m["unit"], m["from"], m["to"], m["path"] = e.Unit, xy(e.From), xy(e.To), cellsJSON(e.Path)
@@ -183,7 +169,7 @@ func actionOut(a rules.Action) obj {
 		if a.HasTo {
 			m["to"] = xy(a.To)
 		}
-	case rules.ActSlam, rules.ActGrapple, rules.ActMark, rules.ActPushBoulder:
+	case rules.ActMark, rules.ActPushBoulder:
 		m["target"] = xy(a.Target)
 	case rules.ActFace:
 		m["facing"] = xy(a.Facing)

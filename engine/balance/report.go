@@ -19,10 +19,10 @@ var StatusStyle = map[string][2]string{
 	"KNOWN": {"已知问题", "#6d4c8d"}, "NO_DATA": {"无数据", "#757575"},
 }
 
-var sourceNames = map[string]string{"fall": "坠落", "choke": "窒息", "collision": "撞击", "edge": "坠出边缘", "assist": "援护"}
+var sourceNames = map[string]string{"fall": "坠落", "collision": "撞击", "edge": "坠出边缘", "assist": "援护"}
 
 var mechanicNames = [][2]string{
-	{"counts.grapple_start", "擒抱"}, {"counts.slam", "摔投"}, {"counts.mark", "标记"}, {"counts.intercept", "截击"},
+	{"counts.throw", "过肩摔"}, {"counts.mark", "标记"}, {"counts.intercept", "截击"},
 	{"counts.leap", "跃射"}, {"counts.fall_enemy", "敌人坠落"}, {"counts.broken", "破势"}, {"counts.assist", "援护"},
 	{"counts.knockback", "击退"},
 }

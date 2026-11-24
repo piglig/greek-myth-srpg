@@ -42,7 +42,7 @@
 |---|---|---|
 | 持盾主角 | 架盾时露出肩膀；盾面先受撞、肘回收、重量压到后脚、再站稳。护人时先让观众看清敌矛刺向谁，再侧踏送盾。致命一击后以盾撑地再倒。 | [截击护人](art/previews/chapter-one-chiron-shield-intercept.mp4) · [主角与阿塔兰忒倒地](art/previews/chapter-one-hero-atalanta-falls.mp4) |
 | 阿塔兰忒及其他弓手 | 转身保持持弓手，箭从搭箭位置离弦，飞向实际目标。阿塔兰忒侧撤时护住弓，留出攻击落空的空间；敌方弓手收弓时弓随手臂落下。 | [侧后持弓](art/previews/atalanta-beasts-subtle-polish.mp4) · [敌方射击与收势](art/previews/forest-raider-combat.mp4) |
-| 赫拉克勒斯及重装人形 | 先沉重心，再推石、挥棒或擒抱；推完先卸力，再沿可达弧线拿棒。换弓时保留重型角色的节奏。倒地先以棒支撑，腿软后侧身砸下。 | [换弓与射击](art/previews/heracles-bow-exchange.mp4) · [木棒撑地](art/previews/chapter-one-heracles-club-fall.mp4) |
+| 赫拉克勒斯及重装人形 | 先沉重心，再推石、挥棒或过肩摔；推完先卸力，再沿可达弧线拿棒。换弓时保留重型角色的节奏。倒地先以棒支撑，腿软后侧身砸下。 | [换弓与射击](art/previews/heracles-bow-exchange.mp4) · [木棒撑地](art/previews/chapter-one-heracles-club-fall.mp4) |
 | 劫掠者与村民 | 普通劫掠者劈砍干脆；头目有更重的蓄力和收势，倒地前多撑一拍。村民遭致命攻击时抬臂护身、踉跄倒下。 | [头目与弓手倒地](art/previews/chapter-one-raider-archer-chief-falls.mp4) · [护送村民](art/previews/chapter-one-villager-falls.mp4) |
 | 狼、野猪与狮 | 狼回身快，前爪换位后咬；野猪前蹄踩稳、后躯转过来再冲。直走连续，拐点收步。狮扑用后腿推出体重、前掌承接落地；破势时前掌会失去支撑。 | [狼与野猪拐弯接敌](art/previews/chapter-one-wolf-boar-corner-approach.mp4) · [狮子的破势](art/previews/chapter-one-lion-guard-break.mp4) |
 | 醉酒半人马与喀戎 | 醉酒者后蹄蹬地、肩送矛、前蹄承重，收势多晃一下。喀戎受伤时先稳住马身再拉弓；倒地先收弓，前腿失力才侧倒。同体型可共用足底和朝向基准，表演仍按角色分别绘制。 | [醉酒半人马出矛](art/previews/pholoe-centaur-spear.mp4) · [喀戎射箭](art/previews/pholoe-chiron-bow.mp4) · [喀戎倒地](art/previews/chapter-one-chiron-fall.mp4) |
@@ -54,7 +54,7 @@
 | 近战／远程命中 | 预备姿势交代方向；矛尖、盾沿、箭或蹄到达接触点，再给局部冲击、拟音和受击反应。脚步、尘土跟随承重脚。 | 接触前一帧和后一帧。侧后方放箭时，首个飞行位置应接上弓弦。 |
 | 轻击／重击／格挡 | 轻击局部回收，重击让重心明显移动。成功架盾可用盾与后脚承力。各体型可以有不同的稳定时间。 | 看支撑脚与武器；能辨认力度，也能看出角色最后站稳。 |
 | 闪避／破势 | 闪避让武器掠过原位置；真正破防才播放失衡和全角色共用的破势拟音 `break_guard`。普通受击沿用各自的反应。 | 在普通命中与破势两次结算间对照。阿塔兰忒闪避、劫掠者头目破势的第一章演示使用专门配置的触发条件。 |
-| 击退／摔投／阵亡 | 地面位移、离地、落地尘土各有时机。最后一击连续过渡到失去支撑；倒地终姿依体型和持械选择。主角摔投沿用技能树触发。 | 落点与规则格相符，存活者能起身，阵亡者完成倒地。 |
+| 击退／过肩摔／阵亡 | 地面位移、离地、落地尘土各有时机。最后一击连续过渡到失去支撑；倒地终姿依体型和持械选择。主角的过肩摔是自带招式。 | 落点与规则格相符，存活者能起身，阵亡者完成倒地。 |
 | 回合与行动提示 | PC 界面沿用希腊陶绘图标、深色底和暖白文字。敌方顺序展示本回合；角色技能详情归入独立技能树。结算信息用图标、对象和结果辅助阅读。 | 在密集阵形中仍能找到行动者、目标与足下格，特效散去后仍能读出战果。 |
 
 [战斗事件播放](prototype/view/battle_controller.gd) · [共用破势拟音实战](art/previews/chapter-one-shared-break-foley.mp4) · [闪避与破势对照](art/previews/chapter-one-atalanta-dodge-chief-break.mp4) · [摔投与落地](art/previews/chapter-one-hero-raider-throw.mp4)。

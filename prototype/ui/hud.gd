@@ -11,13 +11,13 @@ signal tactical_changed(on: bool)
 signal cancel_pressed
 signal order_inspected(unit_id: String)
 const MARKS := preload("res://art/original/interface/ceramic_marks.svg")
-const ACTION_MARK := {"spear":0,"slash":0,"shield_bash":1,"grapple":2,"wait":3,"facing":4,
+const ACTION_MARK := {"spear":0,"slash":0,"shield_bash":1,"shoulder_throw":13,"wait":3,"facing":4,
 	"move":18,"leap":18,"face":4,"undo_move":5,"shoot":6,"leap_shot":6,"heracles_bow":6,"bandit_bow":6,"vital_shot":7,
-	"mark":7,"club":13,"slam":13,"release":14,"struggle":14,"reinforce":2,"push_boulder":17}
+	"mark":7,"club":13,"push_boulder":17}
 ## The stamp for each command, from the same set the camp uses. A technique with a drawing
 ## of its own (the tree's) uses that; these cover the rest.
 const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash","heavy_cut":"act_slash","shield_bash":"act_shield",
-	"grapple":"act_grapple","reinforce":"act_guard","release":"act_release","struggle":"act_release","wait":"act_wait",
+	"shoulder_throw":"act_grapple","wait":"act_wait",
 	"facing":"act_facing","face":"act_facing","undo_move":"act_undo","move":"boot","leap":"jump","mark":"act_mark",
 	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","aimed_shot":"act_shoot","witch_fire":"act_fire",
 	"push_boulder":"act_push","trample":"heel_strike","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}
@@ -627,8 +627,6 @@ func set_unit(u: UnitState, height: int, resolving: bool) -> void:
 	if u.has_acted and u.post_move > 0:
 		availability = "可再移动"
 	var conditions := PackedStringArray()
-	if not u.grappled_by_id.is_empty():
-		conditions.append("被擒抱")
 	for status in u.statuses:
 		conditions.append(EventText.STATUS_NAMES.get(status,status))
 	_condition.text = "行动中" if resolving else ("已移动" if u.has_moved else "可移动")+" · "+availability

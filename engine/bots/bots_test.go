@@ -36,7 +36,7 @@ func profile(t *testing.T, name string) Profile {
 
 func TestProfiles(t *testing.T) {
 	novice, skilled := profile(t, "novice"), profile(t, "skilled")
-	if novice.Search != "greedy" || novice.Weights.Danger != 2 || novice.UseMark || novice.UseGrapple {
+	if novice.Search != "greedy" || novice.Weights.Danger != 2 || novice.UseMark {
 		t.Errorf("novice profile: %+v", novice)
 	}
 	if skilled.Search != "beam" || skilled.Beam != 6 || skilled.PerUnit != 8 || skilled.Weights != DefaultWeights() {
@@ -50,12 +50,18 @@ func TestProfiles(t *testing.T) {
 	}
 }
 
-// 新手不标记也不擒抱；熟手两样都会考虑。
+// 新手不标记；熟手会考虑。过肩摔是普通招式，两个机器人都会列进候选。
 func TestPlansRespectTheProfile(t *testing.T) {
-	count := func(name string) (marks, grapples, pushes, total int) {
-		s := build(t, "1-5")
-		// 把狮子挪到英雄旁边、阿塔兰忒的射程内
-		s.Unit("lion").Pos = rules.Cell{X: 6, Y: 9}
+	count := func(name string) (marks, throws, total int) {
+		s := build(t, "1-4")
+		// 把一头狼挪到英雄旁边、阿塔兰忒的射程内
+		hero := s.Unit("hero")
+		for _, u := range s.Units {
+			if u.DefID == "wolf" {
+				u.Pos = rules.Cell{X: hero.Pos.X, Y: hero.Pos.Y - 1}
+				break
+			}
+		}
 		b := New(profile(t, name))
 		for _, id := range []string{"hero", "atalanta", "heracles"} {
 			for _, p := range b.Plans(s, s.Unit(id)) {
@@ -63,23 +69,20 @@ func TestPlansRespectTheProfile(t *testing.T) {
 				if p.HasMark {
 					marks++
 				}
-				switch p.Main.Type {
-				case rules.ActGrapple:
-					grapples++
-				case rules.ActPushBoulder:
-					pushes++
+				if p.Main.Type == rules.ActSkill && p.Main.Skill == "shoulder_throw" {
+					throws++
 				}
 			}
 		}
 		return
 	}
-	marks, grapples, _, total := count("novice")
-	if marks != 0 || grapples != 0 || total == 0 {
-		t.Errorf("novice: %d marks, %d grapples, %d plans", marks, grapples, total)
+	marks, throws, total := count("novice")
+	if marks != 0 || throws == 0 || total == 0 {
+		t.Errorf("novice: %d marks, %d throws, %d plans", marks, throws, total)
 	}
-	marks, grapples, _, _ = count("skilled")
-	if marks == 0 || grapples == 0 {
-		t.Errorf("skilled: %d marks, %d grapples", marks, grapples)
+	marks, throws, _ = count("skilled")
+	if marks == 0 || throws == 0 {
+		t.Errorf("skilled: %d marks, %d throws", marks, throws)
 	}
 }
 

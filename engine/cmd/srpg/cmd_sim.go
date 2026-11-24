@@ -79,7 +79,7 @@ func cmdSimulate(args []string) error {
 	seed := fs.Int("seed", 0, "起始种子")
 	out := fs.String("out", "", "输出的 JSONL 文件（留空写到标准输出）")
 	workers := fs.Int("workers", 0, "并行数（默认全部 CPU）")
-	picksJSON := fs.String("picks", "", "技能树加点 JSON，例如 {\"hero\":[\"slam\"]}；默认用表里的默认加点")
+	picksJSON := fs.String("picks", "", "技能树加点 JSON，例如 {\"hero\":[\"iron_arm\"]}；默认用表里的默认加点")
 	maxRounds := fs.Int("max-rounds", sim.DefaultMaxRounds, "回合上限，超过判 timeout")
 	trace := fs.Bool("trace", false, "打印可读的事件日志（单线程；用来看机器人某个种子到底做了什么）")
 	quiet := fs.Bool("quiet", false, "不打印每场的结果")

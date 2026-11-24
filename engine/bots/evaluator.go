@@ -14,7 +14,6 @@ type Weights struct {
 	EnemyHP  float64 // 敌人损失的生命（按敌人的强度缩放）
 	EnemyKO  float64 // 击倒敌人
 	Stagger  float64 // 首领破势进度
-	Held     float64 // 擒抱住敌人
 	PlayerHP float64 // 我方保住的生命
 	PlayerKO float64 // 我方单位倒下
 	HeroKO   float64 // 主角倒下（代价大得多）
@@ -25,14 +24,14 @@ type Weights struct {
 
 // DefaultWeights 返回默认权重。
 func DefaultWeights() Weights {
-	return Weights{EnemyHP: 10, EnemyKO: 8, Stagger: 6, Held: 2, PlayerHP: 6, PlayerKO: 25,
+	return Weights{EnemyHP: 10, EnemyKO: 8, Stagger: 6, PlayerHP: 6, PlayerKO: 25,
 		HeroKO: 100, Danger: 5, Distance: 0.15, Seal: 4}
 }
 
 // Evaluator 从我方角度给局面打分，越高越好。
 // 局面的价值 = Material + Positional：
 //
-//	Material   —— 谁受伤、倒下、破势、被擒抱：只有执行规则时才会变
+//	Material   —— 谁受伤、倒下、破势：只有执行规则时才会变
 //	Positional —— 危险度和接近距离：我方单位换个位置站时唯一会变的部分，
 //	              所以比较候选落点时不必重算其余部分
 type Evaluator struct {
@@ -93,19 +92,6 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 					progress = float64(u.Stagger) / float64(u.StaggerMax)
 				}
 				v += float64(w.Stagger * progress)
-			}
-			if u.GrappledByID != "" {
-				v += w.Held
-				// 能撑过一次挣扎的擒抱（挣脱值 >= 2）会在回合结束时窒息：现在就记上，
-				// 否则搜索看不到延后的收益，会用得太少。
-				g := s.Unit(u.GrappledByID)
-				if g != nil && g.Alive && u.Escape >= 2 {
-					choke := g.Traits.Grapple
-					if g.Traits.IronArm {
-						choke += rules.IronArmChoke
-					}
-					v += w.EnemyHP * toughness * float64(min(choke, max(u.HP, 0))) / float64(u.MaxHP)
-				}
 			}
 		case rules.TeamPlayer:
 			if !u.Alive {
@@ -176,9 +162,6 @@ func (ev *Evaluator) danger(s *rules.BattleState, players, enemies []*rules.Unit
 		cells := ev.threatOf(s, e)
 		reachable := ev.reachable[:0]
 		for i, p := range players {
-			if e.GrappledByID != "" && e.GrappledByID != p.ID {
-				continue
-			}
 			covered := false
 			for dy := 0; dy < p.Size && !covered; dy++ {
 				for dx := 0; dx < p.Size; dx++ {
@@ -235,9 +218,6 @@ func (ev *Evaluator) expectedHit(s *rules.BattleState, e, p *rules.UnitState) fl
 		}
 		hit = best
 		ev.hit[e.Index()][p.Index()] = hit
-	}
-	if e.GrappledByID == p.ID {
-		return hit * rules.GrappledAttackMult
 	}
 	return hit
 }

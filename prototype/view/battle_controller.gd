@@ -530,7 +530,7 @@ func _open_menu() -> void:
 func _pick(screen: Vector2) -> Vector2i:
 	if hud.is_over_panel(screen):
 		return Defs.NO_POS
-	if _mode in [Mode.IDLE,Mode.TARGET] and not _needs_landing() and _pending.get("type","") != "slam":
+	if _mode in [Mode.IDLE,Mode.TARGET] and not _needs_landing():
 		for id in hud.overlay.marker_hits:
 			var rect: Rect2 = hud.overlay.marker_hits[id]
 			var unit := state.unit(id)
@@ -696,8 +696,8 @@ func _on_action(index: int) -> void:
 			_set_mode(Mode.IDLE)
 		"wait":
 			# Waiting ends with choosing which way to face. Pressing 待机 again keeps the
-			# facing as it is; someone held in a grapple has no choice to make.
-			if _mode == Mode.FACING or state.unit(_selected).grappled_by_id != "":
+			# facing as it is.
+			if _mode == Mode.FACING:
 				_perform({"type":"wait","unit":_selected})
 			else:
 				_set_mode(Mode.FACING)
@@ -814,8 +814,18 @@ func _play(events: Array, from_round := -1) -> void:
 				defender=unit_views[e.unit] as PixelUnit
 				ward=unit_views[e.protected]
 				guard_home=defender.position
-			"slam":
-				_popup(e["target"], "摔投", Color(1, 0.85, 0.5))
+			"throw":
+				# Over the shoulder: the thrown one flies in an arc to wherever the knockback
+				# that follows says they land. With nowhere to land they stay, and the
+				# collision or the edge that follows tells why.
+				_popup(e["target"], "过肩摔", Color(1, 0.85, 0.5))
+				var thrower := unit_views[e.unit] as PixelUnit
+				var flung := unit_views[e.target] as PixelUnit
+				for follow in events:
+					if follow.type == "knockback" and follow.target == e.target:
+						thrown_target = e.target
+						recovery = await _animate_throw(thrower,flung,map_view.anchor_world(state,follow.to,flung.size),state.unit(e.target).alive)
+						break
 			"knockback":
 				if e.target != thrown_target:
 					await _knockback(e)
@@ -942,66 +952,6 @@ func _play(events: Array, from_round := -1) -> void:
 				if defender!=null and e.target==defender.unit_id:
 					await _recover_cover(defender,guard_home,false)
 					defender=null
-			"grapple_start":
-				var holder: UnitView = unit_views[e.grappler]
-				var held: UnitView = unit_views[e.target]
-				var direction := (held.position-holder.position).slide(Vector3.UP).normalized()
-				holder.face_point(held.position)
-				held.face_point(holder.position)
-				var grappler := holder as PixelUnit
-				grappler.holding = held
-				var seize := create_tween()
-				seize.tween_property(grappler,"clinch",.66,.25)
-				var raider_pair := grappler.kind=="hero" and (held as PixelUnit).kind=="bandit"
-				if raider_pair:
-					seize.parallel().tween_method(grappler.set_raider_throw,0.,12.,.25)
-					seize.parallel().tween_method((held as PixelUnit).set_raider_throw,0.,12.,.25)
-				elif (held as PixelUnit).kind=="lion":
-					seize.parallel().tween_method((held as PixelUnit).set_lion_wrestle,0.,13.,.25)
-				await seize.finished
-				if not raider_pair and (held as PixelUnit).kind!="lion":
-					held.react_to_hit(direction,.22)
-				hud.overlay.holds[e.grappler] = e.target
-				_popup(e.target,"擒住",Color.WHEAT,holder)
-				var lock := create_tween()
-				lock.tween_property(grappler,"clinch",1.,.28)
-				await lock.finished
-			"struggle":
-				var held := unit_views[e.unit] as PixelUnit
-				if held.kind=="lion":
-					var resist := held.create_tween()
-					resist.tween_method(held.set_lion_wrestle,13.,24.,.20)
-					resist.tween_method(held.set_lion_wrestle,24.,13.,.24)
-					await resist.finished
-			"grapple_end":
-				hud.overlay.holds.erase(e.grappler)
-				var holder := unit_views[e.grappler] as PixelUnit
-				var held := unit_views.get(e.target) as PixelUnit
-				var raider_pair := held!=null and holder.kind=="hero" and held.kind=="bandit"
-				if held and (held.kind=="lion" or raider_pair) and e.why=="slam":
-					var landing := held.position
-					for follow in events:
-						if follow.type=="knockback" and follow.target==e.target:
-							landing=map_view.anchor_world(state,follow.to,held.size)
-							break
-					thrown_target=e.target
-					recovery=await _animate_throw(holder,held,landing,state.unit(e.target).alive)
-					continue
-				var unwind := create_tween()
-				unwind.tween_property(holder,"clinch",0.,.34)
-				if raider_pair:
-					for actor: PixelUnit in [holder,held]:
-						if actor.in_raider_throw:
-							unwind.parallel().tween_method(actor.set_raider_throw,12.,0.,.30)
-							unwind.tween_callback(actor.set_raider_throw.bind(-1.))
-				if held and held.kind=="lion" and not held.falling:
-					unwind.parallel().tween_method(held.set_lion_wrestle,13.,0.,.30)
-					unwind.tween_callback(held.set_lion_wrestle.bind(-1.))
-				await unwind.finished
-				if is_instance_valid(holder.holding): holder.holding.set_hold_offset(Vector3.ZERO)
-				holder.holding=null
-				if e["target"] != "":
-					_popup(e["target"], EventText.END_REASONS.get(e["why"], ""), Color(0.85, 0.85, 0.85))
 			"heal":
 				if SkillCatalog.get_skill(e.skill).get("item",false):
 					await _take_tonic(unit_views[e.unit],unit_views[e.target],e.skill)
@@ -1075,52 +1025,41 @@ func _play(events: Array, from_round := -1) -> void:
 
 
 func _animate_throw(holder: PixelUnit, held: PixelUnit, landing: Vector3, survives: bool) -> Tween:
-	var raider := held.kind=="bandit"
-	var pose := held.set_raider_throw if raider else held.set_lion_wrestle
+	var raider := holder.kind=="hero" and held.kind=="bandit" and holder.raider_throw_sheet != null
 	var home := holder.position
 	var origin := held.position
 	var facing := (origin-home).slide(Vector3.UP).normalized()
+	holder.face_point(origin)
 	var load := holder.create_tween()
-	load.tween_property(holder,"position",home+facing*.13,.25).set_trans(Tween.TRANS_SINE)
-	load.parallel().tween_property(holder,"clinch",.80,.25)
-	load.parallel().tween_method(pose,12. if raider else 13.,24. if raider else 32.,.25)
+	load.tween_property(holder,"position",home+facing*.13,.22).set_trans(Tween.TRANS_SINE)
 	if raider:
-		holder.holding=null
-		var belt := held._sprite.position
-		load.parallel().tween_method(held.set_hold_offset,belt,belt-facing*.16+Vector3.UP*.16,.25)
-		load.parallel().tween_method(holder.set_raider_throw,12.,24.,.25)
+		load.parallel().tween_method(held.set_raider_throw,12.,24.,.22)
+		load.parallel().tween_method(holder.set_raider_throw,12.,24.,.22)
 	await load.finished
-	var hand_lift := held._sprite.position.y-.014 if raider else 0.
-	origin+=held._sprite.position.slide(Vector3.UP)
-	holder.holding=null
-	held.position=origin
-	held.set_hold_offset(Vector3.ZERO)
 	var flight := held.create_tween()
 	flight.tween_method(func(t: float):
 		held.position=origin.lerp(landing,t)
-		if raider:
-			# Keep the destination ring on the ground as both boots leave it.
-			held.lift_body((1.-t)*hand_lift+2.65*t*(1.-t))
-		else:
-			held.position.y+=1.65*t*(1.-t)
-		pose.call(lerpf(24. if raider else 32.,40.,t)),0.,1.,.38)
+		# High enough to clear the thrower's head on the way over.
+		held.position.y+=3.1*t*(1.-t)
+		if raider: held.set_raider_throw(lerpf(24.,40.,t)),0.,1.,.40)
 	flight.parallel().tween_property(holder,"position",home,.32)
-	flight.parallel().tween_property(holder,"clinch",0.,.25)
 	if raider:
-		flight.parallel().tween_method(holder.set_raider_throw,24.,40.,.38)
+		flight.parallel().tween_method(holder.set_raider_throw,24.,40.,.40)
 	await flight.finished
+	held.position=landing
 	BattleFX.spawn(_units_root,DUST,landing+Vector3.UP*.08,.26)
-	Soundscape.cue("hit" if raider else "paw")
-	if raider:
-		var recover := holder.create_tween()
-		recover.tween_method(holder.set_raider_throw,40.,55.,.23)
-		recover.tween_callback(holder.set_raider_throw.bind(-1.))
+	Soundscape.cue("hit")
+	if not raider:
+		return null
+	var recover := holder.create_tween()
+	recover.tween_method(holder.set_raider_throw,40.,55.,.23)
+	recover.tween_callback(holder.set_raider_throw.bind(-1.))
 	if not survives:
 		return null
 	var rise := held.create_tween()
 	rise.tween_interval(.16)
-	rise.tween_method(pose,40.,55.,.69 if raider else .54).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	rise.tween_callback(pose.bind(-1.))
+	rise.tween_method(held.set_raider_throw,40.,55.,.69).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	rise.tween_callback(held.set_raider_throw.bind(-1.))
 	return rise
 
 
@@ -1689,10 +1628,7 @@ func _sync_views() -> void:
 		var painted := v as PixelUnit
 		painted.guarding=u.has_status("guard")
 		if u.def_id=="lion" and not painted.falling:
-			painted.set_lion_exposed(u.alive and not u.hidden and u.has_status("stunned") and u.has_status("staggered") and u.grappled_by_id=="")
-		if u.def_id in ["hero","heracles"]:
-			painted.holding=unit_views.get(u.grappling_id)
-			painted.clinch=1. if painted.holding else 0.
+			painted.set_lion_exposed(u.alive and not u.hidden and u.has_status("stunned") and u.has_status("staggered"))
 	for id in boulder_views:
 		var b: Dictionary = state.cave.boulders[id]
 		_place_boulder(id,1.0 if b.placed else (.10 if b.progress > 0 else 0.0))
@@ -2117,10 +2053,9 @@ func _show_targets(u: UnitState) -> void:
 	var pending := _pending.duplicate()
 	pending["unit"] = u.id
 	var t := Rules.targeting(state, pending)
-	if _pending["type"] == "slam" or _needs_landing():
-		var cells: Array[Vector2i] = t["valid"] if _pending["type"] == "slam" else t["landings"]
-		var col := Color(1.0, 0.85, 0.3) if _pending["type"] == "skill" else Color(1.0, 0.5, 0.2)
-		highlights.show_cells("valid", cells, col, 2, 0)
+	if _needs_landing():
+		var cells: Array[Vector2i] = t["landings"]
+		highlights.show_cells("valid", cells, Color(1.0, 0.85, 0.3), 2, 0)
 		return
 	if _pending.has("to"):
 		highlights.show_frame("landing_pick", u.footprint(_pending["to"]), Color(1.0, 0.85, 0.3), 12)
@@ -2142,6 +2077,7 @@ func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 	if def.has("self_status") or def.has("area_status"): return ""
 	var words := "%s 倍%s伤害" % [str(def.get("mult",1)),"神性" if int(def.get("type",0)) == Defs.DamageType.DIVINE else "物理"]
 	if int(def.get("knockback",0)) > 0: words += "，击退 %d 格" % int(def.knockback)
+	if def.get("throw",false): words += "，把对方从头顶摔到自己另一侧的格子；落差、撞击照常结算，摔不动大体型"
 	if int(def.get("stagger_bonus",0)) > 0: words += "，额外破势 %d" % int(def.stagger_bonus)
 	return words+"。"
 
@@ -2173,7 +2109,7 @@ func _actions_for(u: UnitState) -> Array:
 		var carried: bool = def.get("item",false)
 		var entry := {"group":"item" if carried else ("attack" if i == 0 else "skill"),"label":"攻击" if i == 0 and not carried else str(def["name"]),
 			"title":str(def["name"]),"art":sk,"cooldown":cd,"brief":_brief(def),"kind":"target","action":act,
-			"enabled":can_act and cd == 0 and u.grappling_id == "","active":_is_pending(act)}
+			"enabled":can_act and cd == 0,"active":_is_pending(act)}
 		entry.words = _words_for(u,sk,def)
 		entry.recharge = int(def.get("cooldown",0))
 		if carried:
@@ -2181,21 +2117,9 @@ func _actions_for(u: UnitState) -> Array:
 			entry.brief += "　·　剩 %d 件" % entry.count
 		if def.has("self_status"):
 			entry.kind = "do"
-			entry.enabled = can_act and cd == 0 and u.grappling_id == ""
+			entry.enabled = can_act and cd == 0
 			entry.erase("active")
 		out.append(entry)
-	if u.has_trait("grapple"):
-		if u.grappling_id == "":
-			var act := {"type": "grapple"}
-			out.append({"group":"skill","label":"擒抱","art":"grapple","brief":"射程 1","words":"擒住相邻的敌人，使其无法行动，每回合受窒息伤害。","kind":"target","action":act,"enabled":can_act,"active":_is_pending(act)})
-		else:
-			if u.has_trait("slam"):
-				var act := {"type": "slam"}
-				out.append({"group":"skill","label":"摔投","art":"slam","brief":"射程 1","words":"把擒住的人向任一方向摔出 1 格，结算坠落。","kind":"target","action":act,"enabled":can_act,"active":_is_pending(act)})
-			out.append({"group":"skill","label":"加固","art":"reinforce","brief":"自身","words":"抓得更牢，对方更难挣脱。","kind":"do","action":{"type":"reinforce"},"enabled":can_act})
-			out.append({"group":"skill","label":"松开","art":"release","brief":"自身","words":"放开擒住的人。不耗行动。","kind":"do","action":{"type":"release"},"enabled":my_phase})
-	if u.grappled_by_id != "":
-		out.append({"group":"skill","label":"挣扎","art":"struggle","brief":"自身","words":"试着挣脱擒抱。","kind":"do","action":{"type":"struggle"},"enabled":can_act})
 	if u.has_trait("hunter_mark"):
 		var act := {"type": "mark"}
 		out.append({"group":"skill","label":"标记","art":"mark","brief":"视野内","words":"标记一个敌人，对它的射击更远更准。不耗行动。","kind":"target","action":act,"enabled":my_phase and not u.mark_used,"active":_is_pending(act)})
@@ -2299,7 +2223,7 @@ func _on_hover() -> void:
 
 	if _mode == Mode.TARGET and _needs_landing():
 		info.append("[b]选择落点[/b]（3 格内，最多高 3 层）")
-	elif _mode == Mode.TARGET and (at != null or _pending.get("type", "") == "slam"):
+	elif _mode == Mode.TARGET and at != null:
 		var act := _pending.duplicate()
 		act["unit"] = _selected
 		act["target"] = _hovered
@@ -2467,6 +2391,36 @@ func _run_capture() -> void:
 			state.unit(foe_id).statuses = {}
 			state.unit("hero").statuses = {}
 			await get_tree().create_timer(1.0).timeout
+		"throw":
+			# The protagonist closes on the nearest enemy and throws them over his shoulder.
+			for turn in 6:
+				var u := state.unit("hero")
+				cam_rig.focus(unit_views["hero"].position)
+				var aim := Rules.targeting(state,{"type":"skill","unit":"hero","skill":"shoulder_throw"})
+				if aim.valid.is_empty() and not u.has_moved:
+					var best := u.pos
+					var score := 999
+					for cell: Vector2i in Movement.destinations(state,u,-1):
+						for other_id: String in state.order:
+							var other := state.unit(other_id)
+							if other.team != Defs.Team.ENEMY or not other.alive or other.hidden or other.size > 1: continue
+							var gap: int = abs(cell.x-other.pos.x)+abs(cell.y-other.pos.y)
+							if gap >= 1 and gap < score:
+								score = gap
+								best = cell
+					if best != u.pos:
+						await _perform({"type":"move","unit":"hero","to":best})
+						await get_tree().create_timer(.4).timeout
+					aim = Rules.targeting(state,{"type":"skill","unit":"hero","skill":"shoulder_throw"})
+				if not aim.valid.is_empty():
+					await get_tree().create_timer(.6).timeout
+					await _perform({"type":"skill","unit":"hero","skill":"shoulder_throw","target":aim.valid[0]})
+					await get_tree().create_timer(2.0).timeout
+					break
+				_end_turn()
+				await get_tree().create_timer(1.0).timeout
+				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
+				await get_tree().create_timer(.6).timeout
 		"heroes":
 			# The hired heroes fight a few rounds with what their trees taught them, for a
 			# recording: each uses the last-learnt technique that has a target, walking up

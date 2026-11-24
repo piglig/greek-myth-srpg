@@ -81,6 +81,7 @@
       "cleanse": {"type": "integer", "minimum": 1, "maximum": 5},
       "status": {"enum": ["burning", "poisoned", "rooted", "stunned"]},
       "pierce": {"type": "boolean"},
+      "throw": {"type": "boolean", "description": "throws the target over to the cell on the user's other side"},
       "area_knockback": {"type": "integer", "minimum": 1, "maximum": 3},
       "self_status": {"enum": ["impervious_hide"]},
       "area_status": {

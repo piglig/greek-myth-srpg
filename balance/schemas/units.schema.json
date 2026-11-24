@@ -91,11 +91,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "grapple": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "choke damage per settlement"
-          },
           "forest_stride": {
             "const": true
           },
@@ -123,10 +118,6 @@
           },
           "undead": {
             "const": true
-          },
-          "strong": {
-            "const": true,
-            "description": "rolls a boulder home in one push"
           }
         }
       }

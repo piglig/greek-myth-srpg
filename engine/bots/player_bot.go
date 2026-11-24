@@ -9,7 +9,7 @@ import (
 
 // Profile 是机器人的水平设定。
 //
-//	novice  —— 按出场顺序一次只看一个单位，对方案分数做高温 softmax 抽样；不会标记，也不会擒抱
+//	novice  —— 按出场顺序一次只看一个单位，对方案分数做高温 softmax 抽样；不会标记
 //	skilled —— 对整个我方回合做束搜索（行动顺序和每个单位的方案），带一点随种子变化的噪声
 type Profile struct {
 	Name        string
@@ -19,7 +19,6 @@ type Profile struct {
 	PerUnit     int     // 每个单位精确评估的方案数
 	Noise       float64 // beam：分数噪声幅度
 	UseMark     bool
-	UseGrapple  bool
 	Weights     Weights
 }
 
@@ -35,7 +34,7 @@ func ProfileByName(name string) (Profile, error) {
 		return Profile{Name: name, Search: "greedy", Temperature: 3.0, PerUnit: 6, Weights: w}, nil
 	case "skilled":
 		return Profile{Name: name, Search: "beam", Beam: 6, PerUnit: 8, Noise: 0.3, UseMark: true,
-			UseGrapple: true, Weights: w}, nil
+			Weights: w}, nil
 	}
 	return Profile{}, fmt.Errorf("没有这个机器人: %s（可选 %v）", name, ProfileNames())
 }
@@ -317,30 +316,6 @@ func (b *Bot) Plans(s *rules.BattleState, u *rules.UnitState) []Plan {
 
 func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) []Plan {
 	uid := u.ID
-	if u.GrappledByID != "" {
-		out = append(out, Plan{Main: rules.Simple(rules.ActStruggle, uid)})
-		for _, sk := range u.Skills {
-			act := rules.UseSkill(uid, sk.ID, s.Unit(u.GrappledByID).Pos)
-			if rules.Validate(s, act) == "" {
-				out = append(out, Plan{Main: act})
-			}
-		}
-		return out
-	}
-	if u.GrapplingID != "" {
-		out = append(out, Plan{Main: rules.Simple(rules.ActReinforce, uid)}, Plan{Main: rules.Wait(uid)})
-		if u.Traits.Slam {
-			held := s.Unit(u.GrapplingID)
-			for _, c := range ring(s, held) {
-				act := rules.Slam(uid, c)
-				if rules.Validate(s, act) == "" {
-					out = append(out, Plan{Main: act})
-				}
-			}
-		}
-		return out
-	}
-
 	var enemies []*rules.UnitState
 	for _, e := range s.Units {
 		if e.Alive && e.Team == rules.TeamEnemy && !e.Hidden {
@@ -401,17 +376,6 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 				}
 			}
 		}
-		if b.Prof.UseGrapple && u.Traits.HasGrapple {
-			for i, e := range enemies {
-				if dist[i] != 1 {
-					continue
-				}
-				act := rules.Grapple(uid, e.Pos)
-				if rules.Validate(s, act) == "" {
-					out = append(out, plan(nil, act))
-				}
-			}
-		}
 		if s.Cave != nil {
 			for i := range s.Cave.Boulders {
 				push := rules.PushBoulder(uid, s.Cave.Boulders[i].Pos)
@@ -451,30 +415,6 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 	return out
 }
 
-// 紧贴 t 占地外圈的格子（按占地格子、再按北东南西的顺序，去重）。
-func ring(s *rules.BattleState, t *rules.UnitState) []rules.Cell {
-	var out []rules.Cell
-	for _, f := range t.Footprint(t.Pos) {
-		for _, d := range rules.Dirs {
-			c := f.Add(d)
-			if !s.Grid.InBounds(c) || t.Occupies(c) {
-				continue
-			}
-			dup := false
-			for _, o := range out {
-				if o == c {
-					dup = true
-					break
-				}
-			}
-			if !dup {
-				out = append(out, c)
-			}
-		}
-	}
-	return out
-}
-
 // --- 执行方案 ----------------------------------------------------------------------
 
 // ApplyPlan 在 s 上执行方案，事件追加到 ev（传 nil 不记录）。主行动失效时改为等待。
@@ -503,7 +443,7 @@ func (b *Bot) ApplyPlan(s *rules.BattleState, uid string, plan Plan, ev *[]rules
 			rules.Do(s, rules.Move(uid, best), ev)
 		}
 	}
-	if u.Alive && u.GrappledByID == "" && u.GrapplingID == "" {
+	if u.Alive {
 		f := faceNearest(s, u)
 		if f != u.Facing && f != (rules.Cell{}) {
 			rules.Do(s, rules.Face(uid, f), ev)

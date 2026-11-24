@@ -84,7 +84,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 42,
@@ -185,7 +185,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 42,
@@ -306,7 +306,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 88,
@@ -407,7 +407,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 88,
@@ -527,7 +527,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 90,
@@ -628,7 +628,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 90,
@@ -747,7 +747,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 78,
@@ -848,7 +848,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 78,
@@ -967,7 +967,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 91,
@@ -1068,7 +1068,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 91,
@@ -1188,7 +1188,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 95,
@@ -1289,7 +1289,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 95,
@@ -1408,7 +1408,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 92,
@@ -1509,7 +1509,7 @@
     },
     {
      "bot": "skilled",
-     "metric": "battles_with_grapple",
+     "metric": "battles_with_throw",
      "status": "PASS",
      "note": "",
      "n": 92,

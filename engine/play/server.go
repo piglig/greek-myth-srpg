@@ -455,7 +455,7 @@ func (s *Server) dispatch(req *request) obj {
 //
 //	landings —— 跳跃技能还没选落点时，可以落脚的锚点
 //	in_range —— 技能的射程范围（只看距离和直线，画底色用）
-//	valid    —— 现在真能指定的目标格（敌人的占地；摔投则是可摔向的格子）
+//	valid    —— 现在真能指定的目标格（敌人的占地）
 func targeting(st *rules.BattleState, pending *actionJSON) obj {
 	out := obj{"landings": [][2]int{}, "in_range": [][2]int{}, "valid": [][2]int{}}
 	if pending == nil {
@@ -470,15 +470,6 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 	var landings, inRange, valid []rules.Cell
 	sk := u.Skill(pending.Skill)
 	switch {
-	case act.Type == rules.ActSlam:
-		for y := 0; y < g.Depth; y++ {
-			for x := 0; x < g.Width; x++ {
-				act.Target = rules.Cell{X: x, Y: y}
-				if rules.Validate(st, act) == "" {
-					valid = append(valid, act.Target)
-				}
-			}
-		}
 	case act.Type == rules.ActSkill && sk != nil && sk.HasLeap && !act.HasTo:
 		for y := 0; y < g.Depth; y++ {
 			for x := 0; x < g.Width; x++ {

@@ -18,7 +18,7 @@ func runsOf(bot string, wins, n int) Frame {
 	rows := make([]Run, n)
 	for i := range rows {
 		r := Run{Bot: bot, Win: i < wins, Result: "loss_hero",
-			Num: map[string]float64{"rounds": 8, "party_hp_left": 0.5, "counts.fall_enemy": 1, "counts.grapple_start": 1}}
+			Num: map[string]float64{"rounds": 8, "party_hp_left": 0.5, "counts.fall_enemy": 1, "counts.throw": 1}}
 		if r.Win {
 			r.Result = "win"
 		}

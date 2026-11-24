@@ -9,9 +9,9 @@ import (
 )
 
 // 记录次数的机制事件。
-var mechanics = []rules.EventType{rules.EvGrappleStart, rules.EvSlam, rules.EvMark, rules.EvIntercept,
+var mechanics = []rules.EventType{rules.EvThrow, rules.EvMark, rules.EvIntercept,
 	rules.EvLeap, rules.EvKnockback, rules.EvBroken, rules.EvAssist, rules.EvEdge, rules.EvCollision,
-	rules.EvStruggle, rules.EvPush, rules.EvSealed, rules.EvRetreat, rules.EvEmerge}
+	rules.EvPush, rules.EvSealed, rules.EvRetreat, rules.EvEmerge}
 
 var isMechanic = func() (set [64]bool) {
 	for _, t := range mechanics {
@@ -160,17 +160,12 @@ func (c *collector) collect(events []rules.Event, actor string) {
 	if len(events) == 0 {
 		return
 	}
-	// 同一批事件里：窒息伤害归擒抱者；坠落的起点是被击退前的位置
-	var grapplerOf, lastSource map[string]string
+	// 同一批事件里：坠落的起点是被击退前的位置
+	var lastSource map[string]string
 	var pushedFrom map[string]rules.Cell
 	for i := range events {
 		e := &events[i]
 		switch e.Type {
-		case rules.EvChoke:
-			if grapplerOf == nil {
-				grapplerOf = map[string]string{}
-			}
-			grapplerOf[e.Target] = e.Grappler
 		case rules.EvKnockback:
 			if pushedFrom == nil {
 				pushedFrom = map[string]rules.Cell{}
@@ -203,9 +198,6 @@ func (c *collector) collect(events []rules.Event, actor string) {
 				m.DmgCells[fmt.Sprintf("%d,%d", target.Pos.X, target.Pos.Y)] += amt
 			}
 			by := actor
-			if src == "choke" {
-				by = grapplerOf[target.ID]
-			}
 			if by != "" && s.Unit(by).Team != target.Team {
 				m.Units[by].Dealt += amt
 			}
@@ -240,9 +232,6 @@ func (c *collector) collect(events []rules.Event, actor string) {
 				src = "edge"
 			}
 			by := actor
-			if src == "choke" {
-				by = grapplerOf[victim.ID]
-			}
 			byDef := ""
 			if by != "" {
 				byDef = s.Unit(by).DefID

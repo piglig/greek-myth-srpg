@@ -69,6 +69,15 @@
     "knockback": 1,
     "cooldown": 2
   },
+  "shoulder_throw": {
+    "name": "过肩摔",
+    "mult": 0.5,
+    "type": "physical",
+    "min_range": 1,
+    "max_range": 1,
+    "throw": true,
+    "cooldown": 2
+  },
   "shoot": {
     "name": "射击",
     "mult": 1.0,

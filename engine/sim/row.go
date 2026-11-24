@@ -14,7 +14,7 @@ import (
 // 字段按键名排序，和原版 JSON.stringify（按键排序）的输出逐字节一致。
 //
 // Result: "win" | "loss_hero"（主角倒下）| "loss_wipe"（全灭）| "timeout"。
-// 伤害记在行动者头上；回合结束的窒息伤害记给擒抱者。
+// 伤害记在行动者头上。
 type Row struct {
 	Battle      string                 `json:"battle"`
 	Bot         string                 `json:"bot"`

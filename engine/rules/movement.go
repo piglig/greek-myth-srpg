@@ -128,7 +128,7 @@ func (s *BattleState) ClearMoveCache() {
 }
 
 func isLocked(u *UnitState) bool {
-	return u.GrapplingID != "" || u.GrappledByID != "" || u.HasStatus("rooted")
+	return u.HasStatus("rooted")
 }
 
 // Reachable 计算 u 用 budget 点移动力能经过的锚点；budget < 0 表示用单位自己的移动力。

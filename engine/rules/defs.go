@@ -71,7 +71,6 @@ var (
 const (
 	MaxHeight      = 5
 	MaxDrop        = 2
-	BossStruggle   = 2 // 首领每次挣扎扣掉的挣脱值（其他单位 1）
 	LOSBlockLevels = 2 // 比射手和目标都高出这么多层的格子才挡视线
 
 	SideMult             = 1.25
@@ -85,11 +84,9 @@ const (
 	MarkRangeBonus       = 2
 	FlankMult            = 1.1
 	BrokenMult           = 1.25
-	GrappledAttackMult   = 0.7
 	AssistMult           = 0.3
 	PatienceMult         = 1.25
-	IronArmMult          = 0.8
-	IronArmChoke         = 3
+	IronArmThrow         = 3 // 铁臂：过肩摔落地时追加的真实伤害
 	ShieldWallMult       = 0.85
 	SkirmishMove         = 2
 
@@ -104,12 +101,7 @@ const (
 	StaggerSide         = 10
 	StaggerKnockback    = 15
 	StaggerFallPerLevel = 5
-	StaggerGrappleTick  = 15
-
-	EscapeBase    = 3
-	EscapeMin     = 1
-	EscapeMax     = 5
-	EscapeMaxBoss = 3
+	StaggerFist         = 8 // 破势之拳：击退或摔出时追加的破势
 
 	Epsilon = 0.000001
 )

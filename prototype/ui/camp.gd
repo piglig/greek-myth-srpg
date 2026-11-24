@@ -161,7 +161,7 @@ func _open_for_shot(which: String) -> void:
 			open = "gear"
 		"carry":
 			screen = "party"
-			entry.picks["hero"] = ["shield_wall","shield_drive","slam","heel_strike","breaker"]
+			entry.picks["hero"] = ["shield_wall","shield_drive","iron_arm","heel_strike","breaker"]
 			open = "skill"
 			slot_at = 1
 			skill_pick = "breaker"

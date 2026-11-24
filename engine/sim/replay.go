@@ -54,9 +54,7 @@ type EntranceSnap struct {
 type UnitSnap struct {
 	Alive      bool     `json:"alive"`
 	Def        string   `json:"def"`
-	Escape     int      `json:"escape"`
 	Facing     string   `json:"facing"`
-	GrappledBy string   `json:"grappled_by"`
 	Hidden     bool     `json:"hidden"`
 	HP         int      `json:"hp"`
 	MaxHP      int      `json:"max_hp"`
@@ -137,7 +135,7 @@ func snapshot(s *rules.BattleState) map[string]UnitSnap {
 		}
 		out[u.ID] = UnitSnap{Def: u.DefID, Name: u.Name, Team: team, Pos: xy(u.Pos), Size: u.Size,
 			HP: max(u.HP, 0), MaxHP: u.MaxHP, Facing: facingLetter(u.Facing), Alive: u.Alive, Hidden: u.Hidden,
-			Statuses: u.StatusNames(), GrappledBy: u.GrappledByID, Escape: u.Escape, Stagger: u.Stagger,
+			Statuses: u.StatusNames(), Stagger: u.Stagger,
 			StaggerMax: u.StaggerMax}
 	}
 	return out

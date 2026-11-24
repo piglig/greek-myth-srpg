@@ -18,11 +18,11 @@ var (
 	Bots = oj.Obj("skilled", "熟练机器人", "novice", "新手机器人")
 	// Results 是结局的中文名。
 	Results = oj.Obj("win", "胜利", "loss_hero", "主角倒下", "loss_wipe", "全灭", "timeout", "超时")
-	sources = map[string]string{"fall": "坠落", "choke": "窒息", "collision": "撞击", "edge": "坠出边缘", "assist": "援护"}
+	sources = map[string]string{"fall": "坠落", "collision": "撞击", "edge": "坠出边缘", "assist": "援护"}
 	// mechanics 的顺序就是图表里的顺序
-	mechanics = [][2]string{{"grapple_start", "擒抱"}, {"fall_enemy", "敌人坠落"}, {"knockback", "击退"}, {"mark", "标记"},
-		{"assist", "援护"}, {"collision", "撞击"}, {"slam", "摔投"}, {"intercept", "截击"}, {"leap", "跃射"},
-		{"broken", "破势"}, {"struggle", "敌人挣扎"}, {"edge", "坠出边缘"}, {"push", "推巨石"}, {"sealed", "封住入口"},
+	mechanics = [][2]string{{"throw", "过肩摔"}, {"fall_enemy", "敌人坠落"}, {"knockback", "击退"}, {"mark", "标记"},
+		{"assist", "援护"}, {"collision", "撞击"}, {"intercept", "截击"}, {"leap", "跃射"},
+		{"broken", "破势"}, {"edge", "坠出边缘"}, {"push", "推巨石"}, {"sealed", "封住入口"},
 		{"retreat", "Boss 退入洞内"}, {"emerge", "Boss 冲出"}}
 )
 

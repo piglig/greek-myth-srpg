@@ -163,7 +163,7 @@ func _learn_first_technique() -> void:
 	await _frames()
 	if not await _press("学习"): return
 	_check("盾墙 is saved as learnt",_disk().picks.get("hero",[]) == ["shield_wall"],_disk().picks.get("hero"))
-	camp._pick_technique("slam")
+	camp._pick_technique("iron_arm")
 	await _frames()
 	var again := _button("还差")
 	_check("a second technique is refused for lack of points",again != null and again.disabled)
@@ -231,7 +231,7 @@ func _march_and_check_first_battle() -> bool:
 	var sheet: Dictionary = UnitCatalog.unit_def("hero")
 	var plain := int(sheet.get("max_hp",sheet.get("hp",0)))
 	_check("the tunic reached the battlefield",hero.max_hp == plain+3,"%d, plain %d" % [hero.max_hp,plain])
-	_check("the hero brings a plain attack and one technique",hero.skills.size() == 2,hero.skills)
+	_check("the hero brings a plain attack, the shield bash and the throw",hero.skills == ["spear","shield_bash","shoulder_throw"],hero.skills)
 	_check("盾墙 came along",hero.has_trait("shield_wall"),hero.traits)
 	var atalanta: UnitState = field.state.unit("atalanta")
 	_check("atalanta brings her shot and her starting technique",atalanta != null and atalanta.skills.size() == 2,atalanta.skills if atalanta != null else "absent")
@@ -302,10 +302,10 @@ func _first_report() -> void:
 	_check("it opened the technique tree",camp.screen == "party" and camp.page == "tree","%s / %s" % [camp.screen,camp.page])
 	_check("a second point has come",camp._budget("hero") == 2,camp._budget("hero"))
 	camp._pick_member("hero")
-	camp._pick_technique("slam")
+	camp._pick_technique("iron_arm")
 	await _frames()
 	if await _press("学习"):
-		_check("摔投 is saved as learnt",_disk().picks.hero.has("slam"),_disk().picks.hero)
+		_check("铁臂 is saved as learnt",_disk().picks.hero.has("iron_arm"),_disk().picks.hero)
 
 
 func _sell_spoils() -> void:
@@ -527,7 +527,7 @@ func _to_the_second_chapter() -> void:
 ## A save written before hires had names, things had counts and members had experience.
 func _old_save() -> void:
 	_begin("an old save")
-	var old := {"id":"1-4","stage":"camp","picks":{"hero":["slam"],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":true,
+	var old := {"id":"1-4","stage":"camp","picks":{"hero":["iron_arm"],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":true,
 		"outcomes":{"1-1":"已通关","1-2":"已通关","1-3":"已通关"},"choose_route":false,"roster":["iphicles"],"deploy":["atalanta","chiron","iphicles"],
 		"purse":{"coins":200,"owned":["olive","anklet"],"equipped":{"olive":"hero"},"paid":["1-1","1-2","1-3"]}}
 	_check("the old save can be written",Save.write_entry(old) == OK)

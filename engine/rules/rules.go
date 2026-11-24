@@ -15,11 +15,6 @@ const (
 	ActMove                   // Unit, To
 	ActUndoMove               // Unit
 	ActSkill                  // Unit, Skill, Target；跳跃技能另带落点 To（HasTo）
-	ActSlam                   // Unit, Target（被擒抱者旁边的一格：摔出的方向）
-	ActGrapple                // Unit, Target
-	ActReinforce              // Unit
-	ActStruggle               // Unit
-	ActRelease                // Unit
 	ActWait                   // Unit
 	ActFace                   // Unit, Facing
 	ActMark                   // Unit, Target
@@ -28,8 +23,8 @@ const (
 	ActEmerge                 // Unit, Entrance
 )
 
-var actionNames = [...]string{"", "move", "undo_move", "skill", "slam", "grapple", "reinforce", "struggle",
-	"release", "wait", "face", "mark", "push_boulder", "retreat", "emerge"}
+var actionNames = [...]string{"", "move", "undo_move", "skill", "wait", "face", "mark", "push_boulder",
+	"retreat", "emerge"}
 
 func (t ActionType) String() string { return actionNames[t] }
 
@@ -53,10 +48,6 @@ func UseSkill(unit, skill string, target Cell) Action {
 func LeapSkill(unit, skill string, target, to Cell) Action {
 	return Action{Type: ActSkill, Unit: unit, Skill: skill, Target: target, To: to, HasTo: true}
 }
-func Grapple(unit string, target Cell) Action {
-	return Action{Type: ActGrapple, Unit: unit, Target: target}
-}
-func Slam(unit string, target Cell) Action { return Action{Type: ActSlam, Unit: unit, Target: target} }
 func Mark(unit string, target Cell) Action { return Action{Type: ActMark, Unit: unit, Target: target} }
 func Face(unit string, facing Cell) Action { return Action{Type: ActFace, Unit: unit, Facing: facing} }
 func PushBoulder(unit string, target Cell) Action {
@@ -66,7 +57,7 @@ func Emerge(unit, entrance string) Action {
 	return Action{Type: ActEmerge, Unit: unit, Entrance: entrance}
 }
 
-// Simple 创建只需要单位的行动（undo_move、reinforce、struggle、release、wait、retreat）。
+// Simple 创建只需要单位的行动（undo_move、wait、retreat）。
 func Simple(t ActionType, unit string) Action { return Action{Type: t, Unit: unit} }
 
 // Outcome 是执行一个行动的结果。
@@ -78,7 +69,7 @@ type Outcome struct {
 }
 
 func isFree(t ActionType) bool {
-	return t == ActFace || t == ActMark || t == ActRelease || t == ActUndoMove
+	return t == ActFace || t == ActMark || t == ActUndoMove
 }
 
 // Preview 在副本上执行同一段代码，所以界面上预览到的就是将要发生的。
@@ -112,31 +103,8 @@ func Do(s *BattleState, a Action, ev *[]Event) string {
 		u.undoOK = false
 	case ActSkill:
 		doSkill(s, u, a, ev)
-	case ActSlam:
-		doSlam(s, u, a.Target, ev)
-	case ActGrapple:
-		doGrapple(u, s.UnitAt(a.Target), ev)
-	case ActReinforce:
-		t := s.Unit(u.GrapplingID)
-		t.Escape = min(t.Escape+1, EscapeCap(t))
-		u.HasActed = true
-		emit(ev, Event{Type: EvReinforce, Unit: u.ID, Escape: t.Escape})
-	case ActStruggle:
-		// 首领挣脱快一倍：按住它只耗掉它一次行动，而不是整个回合
-		if u.IsBoss() {
-			u.Escape -= BossStruggle
-		} else {
-			u.Escape--
-		}
-		u.HasActed = true
-		emit(ev, Event{Type: EvStruggle, Unit: u.ID, Escape: u.Escape})
-		if u.Escape <= 0 {
-			EndGrapple(s, s.Unit(u.GrappledByID), ev, "escaped")
-		}
-	case ActRelease:
-		EndGrapple(s, u, ev, "released")
 	case ActWait:
-		if u.Team == TeamEnemy && u.Traits.Has("turn_on_guard") && !u.Hidden && u.GrapplingID == "" && u.GrappledByID == "" {
+		if u.Team == TeamEnemy && u.Traits.Has("turn_on_guard") && !u.Hidden {
 			facing := guardFacing(s, u)
 			if u.Facing != facing {
 				u.Facing = facing
@@ -192,12 +160,6 @@ func Validate(s *BattleState, a Action) string {
 	if needsMain && u.HasActed {
 		return "already acted"
 	}
-	if u.GrappledByID != "" && t != ActStruggle && t != ActSkill && t != ActWait {
-		return "grappled"
-	}
-	if u.GrapplingID != "" && t != ActReinforce && t != ActRelease && t != ActWait && t != ActSkill && t != ActSlam {
-		return "grappling"
-	}
 	switch t {
 	case ActMove:
 		budget := u.Move
@@ -222,32 +184,7 @@ func Validate(s *BattleState, a Action) string {
 			to = a.To
 		}
 		return validateSkill(s, u, a.Skill, a.Target, to)
-	case ActSlam:
-		if !u.Traits.Slam || u.GrapplingID == "" {
-			return "cannot slam"
-		}
-		held := s.Unit(u.GrapplingID)
-		if !s.Grid.InBounds(a.Target) || CellDistance(held, a.Target) != 1 {
-			return "bad slam direction"
-		}
-	case ActGrapple:
-		return validateGrapple(s, u, a.Target)
-	case ActReinforce:
-		if u.GrapplingID == "" {
-			return "not grappling"
-		}
-	case ActStruggle:
-		if u.GrappledByID == "" {
-			return "not grappled"
-		}
-	case ActRelease:
-		if u.GrapplingID == "" {
-			return "not grappling"
-		}
 	case ActFace:
-		if u.GrappledByID != "" {
-			return "facing locked"
-		}
 		if a.Facing != North && a.Facing != East && a.Facing != South && a.Facing != West {
 			return "bad facing"
 		}
@@ -290,25 +227,16 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if sk.Item && u.Charge(skillID) <= 0 {
 		return "none left"
 	}
-	if u.GrapplingID != "" {
-		return "grappling"
-	}
 	if sk.SelfStatus != "" {
 		return ""
 	}
 	if sk.IsArea() {
-		if u.GrappledByID != "" {
-			return "grappled"
-		}
 		if !anyAreaTarget(s, u, sk) {
 			return "no one in range"
 		}
 		return ""
 	}
 	if sk.HasLeap {
-		if u.GrappledByID != "" {
-			return "grappled"
-		}
 		if to == NoPos {
 			return "need landing"
 		}
@@ -391,8 +319,8 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		return "no enemy there"
 	}
 	ranged := sk.Ranged
-	if u.GrappledByID != "" && (target.ID != u.GrappledByID || ranged) {
-		return "grappled: can only strike the grappler"
+	if sk.Throw && (u.Size != 1 || target.Size != 1 || target.Traits.Flying) {
+		return "cannot throw that"
 	}
 	dist := Distance(u, target)
 	minR, maxR := sk.MinRange, sk.MaxRange
@@ -415,29 +343,6 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 	}
 	if ranged && !LineOfSight(s, u, target) {
 		return "no line of sight"
-	}
-	return ""
-}
-
-func validateGrapple(s *BattleState, u *UnitState, cell Cell) string {
-	if !u.Traits.HasGrapple {
-		return "cannot grapple"
-	}
-	var t *UnitState
-	if s.Grid.InBounds(cell) {
-		t = s.UnitAt(cell)
-	}
-	if t == nil || t.Team == u.Team {
-		return "no enemy there"
-	}
-	if Distance(u, t) != 1 {
-		return "not adjacent"
-	}
-	if t.Traits.Flying || t.HasStatus("petrified") || t.Size >= 3 {
-		return "cannot grapple that"
-	}
-	if t.GrappledByID != "" {
-		return "already grappled"
 	}
 	return ""
 }
@@ -630,6 +535,12 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 			distance++
 		}
 		Knockback(s, target, dirToward(u, target), distance, sk.ID, ev)
+		if u.Traits.Has("stagger_fist") {
+			AddStagger(target, StaggerFist, ev)
+		}
+	}
+	if sk.Throw && target.Alive && !dodged {
+		Throw(s, u, target, sk.ID, ev)
 	}
 }
 
@@ -653,21 +564,15 @@ func validatePush(s *BattleState, u *UnitState, cell Cell) string {
 	return ""
 }
 
-// 力气大的单位（赫拉克勒斯）一推到位；其他人要推两次。
+// 谁推都是一次到位：一个动作按下就结算完，没有"推到一半"。
 func doPush(s *BattleState, u *UnitState, id string, ev *[]Event) {
 	b := s.Cave.Boulder(id)
-	if u.Traits.Strong {
-		b.Progress += 2
-	} else {
-		b.Progress++
-	}
+	b.Progress = 2
+	b.Placed = true
 	u.HasActed = true
 	emit(ev, Event{Type: EvPush, Unit: u.ID, Boulder: id, Progress: b.Progress})
-	if b.Progress >= 2 {
-		b.Placed = true
-		s.Cave.Entrance(b.Seals).Sealed = true
-		emit(ev, Event{Type: EvSealed, Entrance: b.Seals, Boulder: id})
-	}
+	s.Cave.Entrance(b.Seals).Sealed = true
+	emit(ev, Event{Type: EvSealed, Entrance: b.Seals, Boulder: id})
 }
 
 func doRetreat(s *BattleState, u *UnitState, ev *[]Event) {
@@ -725,7 +630,7 @@ func interceptor(s *BattleState, attacker, target *UnitState, ev *[]Event) *Unit
 		if ally == target || !ally.Traits.Intercept || ally.InterceptUsed {
 			continue
 		}
-		if ally.GrapplingID != "" || ally.GrappledByID != "" || ally.HasStatus("stunned") {
+		if ally.HasStatus("stunned") {
 			continue
 		}
 		if Distance(ally, target) != 1 {
@@ -738,28 +643,6 @@ func interceptor(s *BattleState, attacker, target *UnitState, ev *[]Event) *Unit
 	return target
 }
 
-func doSlam(s *BattleState, u *UnitState, cell Cell, ev *[]Event) {
-	held := s.Unit(u.GrapplingID)
-	hx, hy := held.Center()
-	dx, dy := float64(cell.X)+0.5-hx, float64(cell.Y)+0.5-hy
-	var dir Cell
-	if math.Abs(dx) >= math.Abs(dy) {
-		dir = West
-		if dx > 0 {
-			dir = East
-		}
-	} else {
-		dir = North
-		if dy > 0 {
-			dir = South
-		}
-	}
-	u.HasActed = true
-	emit(ev, Event{Type: EvSlam, Unit: u.ID, Target: held.ID})
-	EndGrapple(s, u, ev, "slam")
-	Knockback(s, held, dir, 1, "slam", ev)
-}
-
 // 一个相邻的同伴（按单位顺序的第一个）追加 30% 的援护攻击，每人每回合一次。
 func assist(s *BattleState, attacker, target *UnitState, ev *[]Event) {
 	for _, ally := range s.Units {
@@ -767,9 +650,6 @@ func assist(s *BattleState, attacker, target *UnitState, ev *[]Event) {
 			continue
 		}
 		if ally == attacker || ally.AssistUsed || ally.HasStatus("stunned") {
-			continue
-		}
-		if ally.GrapplingID != "" || ally.GrappledByID != "" {
 			continue
 		}
 		if Distance(ally, target) != 1 {
@@ -785,16 +665,6 @@ func assist(s *BattleState, attacker, target *UnitState, ev *[]Event) {
 		}
 		return
 	}
-}
-
-func doGrapple(u, t *UnitState, ev *[]Event) {
-	u.HasActed = true
-	u.GrapplingID = t.ID
-	t.GrappledByID = u.ID
-	t.Escape = EscapeValue(u, t)
-	t.Facing = dirToward(t, u)
-	u.Facing = dirToward(u, t)
-	emit(ev, Event{Type: EvGrappleStart, Grappler: u.ID, Target: t.ID, Escape: t.Escape})
 }
 
 // --- 阶段流程 ----------------------------------------------------------------------
@@ -886,30 +756,8 @@ func beginPhase(s *BattleState, phase Phase, ev *[]Event) {
 	}
 }
 
-// SettleRound 做回合结算，顺序：擒抱（窒息、破势、挣脱倒计时）→ 地形和持续伤害 → 状态倒计时 → 冷却。
+// SettleRound 做回合结算，顺序：地形和持续伤害 → 状态倒计时 → 冷却。
 func SettleRound(s *BattleState, ev *[]Event) {
-	for _, g := range s.Living(TeamAny) {
-		if g.GrapplingID == "" {
-			continue
-		}
-		t := s.Unit(g.GrapplingID)
-		choke := g.Traits.Grapple
-		if g.Traits.IronArm {
-			choke += IronArmChoke
-		}
-		emit(ev, Event{Type: EvChoke, Grappler: g.ID, Target: t.ID, Amount: choke})
-		Deal(s, t, choke, True, "choke", ev, false)
-		if !t.Alive {
-			continue
-		}
-		AddStagger(t, StaggerGrappleTick, ev)
-		t.Escape--
-		emit(ev, Event{Type: EvEscapeTick, Target: t.ID, Escape: t.Escape})
-		if t.Escape <= 0 {
-			EndGrapple(s, g, ev, "escaped")
-		}
-	}
-
 	for _, u := range s.Living(TeamAny) {
 		switch terrain := s.Grid.TerrainAt(u.Pos); {
 		case terrain == Burning:

@@ -144,10 +144,6 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 		m *= PatienceMult
 		notes |= NotePatience
 	}
-	if target.Traits.IronArm && target.GrapplingID != "" {
-		m *= IronArmMult
-		notes |= NoteIronArm
-	}
 	if shieldWallCovers(s, target) {
 		m *= ShieldWallMult
 		notes |= NoteShieldWall
@@ -159,10 +155,6 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 	if broken {
 		m *= BrokenMult
 		notes |= NoteBroken
-	}
-	if attacker.GrappledByID != "" && attacker.GrappledByID == target.ID {
-		m *= GrappledAttackMult
-		notes |= NoteGrappled
 	}
 	return Hit{Amount: FloorInt(float64(float64(base) * m)), Relation: rel, Base: base, Mult: m, Notes: notes}
 }

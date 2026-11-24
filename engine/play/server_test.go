@@ -134,11 +134,11 @@ func TestCaveAndPicks(t *testing.T) {
 	if len(lp["landings"].([]any)) != 0 {
 		t.Errorf("vital_shot is not a leap")
 	}
-	ok := ask(t, s, `{"op":"picks_check","def":"hero","nodes":["slam","iron_arm","shield_wall"]}`)
+	ok := ask(t, s, `{"op":"picks_check","def":"hero","nodes":["iron_arm","stagger_fist","shield_wall"]}`)
 	if ok["error"] != "" || ok["cost"] != float64(4) {
 		t.Errorf("picks: %v", ok)
 	}
-	over := ask(t, s, `{"op":"picks_check","def":"hero","nodes":["slam","iron_arm","shield_wall","intercept"]}`)
+	over := ask(t, s, `{"op":"picks_check","def":"hero","nodes":["iron_arm","stagger_fist","shield_wall","intercept"]}`)
 	if over["error"] != "over budget" {
 		t.Errorf("picks: %v", over)
 	}
@@ -284,10 +284,10 @@ func TestPartyLearnsItsOwnTree(t *testing.T) {
 // 出战招式：只带列出的那几个，超过四个不让开战；没列出的单位照旧带全部。
 func TestLoadoutLimitsSkills(t *testing.T) {
 	s := newServer(t)
-	picks := `"picks":{"hero":["shield_wall","shield_drive","slam","heel_strike"]}`
+	picks := `"picks":{"hero":["shield_wall","shield_drive","iron_arm","heel_strike"]}`
 	all := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`}`)["state"].(map[string]any), "hero")
-	if len(all["skills"].([]any)) != 4 {
-		t.Fatalf("主角应有 4 个招式: %v", all["skills"])
+	if len(all["skills"].([]any)) != 5 {
+		t.Fatalf("主角应有 5 个招式（矛刺、盾击、过肩摔，加学到的两招）: %v", all["skills"])
 	}
 	some := unitOf(ask(t, s, `{"op":"build","battle":"1-4",`+picks+`,"loadout":{"hero":["heel_strike","breaker"]}}`)["state"].(map[string]any), "hero")
 	if got := some["skills"].([]any); len(got) != 2 || got[0] != "spear" {
@@ -298,7 +298,7 @@ func TestLoadoutLimitsSkills(t *testing.T) {
 		t.Errorf("什么技能都不带时只剩基础攻击: %v", none["skills"])
 	}
 	var over map[string]any
-	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4",`+picks+`,"picks":{"hero":["shield_wall","shield_drive","phalanx_thrust","slam","heel_strike","breaker"]},"loadout":{"hero":["shield_bash","shield_drive","phalanx_thrust","heel_strike","breaker"]}}`)), &over)
+	_ = json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4",`+picks+`,"picks":{"hero":["shield_wall","shield_drive","phalanx_thrust","iron_arm","heel_strike","breaker"]},"loadout":{"hero":["shield_bash","shield_drive","phalanx_thrust","heel_strike","breaker"]}}`)), &over)
 	if over["fail"] == nil {
 		t.Errorf("基础攻击之外带五个技能应该被拒绝")
 	}

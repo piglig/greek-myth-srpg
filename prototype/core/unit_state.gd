@@ -45,9 +45,6 @@ var mark_used := false
 var intercept_used := false
 var post_move := 0
 
-var grappling_id := ""
-var grappled_by_id := ""
-var escape := 0
 
 var alive := true
 var hidden := false
@@ -89,9 +86,6 @@ func apply(d: Dictionary) -> void:
 	mark_used = d["mark_used"]
 	intercept_used = d["intercept_used"]
 	post_move = d["post_move"]
-	grappling_id = d["grappling"]
-	grappled_by_id = d["grappled_by"]
-	escape = d["escape"]
 	alive = d["alive"]
 	hidden = d["hidden"]
 
