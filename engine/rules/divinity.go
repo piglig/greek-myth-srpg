@@ -5,10 +5,10 @@ import "fmt"
 // 神性四阶（15-relics-boons §2）。阶位只由主角拿了几件圣物决定，记在
 // ChapterReward.Divinity 里；每一阶给一个好处、一个代价，并让主角长出一个神力招式。
 const (
-	TierMortal  = iota // 0–1 件
-	TierTouched        // 2–3 件：每场第一次用圣物主动不进冷却
-	TierDemigod        // 4–5 件：每回合第一次用圣物主动不占行动；同伴不再为主角援护
-	TierInhuman        // 6–7 件：主角免疫四种异常状态；主角不能被治疗
+	TierMortal  = iota // 凡人，0–1 件
+	TierTouched        // 受火，2–3 件：每场第一次用圣物主动不进冷却
+	TierDemigod        // 半神，4–5 件：每回合第一次用圣物主动不占行动；同伴不再为主角援护
+	TierInhuman        // 僭神，6–7 件：主角免疫四种异常状态；主角不能被治疗
 )
 
 // TierDivinity 是每升一阶主角神性属性的增量。
@@ -17,7 +17,7 @@ const TierDivinity = 3
 // ThunderBodyDamage 是雷躯每次回合结算对相邻单位造成的神性伤害。
 const ThunderBodyDamage = 6
 
-// PowerPairs 是每一阶二选一的神力招式，下标 0 对应沾染阶。
+// PowerPairs 是每一阶二选一的神力招式，下标 0 对应受火阶。
 var PowerPairs = [3][2]string{
 	{"thunder_bolt", "sky_fire"},
 	{"thunder_step", "sky_dome"},

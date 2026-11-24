@@ -115,6 +115,7 @@ func _run() -> void:
 		await _new_game()
 	if failures.is_empty() or _scene().scene_file_path.ends_with("camp.tscn"):
 		await _old_save()
+		await _verdicts()
 	_finish()
 
 func _finish() -> void:
@@ -522,6 +523,69 @@ func _to_the_second_chapter() -> void:
 	if camp.asking == "cheer": await _press("继续") if _button("继续") != null else await _press("去分配技能点")
 	_check("medea is listed in the camp",camp._everyone().has("medea"),camp._everyone())
 	_check("medea holds her starting technique",_disk().picks.get("medea",[]).has(Save.STARTERS.medea) or camp.entry.picks.get("medea",[]).has(Save.STARTERS.medea),camp.entry.picks.get("medea"))
+
+
+## Over a beaten boss the camp asks: take the relic, or spare them. Later chapters are not
+## built, so the save is written by hand at the point where the question is owed.
+func _verdicts() -> void:
+	_begin("take a relic or spare a boss")
+	var base := {"id":"2-1","stage":"camp","picks":{"hero":[],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":true,
+		"outcomes":{},"choose_route":false,"equipped_relic":"lion_pelt","boon":"moon_hunt",
+		"relics":["lion_pelt","hydra_blood","bronze_feather"],"divinity":3,"powers":["thunder_bolt"],"verdict":4}
+	_check("the save can be written",Save.write_entry(base) == OK)
+	get_tree().change_scene_to_file("res://camp.tscn")
+	await _frames(4)
+	if not await _arrive("camp.tscn"): return
+	var camp := _scene()
+	_check("the camp asks about the Minotaur before anything else",camp.asking == "verdict",camp.asking)
+	_check("nothing can be settled before a side is leant toward",_button("夺走") == null and _button("放过他") == null)
+	if not await _lean("take"): return
+	_check("leaning is not yet deciding",_disk().get("verdict",0) == 4 and int(_disk().divinity) == 3,_disk().get("divinity"))
+	if not await _press("夺走阿里阿德涅之线"): return
+	_check("the taking plays out before anything is written",camp.settling and _disk().get("verdict",0) == 4)
+	await _settled()
+	var saved := _disk()
+	_check("the thread is his",saved.relics == ["lion_pelt","hydra_blood","bronze_feather","ariadne_thread"],saved.get("relics"))
+	_check("four relics make a demigod",int(saved.divinity) == 4 and Save.tier(saved) == 2,saved.get("divinity"))
+	_check("the question is gone from the save",not saved.has("verdict"))
+	_check("the new tier asks for its technique next",camp.asking == "power",camp.asking)
+	if not await _press("天穹"): return
+	_check("the technique is saved",_disk().powers == ["thunder_bolt","sky_dome"],_disk().get("powers"))
+	_check("nothing more is owed",camp.asking == "",camp.asking)
+	_check("he may carry it into battle",camp._known("hero").has("sky_dome"),camp._known("hero"))
+	# The other road: spare Medusa.
+	var mercy: Dictionary = _disk()
+	mercy.verdict = 5
+	_check("the save can be written",Save.write_entry(mercy) == OK)
+	get_tree().change_scene_to_file("res://camp.tscn")
+	await _frames(4)
+	if not await _arrive("camp.tscn"): return
+	camp = _scene()
+	_check("the camp asks about Medusa",camp.asking == "verdict",camp.asking)
+	if not await _lean("spare"): return
+	if not await _press("放过她"): return
+	await _settled()
+	saved = _disk()
+	_check("she is recorded as spared",saved.get("spared",[]) == [5],saved.get("spared"))
+	_check("no relic was taken",int(saved.divinity) == 4 and saved.relics.size() == 4,saved.get("relics"))
+	_check("sparing owes nothing further",camp.asking == "",camp.asking)
+
+
+## Waits for a settled verdict to finish playing out.
+func _settled() -> void:
+	var deadline := Time.get_ticks_msec()+6000
+	while _scene().settling and Time.get_ticks_msec() < deadline: await _frames(2)
+	await _frames(3)
+
+
+## Presses one of the two roads on the verdict screen: the cards are buttons all over.
+func _lean(way: String) -> bool:
+	for button: Button in _buttons(_scene(),[]):
+		if button.get_meta("way","") == way:
+			button.pressed.emit()
+			await _frames(3)
+			return true
+	return _check("the road「%s」is there" % way,false)
 
 
 ## A save written before hires had names, things had counts and members had experience.

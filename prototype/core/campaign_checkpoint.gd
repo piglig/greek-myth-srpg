@@ -277,9 +277,9 @@ const BOONS := {
 ## (entry.divinity) and nothing else: `gain` is what it gives, `cost` what it takes.
 const TIERS := [
 	{"name":"凡人","from":0,"tint":"#cfc4b0","gain":"","cost":""},
-	{"name":"沾染","from":2,"tint":"#7fc4ff","gain":"每场战斗第一次使用圣物主动，不进入冷却。","cost":""},
+	{"name":"受火","from":2,"tint":"#7fc4ff","gain":"每场战斗第一次使用圣物主动，不进入冷却。","cost":""},
 	{"name":"半神","from":4,"tint":"#ffd76a","gain":"每回合第一次使用圣物主动，不占行动。","cost":"他出手时，身边的英雄不再为他援护。"},
-	{"name":"非人","from":6,"tint":"#fff6da","gain":"免疫灼烧、中毒、束缚、眩晕。","cost":"治疗的招式和药对他不再起作用。"},
+	{"name":"僭神","from":6,"tint":"#fff6da","gain":"免疫灼烧、中毒、束缚、眩晕。","cost":"治疗的招式和药对他不再起作用。"},
 ]
 ## Each tier raises his divinity by this much.
 const TIER_DIVINITY := 3
@@ -293,6 +293,30 @@ const POWERS := [
 	[["sky_wrath","天罚","射程 2–6。任选一片 3×3，1.5 倍神性伤害，灼烧 2 回合。不分敌我。冷却 4。"],
 	 ["thunder_body","雷躯","2 回合内，每次回合结算时与他相邻的所有人受 6 点神性伤害。不分敌我。冷却 5。"]],
 ]
+
+## The relics, by id: what each is called, what it does while held, and what it does when
+## called on. Only the lion's pelt works in battle so far; the rest are words until their
+## chapters are built.
+const RELICS := {
+	"lion_pelt": {"icon":"art_pelt","name":"涅墨亚狮皮","held":"物理伤害在防御后再减 3；受背击的倍率降到 1.25。","called":"不坏之皮：1 回合内免疫物理伤害。冷却 4。"},
+	"hydra_blood": {"icon":"relic_blood","name":"蛇血","held":"他的攻击附带中毒 1 回合。","called":"剧毒：3 格内一个敌人中毒 3 回合。冷却 3。"},
+	"bronze_feather": {"icon":"art_feather","name":"铜羽","held":"受到的远程伤害减 3，并把三成还给射手。","called":"羽刃：直线 4 格，贯穿，0.8 倍物理伤害。冷却 3。"},
+	"ariadne_thread": {"icon":"art_thread","name":"阿里阿德涅之线","held":"每场 1 次，不耗行动与任意一位同伴交换位置。","called":"归路：把一位同伴拉到他身边，并解开束缚。冷却 4。"},
+	"gorgon_head": {"icon":"brooch","name":"蛇发之首","held":"从正面近身打他的敌人被束缚 1 回合，每回合 1 次。","called":"凝视：面前扇形 3 格内朝着他的敌人眩晕 1 回合；首领改为破势 +30。冷却 5。"},
+	"styx_water": {"icon":"relic_styx","name":"冥河之水","held":"每场 1 次，致命的一击改为留下 1 点生命。","called":"浸礼：2 回合内免疫异常状态和真实伤害。冷却 5。"},
+	"titan_might": {"icon":"relic_titan","name":"泰坦之力","held":"击退对 2×2、3×3 的敌人同样有效，距离加 1；过肩摔能摔 2×2。","called":"撼地：身边所有敌人受 1.2 倍物理伤害并被击退 2 格。冷却 4。"},
+}
+## What each chapter's boss leaves to be decided once beaten: take the relic, or spare them
+## and gain a hero. The lion of the first chapter is not here; its pelt is simply taken.
+## `spared` is who joins: empty where that person is not yet designed.
+const VERDICTS := {
+	2: {"boss":"许德拉","icon":"boss_hydra","pronoun":"它","relic":"hydra_blood","spared":{}},
+	3: {"boss":"铜羽鸟","icon":"boss_bird","pronoun":"它","relic":"bronze_feather","spared":{}},
+	4: {"boss":"米诺陶洛斯","icon":"boss_minotaur","pronoun":"他","relic":"ariadne_thread","spared":{"name":"阿斯忒里俄斯","title":"迷宫里的人","words":"2×2 的前排，生命 86、力量 19。能撞开挡路的东西；走不了窄路，意志低。"}},
+	5: {"boss":"美杜莎","icon":"brooch","pronoun":"她","relic":"gorgon_head","spared":{"name":"美杜莎","title":"戈尔贡","words":"完整的凝视：把人变成石像，不分敌我。神性 16，走得慢。"}},
+	6: {"boss":"刻耳柏洛斯","icon":"boss_cerberus","pronoun":"它","relic":"styx_water","spared":{}},
+	7: {"boss":"泰坦","icon":"boss_titan","pronoun":"他","relic":"titan_might","spared":{}},
+}
 
 static func tier_of(relics: int) -> int:
 	var tier := 0
@@ -317,6 +341,7 @@ static func power_words(id: String) -> String:
 static func chapter_reward(entry: Dictionary) -> Dictionary:
 	var result := entry.duplicate(true)
 	result["equipped_relic"] = "lion_pelt"
+	result["relics"] = ["lion_pelt"]
 	result["divinity"] = 1
 	result["powers"] = []
 	result["boon"] = ""

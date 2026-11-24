@@ -64,7 +64,18 @@ var scrolls := {}
 var picked := {"trader":"","recruit":"","march":-1}
 var chapter := 0
 var note := ""
-var asking := ""  ## "" | "boon" | "power" | "system" | "cheer"
+var asking := ""  ## "" | "verdict" | "boon" | "power" | "system" | "cheer"
+## Which way the player leans over a beaten boss ("take" | "spare"), before saying so.
+var leaning := ""
+## Set when the lean has just changed, so the screen answers once and not on every redraw.
+var lean_fresh := false
+## True while a settled verdict plays out, before it is written down.
+var settling := false
+## Where things stand on the verdict screen, for what is played over it.
+var verdict_spots := {}
+## How far the scales on the verdict screen were last seen tipped, in degrees (left pan
+## down is positive), so a new lean swings them from there instead of jumping.
+var verdict_tilt := 0.0
 var canvas: Control
 var body := Control.new()
 var signs := Control.new()
@@ -106,7 +117,7 @@ func _ready() -> void:
 	chapter = _chapter_of(str(entry.get("id","1-1")))
 	if not shot.is_empty():
 		_open_for_shot(str(shot.page))
-		UiShot.take(self,str(shot.path),2.6)
+		UiShot.take(self,str(shot.path),9.0 if str(shot.page).begins_with("verdictplay") else 2.6)
 	_pitch_camp()
 	canvas = Px.stage(self)
 	for layer: Control in [signs,body,floats,cheer]:
@@ -131,6 +142,43 @@ func _open_for_shot(which: String) -> void:
 			entry.divinity = 1
 			entry.boon = ""
 			asking = "boon"
+		"verdictplay", "verdictplay2":
+			# The verdict played through for a recording: lean one way, then the other,
+			# then settle.
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.relics = ["lion_pelt","hydra_blood","bronze_feather"]
+			entry.divinity = 3
+			entry.powers = ["thunder_bolt"]
+			entry.verdict = 4
+			asking = "verdict"
+			var settle_on := "take" if which == "verdictplay" else "spare"
+			var other := "spare" if settle_on == "take" else "take"
+			get_tree().create_timer(1.4).timeout.connect(_lean.bind(other))
+			get_tree().create_timer(3.0).timeout.connect(_lean.bind(settle_on))
+			get_tree().create_timer(4.8).timeout.connect(_settle_verdict)
+		"verdict", "verdict2":
+			# Over a beaten boss: the Minotaur with three relics held (taking his makes a
+			# demigod), or the Hydra with one.
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.relics = ["lion_pelt","hydra_blood","bronze_feather"] if which == "verdict" else ["lion_pelt"]
+			entry.divinity = entry.relics.size()
+			entry.powers = ["thunder_bolt"] if which == "verdict" else []
+			entry.verdict = 4 if which == "verdict" else 2
+			leaning = "take" if which == "verdict" else ""
+			asking = "verdict"
+		"verdict3":
+			# Leaning toward sparing the Minotaur, the Hydra spared before him.
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.relics = ["lion_pelt","bronze_feather"]
+			entry.divinity = 2
+			entry.powers = ["thunder_bolt"]
+			entry.spared = [2]
+			entry.verdict = 4
+			leaning = "spare"
+			asking = "verdict"
 		"power", "power2", "power3":
 			# Standing at a tier whose technique is not yet chosen.
 			entry.equipped_relic = "lion_pelt"
@@ -542,12 +590,14 @@ func _render() -> void:
 		"march": _march()
 	_after()
 	if asking == "boon": _ask_boon()
+	elif asking == "verdict": _ask_verdict()
 	elif asking == "power": _ask_power()
 	elif asking == "system": _ask_system()
 
-## What the camp must settle before anything else: the boon after a chapter's boss, then
-## any divine technique a new tier has brought.
+## What the camp must settle before anything else: what to do with a beaten boss, the boon
+## after a chapter's boss, then any divine technique a new tier has brought.
 func _owed() -> String:
+	if Save.VERDICTS.has(int(entry.get("verdict",0))): return "verdict"
 	if entry.has("equipped_relic") and entry.get("boon","") == "": return "boon"
 	if Save.owes_power(entry): return "power"
 	return ""
@@ -1205,7 +1255,8 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 			if learned.has(node.id) and str(node.get("skill","")) == "": always.append(str(node.name))
 	if member == "hero" and entry.has("equipped_relic"):
 		always.append("%s（圣物 %d 件）" % [Save.TIERS[Save.tier(entry)].name,int(entry.get("divinity",0))])
-		always.append("圣物 涅墨亚狮皮")
+		for relic: String in entry.get("relics",["lion_pelt"]):
+			always.append("圣物 "+str(Save.RELICS[relic].name))
 		if entry.get("boon","") != "": always.append("神赐 "+str(Save.BOONS[entry.boon][1]))
 	Px.text(body,"特性",Rect2(x,y,34,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"、".join(always) if not always.is_empty() else "还没有",Rect2(x+34,y,wide-34,0),Px.SMALL,Px.IVORY if not always.is_empty() else Px.FAINT)
@@ -2024,6 +2075,463 @@ func _take_boon(id: String) -> void:
 		picked.march = -1
 	_render()
 
+## Over a beaten boss: take the relic, or spare them. Laid out plainly: who fell, the road
+## of seven relics, the two roads as cards, the one button that settles it. What keeps it
+## from being a form is borrowed from painted pots: medallions that sit across the edge of
+## what they belong to, corners cut as a potter trims a tag, the key pattern for a rule,
+## and lines drawn as a brush draws them. Pressing a card only leans toward it.
+func _ask_verdict() -> void:
+	var chapter_no := int(entry.verdict)
+	var case: Dictionary = Save.VERDICTS[chapter_no]
+	var relic: Dictionary = Save.RELICS[case.relic]
+	var held: Array = entry.get("relics",["lion_pelt"])
+	var kept: Array = entry.get("spared",[])
+	var now := Save.tier_of(held.size())
+	var then := Save.tier_of(held.size()+1)
+	var rank: Dictionary = Save.TIERS[then]
+	var divine := Color(str(rank.tint)) if then > 0 else Px.OCHRE
+	var mortal := Px.GREEN
+	var guest: Dictionary = case.spared
+	Px.block(body,Rect2(Vector2.ZERO,Px.SIZE),Color(Px.INK,.93)).mouse_filter = MOUSE_FILTER_STOP
+	var mid := Px.SIZE.x*.5
+	var card := Vector2(396,250)
+	var card_top := 196.0
+	var cut := 14.0
+	var foot := card.y-112
+	var take_at := Rect2(mid-14-card.x,card_top,card.x,card.y)
+	var spare_at := Rect2(mid+14,card_top,card.x,card.y)
+	# The scales, as a thing of bronze: the one who fell is the boss the beam turns on, the
+	# beam runs out to either side of the name, and a pan hangs at each end beside it.
+	# Relics lie in the left pan, the spared in the right; the fuller pan sinks.
+	var pivot := Vector2(mid,40)
+	var arm := 196.0
+	var drop := 54.0
+	var heavy := held.size()+(1 if leaning == "take" else 0)
+	var light := kept.size()+(1 if leaning == "spare" else 0)
+	var tilt := clampf((heavy-light)*1.5,-6.0,6.0)
+	var yet := maxi(0,6-(held.size()-1)-kept.size()-1)   # bosses still to come after this one
+	# Everything painted rather than laid out.
+	var art := Control.new()
+	art.size = Px.SIZE
+	art.mouse_filter = MOUSE_FILTER_IGNORE
+	art.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	art.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	body.add_child(art)
+	art.draw.connect(func():
+		# The two cards.
+		for side: Array in [[take_at,"take",divine],[spare_at,"spare",mortal]]:
+			var rect: Rect2 = side[0]
+			var tone: Color = side[2]
+			var chosen: bool = leaning == side[1]
+			var back: bool = leaning != "" and not chosen
+			var shade := Color(.5,.5,.5) if back else Color.WHITE
+			var p := rect.position
+			var outline := PackedVector2Array([p,p+Vector2(card.x-cut,0),p+Vector2(card.x,cut),p+card,p+Vector2(cut,card.y),p+Vector2(0,card.y-cut)])
+			var uvs := PackedVector2Array()
+			for point in outline: uvs.append(point/128.0)
+			art.draw_colored_polygon(outline,shade,uvs,Vase.glaze())
+			# The lower part, where the price is told, is washed in the road's colour; its
+			# upper edge is a brush stroke.
+			var brow := Vase.stroke(p+Vector2(0,foot),p+Vector2(card.x,foot),1.8,chapter_no*11+(1 if side[1] == "take" else 2))
+			var wash := PackedVector2Array(brow)
+			wash.append_array([p+card,p+Vector2(cut,card.y),p+Vector2(0,card.y-cut)])
+			art.draw_colored_polygon(wash,Color(tone.darkened(.78),.5 if back else .95))
+			art.draw_polyline(brow,Color(tone,.25 if back else .7),1.5)
+			outline.append(p)
+			art.draw_polyline(outline,Color(tone,.2 if back else (1.0 if chosen else .5)),2.0 if chosen else 1.0)
+			if chosen:
+				# A second line just inside, as on the lip of a cup.
+				var inner := PackedVector2Array()
+				for point in [Vector2(4,4),Vector2(card.x-cut-2,4),Vector2(card.x-4,cut+2),Vector2(card.x-4,card.y-4),Vector2(cut+2,card.y-4),Vector2(4,card.y-cut-2),Vector2(4,4)]:
+					inner.append(p+point)
+				art.draw_polyline(inner,Color(tone,.35),1.0)
+			# The medallion sits across the card's upper edge.
+			var hub := p+Vector2(40,12)
+			var size := 30.0 if chosen else 27.0
+			Vase.roundel(art,hub,size,Vase.GLAZE,Color(tone,.3 if back else 1.0),2)
+			Vase.roundel(art,hub,size-4,Color(tone.darkened(.5 if back else 0.0),1),Vase.GLAZE,1))
+	Px.text(body,"第 %d 章" % chapter_no,Rect2(0,70,Px.SIZE.x,0),Px.SMALL,Px.OCHRE,HORIZONTAL_ALIGNMENT_CENTER)
+	Px.text(body,"%s倒下了" % case.boss,Rect2(0,82,Px.SIZE.x,0),Px.TITLE,Px.IVORY,HORIZONTAL_ALIGNMENT_CENTER)
+	var rig := Control.new()
+	rig.size = Px.SIZE
+	rig.mouse_filter = MOUSE_FILTER_IGNORE
+	rig.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	body.add_child(rig)
+	var shown := {"tilt":verdict_tilt}
+	var bronze := Px.OCHRE
+	var shadow := Px.OCHRE.darkened(.42)
+	# Where a thing sits in a pan when the beam is tipped `degrees`: `side` -1 left, +1 right.
+	var seat := func(side: float, place: int, count: int, degrees: float) -> Vector2:
+		# The pan hangs plumb from the foot of the ring the beam ends in.
+		var end := pivot+Vector2(side*(arm+6)*cos(deg_to_rad(degrees)),-side*(arm+6)*sin(deg_to_rad(degrees)))+Vector2(0,10)
+		var step := minf(19.0,80.0/maxf(1.0,count-1.0))
+		return end+Vector2((place-(count-1)*.5)*step,drop-7)
+	rig.draw.connect(func():
+		var degrees: float = shown.tilt
+		var lean := Vector2(cos(deg_to_rad(degrees)),-sin(deg_to_rad(degrees)))
+		var across := Vector2(-lean.y,lean.x)
+		for side in [-1.0,1.0]:
+			# The chains start from one link under the ring at the beam's end, so they fall
+			# straight from it and spread, instead of gathering at its side.
+			var ring: Vector2 = pivot+lean*(arm+6)*side
+			var end := ring+Vector2(0,10)
+			rig.draw_line(ring+Vector2(0,6),end,bronze,2.0)
+			var rim := end+Vector2(0,drop)
+			var mine: bool = leaning == ("take" if side < 0 else "spare")
+			var tone: Color = divine if side < 0 else mortal
+			# Chains of beads from the beam's end out to the rim.
+			for hold in [-46.0,0.0,46.0]:
+				var grip := rim+Vector2(hold,0)
+				var links := 9
+				for link in links:
+					rig.draw_circle(end.lerp(grip,(link+1.0)/(links+1.0)),1.7,bronze if link % 2 == 0 else shadow)
+			# The far rim of the pan, seen from a little above.
+			rig.draw_line(rim+Vector2(-50,-1),rim+Vector2(50,-1),shadow,2.0)
+			# What lies in it.
+			var count := heavy if side < 0 else light
+			for n in count:
+				var fresh := n >= (held.size() if side < 0 else kept.size())
+				var at: Vector2 = seat.call(side,n,count,degrees)
+				var fill := tone if fresh or side > 0 else Color(str(Save.TIERS[Save.tier_of(n+1)].tint))
+				Vase.roundel(rig,at,10 if fresh else 8,fill,Px.IVORY,1.5 if fresh else 1.0)
+				var stamp: Texture2D
+				if side < 0: stamp = Px.icon(str(relic.icon) if fresh else str(Save.RELICS[held[n]].icon),10)
+				else: stamp = Px.icon(str(case.icon) if fresh else str(Save.VERDICTS[int(kept[n])].icon),10)
+				rig.draw_texture_rect(stamp,Rect2(at-Vector2(5,5),Vector2(10,10)),false,Vase.GLAZE)
+			# The pan itself: a shallow bowl of beaten bronze, darker beneath, bright on the lip.
+			var bowl := PackedVector2Array()
+			for i in 17:
+				var t := -1.0+i/8.0
+				bowl.append(rim+Vector2(54*t,12*(1.0-t*t)))
+			rig.draw_colored_polygon(bowl,bronze)
+			# The underside in shadow: a crescent along the bottom of the bowl.
+			var belly := PackedVector2Array()
+			for i in 15:
+				var t := -.86+i*.86/7.0
+				belly.append(rim+Vector2(54*t,12*(1.0-t*t)))
+			for i in 13:
+				var t := .74-i*.74/6.0
+				belly.append(rim+Vector2(54*t,12*(1.0-t*t)-5.5*(1.0-t*t/.55)))
+			rig.draw_colored_polygon(belly,shadow)
+			rig.draw_line(rim+Vector2(-54,0),rim+Vector2(54,0),tone if mine else Px.IVORY,2.0 if mine else 1.0)
+			# A row of dots punched round the bowl, and a knob under it.
+			for dot in 7: rig.draw_circle(rim+Vector2((dot-3)*12,4.5-absf(dot-3)*.5),1.0,Vase.GLAZE)
+			rig.draw_circle(rim+Vector2(0,13.5),2.5,bronze)
+		# The beam: thick at the boss, tapering to a curl at each end.
+		for side in [-1.0,1.0]:
+			var end: Vector2 = pivot+lean*arm*side
+			var root: Vector2 = pivot+lean*22*side
+			rig.draw_colored_polygon(PackedVector2Array([root-across*5,end-across*2.5,end+across*2.5,root+across*5]),bronze)
+			rig.draw_line(root+across*3,end+across*1.5,shadow,2.0)
+			# Collars along it, as a turned bar has.
+			for mark in [.34,.38,.72]:
+				var at: Vector2 = root.lerp(end,mark)
+				rig.draw_line(at-across*6.5,at+across*6.5,bronze,3.0)
+			# The volute it ends in.
+			var eye: Vector2 = end+lean*side*6
+			rig.draw_arc(eye,6.0,0,TAU,20,bronze,3.0)
+			rig.draw_circle(eye,2.0,bronze)
+		# The boss: who is being weighed. A ring to hang it by; under it, a bead for each
+		# of those still to come.
+		rig.draw_arc(pivot+Vector2(0,-30),4.0,0,TAU,16,bronze,2.0)
+		rig.draw_line(pivot+Vector2(0,-26),pivot+Vector2(0,-22),bronze,3.0)
+		Vase.roundel(rig,pivot,25,bronze,Px.IVORY,1.5)
+		Vase.roundel(rig,pivot,21,bronze,Vase.GLAZE,1)
+		rig.draw_texture_rect(Px.icon(str(case.icon),30),Rect2(pivot-Vector2(15,15),Vector2(30,30)),false,Vase.GLAZE)
+		for n in yet:
+			rig.draw_arc(Vector2(mid+(n-(yet-1)*.5)*11,118),3.0,0,TAU,12,Color(bronze,.75),1.5))
+	# The beam swings to where the lean puts it, a little past, and back.
+	if absf(verdict_tilt-tilt) > .01:
+		var swing := rig.create_tween()
+		swing.tween_method(func(value: float):
+			shown.tilt = value
+			rig.queue_redraw(),verdict_tilt,tilt,.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		verdict_tilt = tilt
+	# What the pans add up to, said plainly under each.
+	var rank_now: Dictionary = Save.TIERS[then if leaning == "take" else now]
+	Px.text(body,"圣物 %d 件 · %s" % [heavy,rank_now.name],Rect2(mid-arm-90,152,180,0),Px.SMALL,Color(str(rank_now.tint)),HORIZONTAL_ALIGNMENT_CENTER)
+	Px.text(body,"放过 %d 位" % light if light > 0 else "还没有放过谁",Rect2(mid+arm-90,152,180,0),Px.SMALL,mortal if light > 0 else Px.FAINT,HORIZONTAL_ALIGNMENT_CENTER)
+	var reach := 7-light
+	if yet > 0 or reach < 6:
+		Px.text(body,("还有 %d 位首领" % yet if yet > 0 else "这是最后一位")+("，最多到%s" % Save.TIERS[Save.tier_of(reach)].name if reach < 6 else ""),Rect2(mid-120,128,240,0),Px.SMALL,Px.FAINT,HORIZONTAL_ALIGNMENT_CENTER)
+	# What is written on the cards.
+	var taking := _verdict_card(take_at,"take",divine,str(relic.icon),"夺圣物",str(relic.name),"")
+	var sparing := _verdict_card(spare_at,"spare",mortal,str(case.icon),"放过%s" % case.pronoun,
+		str(guest.name) if not guest.is_empty() else "一位与%s有渊源的人" % case.pronoun,str(guest.get("title","")))
+	var pane: Control = taking.get_meta("pane")
+	var y := 86.0
+	y = _verdict_line(pane,"带着",str(relic.held),y,Px.OCHRE)
+	y = _verdict_line(pane,"使用",str(relic.called),y,Px.OCHRE)
+	Px.text(pane,"圣物共 %d 件" % (held.size()+1),Rect2(18,foot+12,160,0),Px.BODY,Px.IVORY)
+	if then > now:
+		Px.picture(pane,Px.icon("divinity",16),Rect2(card.x-18-16,foot+11,16,16)).modulate = divine
+		Px.text(pane,"升为 %s" % rank.name,Rect2(card.x-18-22-140,foot+12,140,0),Px.BODY,divine,HORIZONTAL_ALIGNMENT_RIGHT)
+		var fy := _verdict_line(pane,"得到","%s神性 +%d。" % [rank.gain,Save.TIER_DIVINITY],foot+36,divine)
+		fy = _verdict_line(pane,"神力","「%s」或「%s」，取其一。" % [Save.POWERS[then-1][0][1],Save.POWERS[then-1][1][1]],fy,divine)
+		if rank.cost != "": _verdict_line(pane,"失去",str(rank.cost),fy,Px.RED.lightened(.45))
+	else:
+		Px.text(pane,"仍是 %s" % rank.name,Rect2(card.x-18-160,foot+12,160,0),Px.BODY,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+		if then+1 < Save.TIERS.size():
+			_verdict_line(pane,"还差","再有 %d 件，就是%s。" % [int(Save.TIERS[then+1].from)-(held.size()+1),Save.TIERS[then+1].name],foot+36,Px.MUTED)
+	pane = sparing.get_meta("pane")
+	_verdict_line(pane,"加入",str(guest.words) if not guest.is_empty() else "会有人因此来到营地。是谁，还没有写到这一章。",86.0,mortal)
+	Px.text(pane,"圣物仍是 %d 件" % held.size(),Rect2(18,foot+12,160,0),Px.BODY,Px.IVORY)
+	Px.text(pane,"仍是 %s" % Save.TIERS[now].name,Rect2(card.x-18-160,foot+12,160,0),Px.BODY,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+	var sy := _verdict_line(pane,"得到","营地多一位英雄，出战时可以带上。",foot+36,mortal)
+	_verdict_line(pane,"失去","%s，此后再也拿不到。" % relic.name,sy,Px.RED.lightened(.45))
+	# The foot: a rounded tag that says what pressing it does, a brushed line to either side.
+	var words := "先选一边"
+	if leaning == "take": words = "夺走%s" % relic.name
+	elif leaning == "spare": words = "放过%s" % case.pronoun
+	var tag := Rect2(mid-116,card_top+card.y+20,232,32)
+	var settle := Px._control(body,words,tag,_settle_verdict,Px.BODY)
+	var fill := Px.RED if leaning != "" else Color(Px.INK,.7)
+	var rest := Px.flat(fill,Px.OCHRE if leaning != "" else Px.FAINT,[1,1,1,1])
+	var lit := Px.flat(Px.RED.lightened(.14),Px.IVORY,[1,1,1,1])
+	for style: StyleBoxFlat in [rest,lit]:
+		style.set_corner_radius_all(16)
+		style.anti_aliasing = false
+	Px._paint(settle,rest,lit,rest,Px.IVORY,Px.IVORY)
+	settle.disabled = leaning == ""
+	var flank := Control.new()
+	flank.size = Px.SIZE
+	flank.mouse_filter = MOUSE_FILTER_IGNORE
+	body.add_child(flank)
+	flank.draw.connect(func():
+		for side in [-1.0,1.0]:
+			var from := Vector2(mid+side*(tag.size.x*.5+12),tag.get_center().y)
+			flank.draw_polyline(Vase.stroke(from,from+Vector2(side*70,0),1.2,chapter_no+int(side)*5),Color(Px.OCHRE,.5),1.5)
+			flank.draw_circle(from+Vector2(side*77,0),2.0,Color(Px.OCHRE,.7)))
+	Px.text(body,"两条路都不能回头。",Rect2(0,tag.end.y+8,Px.SIZE.x,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_CENTER)
+	taking.focus_neighbor_right = taking.get_path_to(sparing)
+	sparing.focus_neighbor_left = sparing.get_path_to(taking)
+	for side: Button in [taking,sparing]:
+		side.focus_neighbor_bottom = side.get_path_to(settle)
+	settle.focus_neighbor_top = settle.get_path_to(sparing if leaning == "spare" else taking)
+	if leaning != "": _focus(settle)
+	verdict_spots = {"take":take_at,"spare":spare_at,"socket":seat.call(-1.0,held.size(),held.size()+1,tilt),
+		"haven":seat.call(1.0,kept.size(),kept.size()+1,tilt),"saved":str(case.icon),
+		"divine":divine,"mortal":mortal,"cut":cut,"rises":then > now,"icon":str(relic.icon),"tag":tag}
+	if lean_fresh and leaning != "":
+		lean_fresh = false
+		_answer_lean(taking.get_meta("pane") if leaning == "take" else sparing.get_meta("pane"))
+
+## The screen's answer to leaning one way: the card's edge flares and settles, its writing
+## rises into place, a ring spreads from its medallion, and (when taking) from the socket
+## the relic would fill.
+func _answer_lean(pane: Control) -> void:
+	var rect: Rect2 = verdict_spots[leaning]
+	var tone: Color = verdict_spots.divine if leaning == "take" else verdict_spots.mortal
+	var rest := pane.position
+	pane.position = rest+Vector2(0,7)
+	pane.modulate.a = 0.0
+	var rise := pane.create_tween().set_parallel()
+	rise.tween_property(pane,"position",rest,.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	rise.tween_property(pane,"modulate:a",1.0,.22)
+	_flare(rect,tone,.42)
+	_burst(rect.position+Vector2(40,12),30,tone,.45)
+	_burst(verdict_spots.socket if leaning == "take" else verdict_spots.haven,11,tone,.45,.05)
+	_burst(Vector2(verdict_spots.tag.get_center()),19,Color(Px.RED.lightened(.3),.7),.35,.1,Vector2(5.2,.82))
+
+## The outline of a verdict card, bright for a moment and then gone.
+func _flare(rect: Rect2, tone: Color, seconds: float) -> void:
+	var cut: float = verdict_spots.cut
+	var glow := Control.new()
+	glow.position = rect.position
+	glow.mouse_filter = MOUSE_FILTER_IGNORE
+	floats.add_child(glow)
+	glow.draw.connect(func():
+		var size := rect.size
+		var outline := PackedVector2Array([Vector2.ZERO,Vector2(size.x-cut,0),Vector2(size.x,cut),size,Vector2(cut,size.y),Vector2(0,size.y-cut),Vector2.ZERO])
+		glow.draw_polyline(outline,Color(tone.lightened(.4),1),4.0)
+		glow.draw_colored_polygon(outline,Color(tone,.10)))
+	var fade := glow.create_tween()
+	fade.tween_property(glow,"modulate:a",0.0,seconds).set_ease(Tween.EASE_OUT)
+	fade.tween_callback(glow.queue_free)
+
+## A ring that spreads from a point and thins to nothing. `squash` flattens it (for a ring
+## round something wide).
+func _burst(at: Vector2, radius: float, tone: Color, seconds := .45, wait := 0.0, squash := Vector2.ONE) -> void:
+	var ring := Control.new()
+	ring.position = at
+	ring.mouse_filter = MOUSE_FILTER_IGNORE
+	ring.scale = squash*.8
+	ring.modulate.a = 0.0
+	floats.add_child(ring)
+	ring.draw.connect(func(): ring.draw_arc(Vector2.ZERO,radius,0,TAU,48,tone,2.0))
+	var spread := ring.create_tween()
+	if wait > 0: spread.tween_interval(wait)
+	spread.tween_property(ring,"modulate:a",1.0,.01)
+	spread.tween_property(ring,"scale",squash*1.45,seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	spread.parallel().tween_property(ring,"modulate:a",0.0,seconds).set_ease(Tween.EASE_IN)
+	spread.tween_callback(ring.queue_free)
+
+## The whole screen washed in one colour for a moment.
+func _wash(tone: Color, peak: float, seconds: float, wait := 0.0) -> void:
+	var sheet := Px.block(floats,Rect2(Vector2.ZERO,Px.SIZE),tone)
+	sheet.modulate.a = 0.0
+	var pulse := sheet.create_tween()
+	if wait > 0: pulse.tween_interval(wait)
+	pulse.tween_property(sheet,"modulate:a",peak,seconds*.25)
+	pulse.tween_property(sheet,"modulate:a",0.0,seconds*.75).set_ease(Tween.EASE_OUT)
+	pulse.tween_callback(sheet.queue_free)
+
+## Taking, played out: the relic leaves its card for its place on the road; where it lands
+## rings spread and the screen takes its colour. If that makes a new tier of him, fire
+## comes down on the spot from the sky. Returns how long it runs.
+func _play_taking() -> float:
+	var tone: Color = verdict_spots.divine
+	var from: Vector2 = (verdict_spots.take as Rect2).position+Vector2(40,12)
+	var to: Vector2 = verdict_spots.socket
+	var coin := Control.new()
+	coin.position = from
+	coin.mouse_filter = MOUSE_FILTER_IGNORE
+	floats.add_child(coin)
+	coin.draw.connect(func():
+		Vase.roundel(coin,Vector2.ZERO,10,tone,Px.IVORY,1.5))
+	Px.picture(coin,Px.icon(str(verdict_spots.icon),10),Rect2(-5,-5,10,10)).modulate = Vase.GLAZE
+	coin.scale = Vector2.ONE*2.6
+	var flight := coin.create_tween()
+	# Up and over, not straight across.
+	flight.tween_method(func(t: float):
+		coin.position = from.lerp(to,t)+Vector2(0,-70*sin(t*PI))
+		coin.scale = Vector2.ONE*lerpf(2.6,1.0,t),0.0,1.0,.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	flight.tween_interval(.5)
+	flight.tween_property(coin,"modulate:a",0.0,.2)
+	flight.tween_callback(coin.queue_free)
+	_flare(verdict_spots.take,tone,.5)
+	_burst(to,15,tone,.45,.5)
+	_burst(to,15,Color(Px.IVORY,.8),.6,.58)
+	_wash(tone,.22,.6,.5)
+	if not verdict_spots.rises: return 1.15
+	# A new tier: the sky answers.
+	var bolt := Control.new()
+	bolt.mouse_filter = MOUSE_FILTER_IGNORE
+	bolt.modulate.a = 0.0
+	floats.add_child(bolt)
+	bolt.draw.connect(func():
+		for strand in 3:
+			var path := Vase.stroke(Vector2(to.x+(strand-1)*46,-6),to,13.0,strand*17+int(to.x))
+			bolt.draw_polyline(path,Color(tone.lightened(.5),1),3.0 if strand == 1 else 1.5))
+	var strike := bolt.create_tween()
+	strike.tween_interval(.62)
+	for flash in [1.0,.25,.9,0.0]:
+		strike.tween_property(bolt,"modulate:a",flash,.06)
+	strike.tween_callback(bolt.queue_free)
+	_wash(Px.IVORY,.45,.5,.62)
+	_burst(to,15,Px.IVORY,.7,.66,Vector2(1.7,1.7))
+	return 1.6
+
+## Sparing, played out: the other road goes dark, rings spread slowly from the one who
+## lives, and they go to take their place at the far end of the road.
+func _play_sparing() -> float:
+	var tone: Color = verdict_spots.mortal
+	var rect: Rect2 = verdict_spots.spare
+	var hub := rect.position+Vector2(40,12)
+	var shade := Px.block(floats,verdict_spots.take,Color(Px.INK,1))
+	shade.modulate.a = 0.0
+	var close := shade.create_tween()
+	close.tween_property(shade,"modulate:a",.75,.5)
+	close.tween_interval(.5)
+	close.tween_property(shade,"modulate:a",0.0,.2)
+	close.tween_callback(shade.queue_free)
+	_flare(rect,tone,.6)
+	for n in 2: _burst(hub,30,Color(tone,1.0-n*.35),.8,n*.2)
+	_wash(tone,.12,.9,.1)
+	# The one who lives takes a place at the far end of the road.
+	var to: Vector2 = verdict_spots.haven
+	var coin := Control.new()
+	coin.position = hub
+	coin.mouse_filter = MOUSE_FILTER_IGNORE
+	floats.add_child(coin)
+	coin.draw.connect(func(): Vase.roundel(coin,Vector2.ZERO,10,tone,Px.IVORY,1.5))
+	Px.picture(coin,Px.icon(str(verdict_spots.saved),10),Rect2(-5,-5,10,10)).modulate = Vase.GLAZE
+	coin.scale = Vector2.ONE*2.6
+	var walk := coin.create_tween()
+	walk.tween_interval(.15)
+	# Slower and lower than a relic seized: walked there, not thrown.
+	walk.tween_method(func(t: float):
+		coin.position = hub.lerp(to,t)+Vector2(0,-34*sin(t*PI))
+		coin.scale = Vector2.ONE*lerpf(2.6,1.0,t),0.0,1.0,.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	walk.tween_interval(.3)
+	walk.tween_property(coin,"modulate:a",0.0,.2)
+	walk.tween_callback(coin.queue_free)
+	_burst(to,15,tone,.6,.85)
+	return 1.3
+
+## The writing on one of the two cards, over a button the size of the card. The card not
+## leant toward falls back. Returns the button; its "pane" is where more lines go.
+func _verdict_card(rect: Rect2, way: String, tone: Color, stamp: String, kind: String, title: String, sub: String) -> Button:
+	var press := Px._control(body,"",rect,_lean.bind(way),Px.BODY)
+	var none := StyleBoxEmpty.new()
+	Px._paint(press,none,none,none,Color.TRANSPARENT,Color.TRANSPARENT)
+	press.set_meta("way",way)
+	# Reaching a card with the keys leans toward it, as pointing and pressing does.
+	# Merely passing the pointer over a card must not: the kit gives focus on hover.
+	press.focus_entered.connect(func():
+		if leaning != way and not press.is_hovered(): _lean.call_deferred(way))
+	var pane := Control.new()
+	pane.position = rect.position
+	pane.size = rect.size
+	pane.mouse_filter = MOUSE_FILTER_IGNORE
+	if leaning != "" and leaning != way: pane.modulate = Color(1,1,1,.4)
+	body.add_child(pane)
+	press.set_meta("pane",pane)
+	var chosen := leaning == way
+	var size := 34 if chosen else 30
+	Px.picture(pane,Px.icon(stamp,size),Rect2(40-size*.5,12-size*.5,size,size)).modulate = Vase.GLAZE
+	Px.text(pane,kind,Rect2(80,14,120,0),Px.SMALL,tone)
+	Px.text(pane,title,Rect2(80,26,rect.size.x-98,0),Px.TITLE if Px.width_of(title,Px.TITLE) <= rect.size.x-98 else Px.BODY,Px.IVORY)
+	if sub != "": Px.text(pane,sub,Rect2(rect.size.x-34-140,14,140,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+	# The key pattern for a rule under the name, fading out toward the cut corner.
+	Vase.frieze(pane,Rect2(18,64,rect.size.x-36,7),Color(tone,.45))
+	return press
+
+## A labelled line on a verdict card; returns where the next one goes.
+func _verdict_line(pane: Control, label: String, words: String, y: float, tone: Color) -> float:
+	var room := pane.size.x-70
+	var length := Px.width_of(words,Px.BODY)
+	# A last line of one mark alone looks like a slip: break a little sooner.
+	if length > room and fmod(length,room) < 18: room -= 26
+	Px.block(pane,Rect2(18,y+6,3,3),tone)
+	Px.text(pane,label,Rect2(26,y+1,30,0),Px.SMALL,tone)
+	Px.text(pane,words,Rect2(58,y,room,0),Px.BODY,Px.IVORY)
+	return y+maxi(1,ceili(length/room))*16+6
+
+func _lean(way: String) -> void:
+	if settling: return
+	lean_fresh = leaning != way
+	leaning = way
+	_render()
+
+func _settle_verdict() -> void:
+	if leaning == "" or settling: return
+	# What was chosen is shown happening before it is written down.
+	settling = true
+	Soundscape.cue("warning" if leaning == "take" and verdict_spots.get("rises",false) else "confirm")
+	await get_tree().create_timer(_play_taking() if leaning == "take" else _play_sparing()).timeout
+	settling = false
+	if not is_inside_tree() or not Save.VERDICTS.has(int(entry.get("verdict",0))): return
+	var chapter_no := int(entry.verdict)
+	var case: Dictionary = Save.VERDICTS[chapter_no]
+	var next: Dictionary = entry.duplicate(true)
+	next.erase("verdict")
+	if leaning == "take":
+		var relics: Array = next.get("relics",["lion_pelt"])
+		relics.append(case.relic)
+		next.relics = relics
+		next.divinity = relics.size()
+	else:
+		var spared: Array = next.get("spared",[])
+		spared.append(chapter_no)
+		next.spared = spared
+	if _keep(next):
+		note = "%s归他了。" % str(Save.RELICS[case.relic].name) if leaning == "take" else "%s活了下来。" % case.boss
+		note_tone = Px.OCHRE if leaning == "take" else Px.GREEN
+		leaning = ""
+		asking = _owed()
+	_render()
+
 ## A new tier of divinity: what it gives and takes, and the one technique of two that
 ## grows on him with it. The choice is for good.
 func _ask_power() -> void:
@@ -2085,7 +2593,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if asking == "cheer":
 			_end_cheer(false)
 			return
-		if asking in ["boon","power"]: return
+		if asking in ["boon","power","verdict"]: return
 		if asking != "": _set_asking("")
 		elif screen != "home": _go("home")
 		else: _set_asking("system")

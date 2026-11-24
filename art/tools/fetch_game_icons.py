@@ -116,6 +116,11 @@ ICONS = {
     "art_bone": "lorc/bone-knife",
     "art_horsehair": "lorc/horse-head",
     "art_wolf": "lorc/wolf-head",
+    # the bosses of chapters 2-7, their relics, and the scales the choice is weighed on
+    "boss_hydra": "lorc/hydra", "boss_bird": "lorc/harpy", "boss_minotaur": "lorc/minotaur",
+    "boss_cerberus": "lorc/hound", "boss_titan": "delapouite/giant",
+    "relic_styx": "lorc/drop", "relic_titan": "lorc/fist", "relic_blood": "skoll/blood",
+    "thunder": "lorc/lightning-arc", "scales": "lorc/scales",
 }
 ARTISTS = {"lorc": "Lorc", "delapouite": "Delapouite", "skoll": "Skoll", "cathelineau": "Cathelineau",
            "heavenly-dog": "HeavenlyDog", "lucasms": "Lucas"}
