@@ -185,25 +185,24 @@ static func roll_loot(beaten: Array, rng: RandomNumberGenerator) -> Dictionary:
 					break
 	return haul
 
-## How rare a hired hero is: its name and colour, how often it turns up among the
-## drillmaster's offers (weights), and the range its fee is drawn from.
+## How rare a hired hero is: its name and colour.
 const RARITY := {
-	"common": {"name":"普通","tint":"#cfc4b0","odds":62,"fee":[60,100]},
-	"rare": {"name":"稀有","tint":"#b78cf0","odds":30,"fee":[130,180]},
-	"epic": {"name":"史诗","tint":"#f2b84b","odds":8,"fee":[220,280]},
+	"common": {"name":"普通","tint":"#cfc4b0"},
+	"rare": {"name":"稀有","tint":"#b78cf0"},
+	"epic": {"name":"史诗","tint":"#f2b84b"},
 }
 ## The heroes who can be hired at the camp. Each is one person of the old stories, hired
 ## once. `def` is the unit they fight as, `look` the sheets they are drawn from, `skill` the
-## technique they come with, and `after` the battle that must be cleared before they turn
-## up. Each has a technique tree of their own under their key in skill_tree.json: a small
+## technique they come with, `fee` what they ask, and `after` the battle that must be
+## cleared before they turn up. Each has a technique tree of their own under their key in skill_tree.json: a small
 ## one for the common, a middling one for the rare, a full one for the epic.
 const RECRUITS := {
-	"iphicles": {"look":"merc_sword","skill":"heavy_cut","def":"bandit","title":"忒拜的凡人","name":"伊菲克勒斯","rarity":"common","after":"","lore":"赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
-	"phalerus": {"look":"merc_archer","skill":"aimed_shot","def":"bandit_archer","title":"雅典的弓手","name":"法勒洛斯","rarity":"common","after":"1-1","lore":"小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
-	"ancaeus": {"look":"merc_captain","skill":"heavy_cut","def":"bandit_chief","title":"阿卡迪亚的斧手","name":"安开俄斯","rarity":"rare","after":"1-1","lore":"披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
-	"pholus": {"look":"merc_lancer","skill":"trample","def":"centaur","title":"福洛厄山的主人","name":"福洛斯","rarity":"rare","after":"1-3","lore":"酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
-	"idas": {"look":"idas","skill":"heavy_cut","def":"bandit_chief","title":"墨塞涅的力士","name":"伊达斯","rarity":"epic","after":"1-2","lore":"墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
-	"eurytion": {"look":"eurytion","skill":"trample","def":"centaur","title":"半人马首领","name":"欧律提翁","rarity":"epic","after":"1-3","lore":"酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"},
+	"iphicles": {"fee":60,"look":"merc_sword","skill":"heavy_cut","def":"bandit","title":"忒拜的凡人","name":"伊菲克勒斯","rarity":"common","after":"","lore":"赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
+	"phalerus": {"fee":80,"look":"merc_archer","skill":"aimed_shot","def":"bandit_archer","title":"雅典的弓手","name":"法勒洛斯","rarity":"common","after":"1-1","lore":"小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
+	"ancaeus": {"fee":150,"look":"merc_captain","skill":"heavy_cut","def":"bandit_chief","title":"阿卡迪亚的斧手","name":"安开俄斯","rarity":"rare","after":"1-1","lore":"披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
+	"pholus": {"fee":160,"look":"merc_lancer","skill":"trample","def":"centaur","title":"福洛厄山的主人","name":"福洛斯","rarity":"rare","after":"1-3","lore":"酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
+	"idas": {"fee":240,"look":"idas","skill":"heavy_cut","def":"bandit_chief","title":"墨塞涅的力士","name":"伊达斯","rarity":"epic","after":"1-2","lore":"墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
+	"eurytion": {"fee":260,"look":"eurytion","skill":"trample","def":"centaur","title":"半人马首领","name":"欧律提翁","rarity":"epic","after":"1-3","lore":"酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"},
 }
 ## Everyone starts with one plain attack and one technique. A hired hand's technique is the
 ## `skill` of their kind. A story companion's is the first node of their tree, held from the
@@ -216,44 +215,22 @@ const REQUIRED := {"1-1":["atalanta"],"1-2":["atalanta"],"1-5":["atalanta"]}
 ## Heroes a battle's own file places on the field. Left behind, they are benched; taken
 ## along, they are not sent as extra party members.
 const PLACED := ["atalanta"]
-## How many the drillmaster has on offer at a time, and what it costs to see others.
-const OFFERS := 3
-const REROLL_FEE := 15
 
 static func for_hire(kind: String, entry: Dictionary) -> bool:
 	if not RECRUITS.has(kind): return false
 	var gate: String = RECRUITS[kind].after
 	return gate == "" or entry.get("outcomes",{}).get(gate,"") == "已通关" or entry.has("equipped_relic")
 
-## Draws the drillmaster's offers: each is {id, kind, name, fee}. Rarity is rolled by its
-## odds among the heroes open at this point of the journey; a hero is offered only while
-## not yet hired, and never twice in one draw.
-static func draw_offers(entry: Dictionary, rng: RandomNumberGenerator) -> Array:
+## Who the drillmaster has to offer: every hero open at this point of the journey and not
+## yet hired, each as {id, kind, name, fee}. Nothing is drawn by chance.
+static func offers(entry: Dictionary) -> Array:
 	var taken := {}
 	for hand: Dictionary in entry.get("roster",[]): taken[hand.kind] = true
-	var offers := []
-	for slot in OFFERS:
-		var open := {}
-		for kind: String in RECRUITS:
-			if not for_hire(kind,entry) or taken.has(kind): continue
-			var grade: String = RECRUITS[kind].rarity
-			if not open.has(grade): open[grade] = []
-			open[grade].append(kind)
-		if open.is_empty(): break
-		var total := 0
-		for grade: String in open: total += int(RARITY[grade].odds)
-		var roll := rng.randi_range(1,total)
-		var chosen := ""
-		for grade: String in open:
-			roll -= int(RARITY[grade].odds)
-			if roll <= 0:
-				chosen = grade
-				break
-		var kind: String = open[chosen][rng.randi_range(0,open[chosen].size()-1)]
-		taken[kind] = true
-		var fee: Array = RARITY[chosen].fee
-		offers.append({"id":"o%d" % rng.randi(),"kind":kind,"name":str(RECRUITS[kind].name),"fee":int(rng.randi_range(int(fee[0]),int(fee[1]))/5)*5})
-	return offers
+	var open := []
+	for kind: String in RECRUITS:
+		if for_hire(kind,entry) and not taken.has(kind):
+			open.append({"id":kind,"kind":kind,"name":str(RECRUITS[kind].name),"fee":int(RECRUITS[kind].fee)})
+	return open
 
 ## Whether the trader has a thing on the shelf at this point of the journey.
 static func stocked(id: String, entry: Dictionary) -> bool:

@@ -135,7 +135,7 @@ func _new_game() -> void:
 	_check("hero has learnt nothing yet",saved.picks.get("hero",[]).is_empty(),saved.picks.get("hero"))
 	_check("atalanta holds her starting technique",saved.picks.get("atalanta",[]) == [Save.STARTERS.atalanta],saved.picks.get("atalanta"))
 	# Each hero is one person, and only Iphicles has come this far at the start.
-	_check("the drillmaster has someone on offer",saved.get("offers",[]).size() == 1 and saved.offers[0].kind == "iphicles",saved.get("offers",[]))
+	_check("the drillmaster has someone on offer",Save.offers(saved).size() == 1 and Save.offers(saved)[0].kind == "iphicles",Save.offers(saved))
 	_check("nobody is asking anything at the start",camp.asking == "",camp.asking)
 	_check("everyone starts at level 1",_level("hero") == 1 and _level("atalanta") == 1)
 
@@ -211,13 +211,11 @@ func _cannot_hire_when_poor() -> void:
 	camp._go("recruit")
 	await _frames()
 	var cheapest := 9999
-	for offer: Dictionary in camp.entry.offers: cheapest = mini(cheapest,int(offer.fee))
+	for offer: Dictionary in Save.offers(camp.entry): cheapest = mini(cheapest,int(offer.fee))
 	if _coins() < cheapest:
 		var hire := _button("还差")
 		_check("hiring is refused when the purse is short",hire != null and hire.disabled)
-	if _coins() < Save.REROLL_FEE:
-		var again := _button("换一批")
-		_check("sending for others is refused when the purse is short",again != null and again.disabled)
+	_check("nobody is sent for at a price",_button("换一批") == null)
 
 
 func _march_and_check_first_battle() -> bool:
@@ -297,7 +295,8 @@ func _first_report() -> void:
 		if Save.GOODS[thing].slot == "material": spoils += int(_bag()[thing])
 	_check("the beaten left materials in the bag",spoils > 0,_bag())
 	_check("the tunic is still on",saved.purse.worn.get("hero",{}).get("body","") == "tunic")
-	_check("the drillmaster has a fresh list",saved.get("offers",[]).size() == Save.OFFERS,saved.get("offers",[]).size())
+	var open: Array = Save.offers(saved).map(func(offer): return offer.kind)
+	_check("clearing 1-1 brought two more heroes to the camp",open == ["iphicles","phalerus","ancaeus"],open)
 	if not await _press("去分配技能点"): return
 	_check("the report is gone",camp.asking == "",camp.asking)
 	_check("it opened the technique tree",camp.screen == "party" and camp.page == "tree","%s / %s" % [camp.screen,camp.page])
@@ -334,29 +333,22 @@ func _hire() -> void:
 	var camp := _scene()
 	camp._go("recruit")
 	await _frames()
-	var pick: Dictionary = camp.entry.offers[0]
-	for offer: Dictionary in camp.entry.offers:
+	var listed := Save.offers(camp.entry)
+	var pick: Dictionary = listed[0]
+	for offer: Dictionary in listed:
 		if int(offer.fee) < int(pick.fee): pick = offer
-	if _coins() < int(pick.fee)+Save.REROLL_FEE:
+	_check("each asks the fee set for them",int(pick.fee) == int(Save.RECRUITS[pick.kind].fee),pick)
+	if _coins() < int(pick.fee):
 		_say("   (setup: topping the purse up to cover the fee)")
-		await _grant_coins(int(pick.fee)+Save.REROLL_FEE+100)
-	# Send for others first: it costs, and the list changes.
-	var before := _coins()
-	if await _press("换一批"):
-		_check("sending for others cost its fee",_coins() == before-Save.REROLL_FEE,_coins())
-		_check("the list is still full",_disk().offers.size() == Save.OFFERS,_disk().offers.size())
-	pick = camp.entry.offers[0]
-	for offer: Dictionary in camp.entry.offers:
-		if int(offer.fee) < int(pick.fee): pick = offer
-	if _coins() < int(pick.fee): await _grant_coins(int(pick.fee)+50)
+		await _grant_coins(int(pick.fee)+50)
 	camp._pick(pick.id,"recruit")
 	await _frames()
-	before = _coins()
+	var before := _coins()
 	if not await _press("招募"): return
 	var saved := _disk()
 	_check("the fee left the purse",_coins() == before-int(pick.fee),"%d -> %d" % [before,_coins()])
 	_check("the hire is on the roster",saved.roster.size() == 1 and saved.roster[0].name == pick.name,saved.get("roster"))
-	_check("the hire left the list",saved.offers.size() == Save.OFFERS-1,saved.offers.size())
+	_check("the hire left the list",Save.offers(saved).size() == listed.size()-1 and not Save.offers(saved).any(func(offer): return offer.kind == pick.kind),Save.offers(saved))
 	var who: String = saved.roster[0].id
 	_check("the hire marches at once",saved.deploy.has(who),saved.get("deploy"))
 	_check("the hire starts with half the hero's experience",int(saved.xp.get(who,-1)) == int(saved.xp.hero)/2,saved.xp)

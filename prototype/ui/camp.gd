@@ -298,7 +298,7 @@ func _story_party() -> Array:
 	return party
 
 ## Saves from before hires had names of their own listed only the kind; give those a
-## record. Fresh offers are drawn whenever the party comes back without any (after a battle).
+## record.
 func _settle_roster() -> void:
 	var roster: Array = []
 	for hand in entry.get("roster",[]):
@@ -314,11 +314,6 @@ func _settle_roster() -> void:
 		if not held.has(Save.STARTERS[who]): held.push_front(Save.STARTERS[who])
 		entry.picks[who] = held
 	_settle_xp()
-	if not entry.has("offers"):
-		var rng := RandomNumberGenerator.new()
-		rng.randomize()
-		entry.offers = Save.draw_offers(entry,rng)
-		if persistent: Save.write_entry(entry)
 
 func _xp(who: String) -> int:
 	return int(entry.get("xp",{}).get(who,0))
@@ -1770,7 +1765,7 @@ func _sell_scrap() -> void:
 
 func _recruit() -> void:
 	_person_head("recruit")
-	var offers: Array = entry.get("offers",[])
+	var offers := Save.offers(entry)
 	if offers.filter(func(offer): return offer.id == picked.recruit).is_empty():
 		picked.recruit = "" if offers.is_empty() else str(offers[0].id)
 	var rows_data := []
@@ -1778,17 +1773,11 @@ func _recruit() -> void:
 		var kind: Dictionary = Save.RECRUITS[offer.kind]
 		var grade := _grade(kind.rarity)
 		rows_data.append([offer.id,offer.name,grade[0],Px.face(str(kind.get("look",kind.def)),32),Color.WHITE,grade[1],int(offer.fee)])
-	var rows := _list("今天来应募的",rows_data,picked.recruit,_pick.bind("recruit"),40.0)
-	# Others can be sent for, at a price.
-	var again := Px.button(body,"换一批　　　",Rect2(LIST.position.x+10,LIST.end.y-36,LIST.size.x-20,26),_reroll)
-	_price(body,Save.REROLL_FEE,Vector2(LIST.position.x+LIST.size.x*.5+10,LIST.end.y-29),false,Px.IVORY)
-	again.disabled = _coins() < Save.REROLL_FEE
-	again.tooltip_text = "每次打完仗回营，来的人也会换。"
+	var rows := _list("愿意同行的英雄",rows_data,picked.recruit,_pick.bind("recruit"),40.0)
 	var x := DETAIL.position.x+20
 	if picked.recruit == "":
-		_title("今天没有人来","招募")
-		Px.text(body,"打完下一仗回来，或者花点钱让达蒙再去找找。",Rect2(x,DETAIL.position.y+90,MEASURE,0),Px.BODY,Px.MUTED)
-		_focus(again)
+		_title("眼下没有人可招","招募")
+		Px.text(body,"往前走，会有别的英雄听说你们。",Rect2(x,DETAIL.position.y+90,MEASURE,0),Px.BODY,Px.MUTED)
 		return
 	var offer: Dictionary = offers.filter(func(candidate): return candidate.id == picked.recruit)[0]
 	var kind: Dictionary = Save.RECRUITS[offer.kind]
@@ -1824,24 +1813,9 @@ func _recruit() -> void:
 	act.disabled = short > 0
 	_price(body,int(offer.fee) if short <= 0 else short,Vector2(DETAIL.end.x-20-64,DETAIL.end.y-33),false,Px.IVORY if short <= 0 else Px.MUTED)
 	_link(rows,act,offers.find(offer))
-	if not rows.is_empty():
-		rows[-1].focus_neighbor_bottom = rows[-1].get_path_to(again)
-		again.focus_neighbor_top = again.get_path_to(rows[-1])
-
-func _reroll() -> void:
-	if _coins() < Save.REROLL_FEE: return
-	var next: Dictionary = entry.duplicate(true)
-	var purse: Dictionary = next.get("purse",{})
-	purse.coins = _coins()-Save.REROLL_FEE
-	next.purse = purse
-	var rng := RandomNumberGenerator.new()
-	rng.randomize()
-	next.offers = Save.draw_offers(next,rng)
-	if _keep(next): note = "达蒙又带了几个人来。"
-	_render()
 
 func _hire(offer_id: String) -> void:
-	var found: Array = entry.get("offers",[]).filter(func(candidate): return candidate.id == offer_id)
+	var found: Array = Save.offers(entry).filter(func(candidate): return candidate.id == offer_id)
 	if found.is_empty() or _coins() < int(found[0].fee): return
 	var offer: Dictionary = found[0]
 	var next: Dictionary = entry.duplicate(true)
@@ -1853,7 +1827,6 @@ func _hire(offer_id: String) -> void:
 	next.roster = roster
 	if not next.has("xp"): next.xp = {}
 	next.xp[who] = _xp("hero")/2
-	next.offers = (next.offers as Array).filter(func(candidate): return candidate.id != offer_id)
 	var purse: Dictionary = next.get("purse",{})
 	purse.coins = _coins()-int(offer.fee)
 	next.purse = purse
