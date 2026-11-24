@@ -1,6 +1,9 @@
 package rules
 
-import "math"
+import (
+	"math"
+	"sort"
+)
 
 // 行动的校验、执行、预览和阶段流程（07-combat-rules §2、§7.1）。
 
@@ -287,9 +290,6 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if sk.Item && u.Charge(skillID) <= 0 {
 		return "none left"
 	}
-	if u.HasStatus("feared") {
-		return "feared"
-	}
 	if u.GrapplingID != "" {
 		return "grappling"
 	}
@@ -471,7 +471,7 @@ func doMove(s *BattleState, u *UnitState, to Cell, ev *[]Event) {
 }
 
 func cleanseTarget(target *UnitState) string {
-	for _, status := range []string{"burning", "poisoned", "feared"} {
+	for _, status := range []string{"burning", "poisoned", "rooted"} {
 		if target.HasStatus(status) {
 			return status
 		}
@@ -493,7 +493,6 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		u.HasActed = true
 		u.SetCooldown(sk.ID, sk.Cooldown)
 		u.SetStatus(sk.SelfStatus, sk.Rounds)
-		s.Reward.Divinity += 2
 		emit(ev, Event{Type: EvStatus, Target: u.ID, Status: sk.SelfStatus, Rounds: sk.Rounds})
 		return
 	}
@@ -503,8 +502,18 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 			u.SetCooldown(sk.ID, sk.Cooldown)
 		}
 		emit(ev, Event{Type: EvArea, Unit: u.ID, Skill: sk.ID})
-		for _, o := range AreaTargets(s, u, sk) {
-			AddStatus(s, o, sk.AreaStatus, sk.Rounds, ev, false)
+		caught := AreaTargets(s, u, sk)
+		if sk.AreaKnockback > 0 {
+			// 先推远处的，近处的才有地方退。
+			sort.SliceStable(caught, func(i, j int) bool { return Distance(u, caught[i]) > Distance(u, caught[j]) })
+		}
+		for _, o := range caught {
+			if sk.AreaStatus != "" {
+				AddStatus(s, o, sk.AreaStatus, sk.Rounds, ev, false)
+			}
+			if sk.AreaKnockback > 0 && o.Alive {
+				Knockback(s, o, dirToward(u, o), sk.AreaKnockback, sk.ID, ev)
+			}
 		}
 		return
 	}
@@ -571,7 +580,11 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		u.SetCooldown(sk.ID, sk.Cooldown)
 	}
 
-	hit := Compute(s, u, target, sk.Mult, sk.Type, ranged, NoPos)
+	mult := sk.Mult
+	if sk.ID == "weak_point" && u.Traits.Has("keen_eye") {
+		mult = 1.0
+	}
+	hit := ComputeHit(s, u, target, mult, sk.Type, ranged, NoPos, sk.Pierce)
 	emit(ev, Event{Type: EvAttack, Unit: u.ID, Target: target.ID, Skill: sk.ID, Relation: hit.Relation, Notes: hit.Notes})
 	dodged := target.HasStatus("dodge")
 	Deal(s, target, hit.Amount, sk.Type, sk.ID, ev, true)
@@ -585,23 +598,13 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 			AddStatus(s, target, "burning", rounds, ev, false)
 		case "pin_shot", "bind_hex":
 			AddStatus(s, target, "rooted", 1, ev, false)
-		case "night_hex":
-			AddStatus(s, target, "feared", 1, ev, false)
-		case "weak_point":
-			rounds := 2
-			if u.Traits.Has("keen_eye") {
-				rounds++
-			}
-			AddStatus(s, target, "exposed", rounds, ev, false)
-		case "frailty":
-			rounds := 2
-			if u.Traits.Has("lingering_hex") {
-				rounds++
-			}
-			AddStatus(s, target, "weakened", rounds, ev, false)
 		}
 		if sk.Status != "" {
-			AddStatus(s, target, sk.Status, sk.Rounds, ev, false)
+			rounds := sk.Rounds
+			if sk.ID == "frailty" && u.Traits.Has("lingering_hex") {
+				rounds++
+			}
+			AddStatus(s, target, sk.Status, rounds, ev, false)
 		}
 	}
 	if !dodged {
@@ -939,7 +942,7 @@ func SettleRound(s *BattleState, ev *[]Event) {
 			if left <= 0 {
 				u.EraseStatus(st)
 				emit(ev, Event{Type: EvStatusEnd, Target: u.ID, Status: st})
-				if st == "feared" || st == "rooted" {
+				if st == "rooted" {
 					u.SetStatus("control_immune", 1)
 				}
 			} else {

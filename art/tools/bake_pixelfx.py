@@ -20,6 +20,10 @@ out.mkdir(parents=True, exist_ok=True)
 
 BRONZE = ["#2a1a12", "#6b3a22", "#b5622e", "#e0a050", "#f5d9a0", "#fff6e0"]
 DUST = ["#3d2e22", "#6a5340", "#93795d", "#b89f7f", "#d6c2a2", "#efe2c8"]
+# The kit's own colours are made for dark fantasy backdrops: scarlet, violet, acid green.
+# On pale limestone they shout. These ramps keep every effect inside the game's pigments.
+EMBER = ["#2e2119", "#5c4433", "#a3552a", "#d98a3c", "#f2c887", "#fff3d6"]
+OLIVE = ["#20260f", "#3a4520", "#5c6b2e", "#88964a", "#b7c07a", "#e4e8b8"]
 INK = (38, 22, 14)
 
 
@@ -52,12 +56,32 @@ EFFECTS = {
     "slash": ("melee/sword-slash", 20, BRONZE, (95, 48)),
     "dust": ("impacts/heavy-landing", 15, DUST, None),
     "flame": ("fire/campfire", 12, None, None),
+    # What things carried do, and what happens to whoever they land on. Effects that draw
+    # a stand-in body of their own (holy/heal, status/poisoned) are no use here. Nor are
+    # the kit's skull-and-violet curse or its root snare: neither reads as ours whatever
+    # the colour, and the game has only four ailments to show in any case.
+    "bless": ("holy/blessing", 15, None, None),
+    "burst": ("explosions/small-explosion", 18, None, None),
+    "thud": ("impacts/blunt-hit", 20, BRONZE, None),
+    "burning": ("status/burning", 15, None, None),
+    "poisoned": ("nature/toxic-puddle", 15, None, None),
+    "stunned": ("status/stunned", 15, None, None),
 }
+# Options an effect is rendered with besides its palette.
+OPTIONS = {}
+# Effects that run long: (every nth frame, how many). A strip wider than 16384 pixels will
+# not load as a texture, and nobody waits five seconds for smoke to clear.
+TAKE = {"burst": (2, 9), "bless": (2, 20), "poisoned": (2, 14)}
+# Effects repainted by brightness into one of our ramps.
+TONE = {"dust": DUST, "burst": EMBER, "thud": BRONZE, "poisoned": OLIVE}
 manifest = {}
 for name, (effect, fps, palette, centre) in EFFECTS.items():
     command = ["node", "tools/render.mjs", effect, "--sheet", "--fps", str(fps)]
+    options = dict(OPTIONS.get(name, {}))
     if palette:
-        command += ["--opts", json.dumps({"palette": palette})]
+        options["palette"] = palette
+    if options:
+        command += ["--opts", json.dumps(options)]
     subprocess.run(command, cwd=kit, check=True, stdout=subprocess.DEVNULL)
     stem = kit / "records" / effect / effect.split("/")[1]
     meta = json.loads(stem.with_suffix(".json").read_text())["meta"]["pixelfx"]
@@ -68,18 +92,20 @@ for name, (effect, fps, palette, centre) in EFFECTS.items():
         side, cx, cy = max(width, height), width // 2, height // 2
     else:
         side = 2 * max(cx, width - cx, cy, height - cy)
-    strip = Image.new("RGBA", (side * meta["frames"], side))
-    for index in range(meta["frames"]):
+    step, count = TAKE.get(name, (1, meta["frames"]))
+    picked = list(range(0, meta["frames"], step))[:count]
+    strip = Image.new("RGBA", (side * len(picked), side))
+    for place, index in enumerate(picked):
         column, row = index % meta["columns"], index // meta["columns"]
         frame = sheet.crop((column * width, row * height, (column + 1) * width, (row + 1) * height))
-        strip.paste(frame, (index * side + side // 2 - cx, side // 2 - cy))
-    if name == "dust":
-        strip = tone_map(strip, DUST)
-    elif name != "flame":
+        strip.paste(frame, (place * side + side // 2 - cx, side // 2 - cy))
+    if name in TONE:
+        strip = tone_map(strip, TONE[name])
+    if name not in ("dust", "flame"):
         strip = ink_edge(strip)
     strip.save(out / f"{name}.png")
-    manifest[name] = {"source": effect, "frames": meta["frames"], "fps": meta["fps"], "frame": side,
-                      "seconds": round(meta["frames"] / meta["fps"], 3), "pivot": meta["pivot"]}
+    manifest[name] = {"source": effect, "frames": len(picked), "fps": meta["fps"] / step, "frame": side,
+                      "seconds": round(len(picked) * step / meta["fps"], 3), "pivot": meta["pivot"]}
     print(name, effect, strip.size, manifest[name])
 (out / "effects.json").write_text(json.dumps(manifest, indent=1) + "\n")
 for notice in ("LICENSE", "NOTICE.md"):

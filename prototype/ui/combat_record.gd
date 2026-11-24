@@ -16,7 +16,7 @@ static func participant(state: BattleState,id: String) -> Dictionary:
 	var caption := u.display_name
 	if u.id.begins_with(u.def_id+"_") and u.id.get_slice("_",1).is_valid_int():
 		caption += " "+u.id.get_slice("_",1)
-	return {"id":id,"name":caption,"kind":u.def_id,"max_hp":u.max_hp}
+	return {"id":id,"name":caption,"kind":u.def_id,"look":u.look(),"max_hp":u.max_hp}
 
 
 static func collect(state: BattleState, events: Array, from_round := -1) -> Array[Dictionary]:

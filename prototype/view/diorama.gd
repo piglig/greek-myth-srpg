@@ -77,11 +77,13 @@ func spot(cell: Vector2) -> Vector3:
 	return map_view.to_global(Vector3(cell.x,map_view.field.elevation(cell.x,cell.y),cell.y))
 
 
-func unit(def_id: String, cell: Vector2, facing: Vector2i, enemy := false) -> PixelUnit:
+## `look` draws them from another folder of sheets than their kind's own.
+func unit(def_id: String, cell: Vector2, facing: Vector2i, enemy := false, look := "") -> PixelUnit:
 	var state := UnitState.new()
 	_units += 1
 	state.id = "%s_%d" % [def_id,_units]
 	state.def_id = def_id
+	if look != "": UnitState.looks[state.id] = look
 	state.team = Defs.Team.ENEMY if enemy else Defs.Team.PLAYER
 	state.facing = facing
 	state.size = 2 if def_id in ["lion","boar"] else 1
@@ -100,6 +102,35 @@ func prop(scene: PackedScene, width: float, cell: Vector2, turn := 0.0) -> Node3
 	model.position = spot(cell)
 	model.rotation.y = turn
 	stand.add_child(model)
+	return model
+
+
+## A model from a third-party kit, in its own materials. `tall` is how high it should stand
+## in the world (a person is about 1.8); it is set down on the ground at `cell`.
+## `canvas` repaints it as linen and wood (see camp_canvas.gdshader).
+## `stone` carves it from the valley's limestone, for models that come without paint.
+func kit(path: String, cell: Vector2, tall: float, turn := 0.0, canvas := false, stone := false) -> Node3D:
+	var model := (load(path) as PackedScene).instantiate() as Node3D
+	stand.add_child(model)
+	var box := AABB()
+	var any := false
+	for part: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false):
+		for surface in part.mesh.get_surface_count() if canvas else 0:
+			var given := part.mesh.surface_get_material(surface) as BaseMaterial3D
+			var paint := ShaderMaterial.new()
+			paint.shader = preload("res://view/camp_canvas.gdshader")
+			if given != null: paint.set_shader_parameter("albedo_map",given.albedo_texture)
+			part.set_surface_override_material(surface,paint)
+		if stone:
+			part.material_override = NemeaField.finish()
+			part.set_instance_shader_parameter("limestone",1.0)
+		var reach: AABB = (model.global_transform.affine_inverse()*part.global_transform)*part.get_aabb()
+		box = reach if not any else box.merge(reach)
+		any = true
+	var size := tall/maxf(box.size.y,.001)
+	model.scale = Vector3.ONE*size
+	model.rotation.y = turn
+	model.position = spot(cell)-Vector3.UP*box.position.y*size
 	return model
 
 

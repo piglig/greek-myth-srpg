@@ -130,10 +130,11 @@ func _show(which: String, selected := 0) -> void:
 			y = _line("设置",Vector2(left,y),Px.TITLE,Px.IVORY)+10
 			var cap := "不限" if DisplayPrefs.frame_cap == 0 else "%d 帧" % DisplayPrefs.frame_cap
 			entries = [["显示　　%s" % ("全屏" if DisplayPrefs.fullscreen else "窗口"),_setting.bind(0)],
-				["垂直同步　%s" % ("开" if DisplayPrefs.vsync else "关"),_setting.bind(1)],
-				["帧率上限　%s" % cap,_setting.bind(2)],
-				["音乐　　%d" % Soundscape.levels[Soundscape.MUSIC],_volume.bind(Soundscape.MUSIC,3)],
-				["音效　　%d" % Soundscape.levels[Soundscape.EFFECTS],_volume.bind(Soundscape.EFFECTS,4)],
+				["分辨率　%s" % ("跟随屏幕" if DisplayPrefs.fullscreen else "%d × %d" % [DisplayPrefs.size.x,DisplayPrefs.size.y]),_setting.bind(1)],
+				["垂直同步　%s" % ("开" if DisplayPrefs.vsync else "关"),_setting.bind(2)],
+				["帧率上限　%s" % cap,_setting.bind(3)],
+				["音乐　　%d" % Soundscape.levels[Soundscape.MUSIC],_volume.bind(Soundscape.MUSIC,4)],
+				["音效　　%d" % Soundscape.levels[Soundscape.EFFECTS],_volume.bind(Soundscape.EFFECTS,5)],
 				["返回",_show.bind("root")]]
 		"controls":
 			y = _line("操作说明",Vector2(left,y),Px.TITLE,Px.IVORY)+10
@@ -166,8 +167,14 @@ func _show(which: String, selected := 0) -> void:
 func _setting(index: int) -> void:
 	match index:
 		0: DisplayPrefs.fullscreen = not DisplayPrefs.fullscreen
-		1: DisplayPrefs.vsync = not DisplayPrefs.vsync
-		2: DisplayPrefs.frame_cap = DisplayPrefs.CAPS[(DisplayPrefs.CAPS.find(DisplayPrefs.frame_cap)+1) % DisplayPrefs.CAPS.size()]
+		1:
+			if DisplayPrefs.fullscreen:
+				note = "全屏时用的是屏幕的分辨率。切到窗口后可以选。"
+				_show("settings",index)
+				return
+			DisplayPrefs.next_size()
+		2: DisplayPrefs.vsync = not DisplayPrefs.vsync
+		3: DisplayPrefs.frame_cap = DisplayPrefs.CAPS[(DisplayPrefs.CAPS.find(DisplayPrefs.frame_cap)+1) % DisplayPrefs.CAPS.size()]
 	if DisplayPrefs.commit() != OK:
 		note = "设置已生效，但没能写入本机。"
 	_show("settings",index)

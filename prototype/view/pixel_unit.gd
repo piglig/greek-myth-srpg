@@ -35,7 +35,7 @@ var impact_side := 0.
 
 func setup(u: UnitState, _tex: Texture2D, _motion: Texture2D) -> void:
 	kind = u.def_id
-	var folder := "res://art/pixel/%s/"%kind
+	var folder := "res://art/pixel/%s/"%u.look()
 	super.setup(u,load(folder+"actors.png"),load(folder+"motion.png"))
 	if kind in ["centaur","chiron"]:
 		var action := "spear.png" if kind=="centaur" else "bow.png"
@@ -115,7 +115,9 @@ func _process(dt: float):
 		var breath := 32.+5.*(1.-cos(_time*4.))
 		set_painted_action_frame(43.+12.*hit_phase if hit_phase<1. else breath)
 		return
-	if intercept_pose>=0.:
+	# Only the protagonist has drawings for raising a shield in someone's way: anyone else
+	# who steps in to take a blow (a hired hero with 以身相护) just steps in.
+	if intercept_pose>=0. and strips.has("guard"):
 		_strip("block" if intercept_contact else "guard",intercept_pose)
 		var stride := sin(PI*intercept_pose) if not intercept_contact else 0.
 		reaction.material_override.set_shader_parameter("sidestep",intercept_side*stride)

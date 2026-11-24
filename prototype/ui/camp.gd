@@ -14,13 +14,21 @@ const TITLE := "res://title.tscn"
 const BATTLE := "res://main.tscn"
 const NAMES := {"hero":"主角","atalanta":"阿塔兰忒","chiron":"喀戎","medea":"美狄亚"}
 const ROLES := {"hero":"持盾先锋","atalanta":"卡吕冬猎手","chiron":"半人马贤者","medea":"科尔喀斯女巫"}
+## Who the companions are, as the member sheet tells it. The hero's line says only what he
+## knows of himself: the name of the game already tells the player the rest (20-narrative).
+const LORE := {
+	"hero": "阿卡迪亚山村的守村人。雷火烧掉村子的那一夜，只有他从火里走了出来。",
+	"atalanta": "被父亲遗弃在山里，由母熊养大的猎手。她追着一头巨兽的踪迹来到这里，不相信任何归宿。",
+	"chiron": "半人马贤者，教过阿喀琉斯、伊阿宋和阿斯克勒庇俄斯。被一支毒箭误伤，伤口永不愈合。",
+	"medea": "科尔喀斯的女巫，赫利俄斯的孙女，赫卡忒的女祭司。帮伊阿宋取得金羊毛，又被他抛弃。",
+}
 const NUMERALS := ["一","二","三","四","五","六","七","八"]
 ## The people of the camp: who they are, the sprite that plays them, where they stand,
 ## and the screen they open.
 const PEOPLE := [
-	{"key":"trader","name":"阿齐尔","role":"行商","service":"买护符","icon":"shop","def":"refugee","cell":Vector2(10.4,5.0),"turn":Vector2i(0,1)},
-	{"key":"recruit","name":"达蒙","role":"教习","service":"招募","icon":"helmet","def":"bandit_chief","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
-	{"key":"march","name":"伊俄","role":"领路人","service":"出征","icon":"march","def":"bandit_archer","cell":Vector2(11.4,8.2),"turn":Vector2i(-1,0)}]
+	{"key":"trader","name":"阿齐尔","role":"行商","service":"买护符","icon":"shop","def":"refugee","look":"npc_trader","cell":Vector2(10.5,5.9),"turn":Vector2i(0,1)},
+	{"key":"recruit","name":"达蒙","role":"教习","service":"招募","icon":"helmet","def":"bandit_chief","look":"npc_drill","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
+	{"key":"march","name":"伊俄","role":"领路人","service":"出征","icon":"march","def":"bandit_archer","look":"npc_guide","cell":Vector2(11.4,8.2),"turn":Vector2i(-1,0)}]
 const GREETINGS := {"trader":"坐。我这秤称过腓尼基的银子，也称过阿卡迪亚最后一袋麦子。",
 	"recruit":"把盾放低些。你看得见我的肩，才看得见我什么时候出手。",
 	"march":"过来搭把手，压住这张图。夜里起风，明早的路可不能让它吹走。"}
@@ -85,7 +93,7 @@ func _ready() -> void:
 		persistent = entry.get("campaign",true)
 	elif not shot.is_empty():
 		entry = {"id":"1-4","stage":"camp","picks":SkillTree.default_picks(),"rescued":["a","b"],"chiron_joined":true,
-			"outcomes":{"1-1":"已通关","1-2":"已通关","1-3":"已通关"},"choose_route":false,"roster":[{"id":"r1","kind":"sword","name":"吕科斯"},{"id":"r2","kind":"idas","name":"伊达斯"}],"deploy":["chiron","r2"],
+			"outcomes":{"1-1":"已通关","1-2":"已通关","1-3":"已通关"},"choose_route":false,"roster":[{"id":"r1","kind":"iphicles","name":"伊菲克勒斯"},{"id":"r2","kind":"idas","name":"伊达斯"}],"deploy":["atalanta","chiron","r2"],
 			"purse":{"coins":260,"bag":{"olive":1,"anklet":1,"leather":2,"wolf_hide":3,"wolf_fang":2,"coin_pouch":1},"worn":{"hero":{"hand":"olive"}},"paid":["1-1"]}}
 		persistent = false
 	else:
@@ -142,7 +150,7 @@ func _open_for_shot(which: String) -> void:
 		"lost": entry.news = {"battle":"1-4","won":false,"result":"战斗失利，可整备后重试","fielded":["hero","atalanta","chiron"],"fallen":["hero","chiron"]}
 		"toast":
 			screen = "recruit"
-			note = "菲洛加入了营地。"
+			note = "福洛斯加入了营地。"
 			note_tone = Color(str(Save.RARITY.rare.tint))
 			shown_coins = 410
 		"skills":
@@ -171,6 +179,11 @@ func _open_for_shot(which: String) -> void:
 			screen = "party"
 			member = "r2"
 			page = "tree"
+		"common":
+			# A common hero's small tree.
+			screen = "party"
+			member = "r1"
+			page = "tree"
 		"depart":
 			# Walk out of the camp into the next battle, to check the hand-over.
 			screen = "march"
@@ -188,8 +201,9 @@ func _pitch_camp() -> void:
 		[Vector2i(1,6),Vector2i(12,3),Vector2i(2,9),Vector2i(8,9)])
 	scene.fire(FIRE)
 	scene.prop(preload("res://art/landmarks/cart.glb"),1.6,Vector2(11.4,3.2),-.5)
+	_furnish()
 	for person: Dictionary in PEOPLE:
-		figures[person.key] = scene.unit(person.def,person.cell,person.turn)
+		figures[person.key] = scene.unit(person.def,person.cell,person.turn,false,person.look)
 	# The party rests round the fire, each turned toward it.
 	var around := [Vector2(-1.5,.3),Vector2(1.4,.5),Vector2(-.9,-1.4),Vector2(1.0,-1.3),Vector2(-.2,1.6),Vector2(2.2,-.4)]
 	var index := 0
@@ -197,11 +211,50 @@ func _pitch_camp() -> void:
 		if index >= around.size(): break
 		var seat: Vector2 = around[index]
 		var toward := Vector2i(-signi(roundi(seat.x)),0) if absf(seat.x) > absf(seat.y) else Vector2i(0,-signi(roundi(seat.y)))
-		sitters[who] = [scene.unit(_def(who),FIRE+seat,toward),toward]
+		sitters[who] = [scene.unit(_def(who),FIRE+seat,toward,false,_look(who) if _look(who) != _def(who) else ""),toward]
 		seats[who] = FIRE+seat
 		index += 1
 	_turn_sitters()
 	scene.look.call_deferred(_view_target(),0,_view_zoom())
+
+## What makes the place a camp: somewhere to sleep, the trader's stall, the drillmaster's
+## yard, the guide's post. Models from two CC0 kits (see art/thirdparty/CREDITS.md).
+func _furnish() -> void:
+	var props := "res://art/thirdparty/camp/props/%s.gltf"
+	var survival := "res://art/thirdparty/camp/survival/%s.glb"
+	# Tents on the open ground at the near left, bedrolls and logs by the fire.
+	# Kept to the far left and behind the fire: nothing stands between the camera and
+	# whoever sits by it when their sheet is open.
+	scene.kit(survival % "tent-canvas",Vector2(.9,7.3),2.0,.55,true)
+	scene.kit(survival % "tent-canvas",Vector2(1.5,9.2),2.0,.3,true)
+	scene.kit(survival % "bedroll",Vector2(2.6,8.4),.22,.9,true)
+	scene.kit(survival % "bedroll-packed",Vector2(2.3,7.2),.36,.3,true)
+	scene.kit(survival % "tree-log",Vector2(8.9,5.4),.34,1.1,true)
+	scene.kit(survival % "tree-log-small",Vector2(5.6,5.0),.3,-.3,true)
+	scene.kit(props % "Bucket_Wooden_1",Vector2(8.1,5.6),.42)
+	# The trader: a stall, and his wares round it.
+	scene.kit(props % "Stall_Empty",Vector2(10.3,4.2),2.6,PI)
+	scene.kit(props % "Crate_Wooden",Vector2(11.6,4.9),.66,.4)
+	scene.kit(props % "Crate_Wooden",Vector2(12.0,4.3),.66,-.2)
+	scene.kit(props % "Vase_4",Vector2(9.2,4.8),.62)
+	scene.kit(props % "Bag",Vector2(9.5,5.4),.42,.6)
+	scene.kit(props % "Barrel",Vector2(12.3,5.4),.85)
+	# The drillmaster: weapons to hand and something to hit.
+	scene.kit(props % "WeaponStand",Vector2(2.2,4.7),1.25,.5)
+	scene.kit(props % "Dummy",Vector2(4.6,5.0),1.75,.3)
+	scene.kit(props % "Shield_Wooden",Vector2(3.0,4.5),.8,.3)
+	scene.kit(props % "Bench",Vector2(1.6,6.2),.45,1.3)
+	# The guide: a post that points the way, a banner, his chest.
+	scene.kit(survival % "signpost",Vector2(12.5,9.0),1.6,-.6,true)
+	scene.kit(props % "Banner_1",Vector2(12.9,7.2),2.6,-.4)
+	scene.kit(props % "Chest_Wood",Vector2(12.4,7.9),.5,-.9)
+	scene.kit(props % "Stool",Vector2(10.5,8.6),.42)
+	# What stood here before the camp did: an old shrine's columns, one still up, one down.
+	var greek := "res://art/thirdparty/camp/greek/%s.glb"
+	scene.kit(greek % "doric_column",Vector2(6.6,3.3),2.7,0.0,false,true)
+	var fallen := scene.kit(greek % "doric_column",Vector2(8.4,13.2),2.4,0.0,false,true)
+	fallen.rotation = Vector3(PI*.5,.9,0)
+	fallen.position.y += .38
 
 ## With a screen open the camp slides right so whoever it concerns stays in view: the
 ## person being spoken to, or the member whose sheet is open. A member is shown close up,
@@ -252,7 +305,7 @@ func _settle_roster() -> void:
 		if hand is Dictionary:
 			roster.append(hand)
 		elif Save.RECRUITS.has(hand):
-			roster.append({"id":str(hand),"kind":str(hand),"name":str(Save.RECRUITS[hand].get("name",Save.RECRUITS[hand].title))})
+			roster.append({"id":str(hand),"kind":str(hand),"name":str(Save.RECRUITS[hand].name)})
 	entry.roster = roster
 	# Every companion holds their starting technique.
 	if not entry.has("picks"): entry.picks = {}
@@ -330,28 +383,46 @@ func _budget(who: String) -> int:
 	if Save.STARTERS.has(who): points += SkillTree.cost(who,[Save.STARTERS[who]])
 	return points
 
-## The unit whose technique tree this member learns from, or "" if they have none.
+## The technique tree this member learns from, or "" if they have none: a story
+## companion's goes by their own name, a hired hero's by the name they are hired under.
 func _tree_of(who: String) -> String:
+	var hand: Dictionary = _hand(who)
+	var key := who if hand.is_empty() else str(hand.kind)
+	return key if SkillTree.trees().has(key) else ""
+
+## The folder of sprite sheets a member is drawn from: their own colours where they have them.
+func _look(who: String) -> String:
 	var kind := _kind(who)
-	if kind.is_empty(): return who if SkillTree.trees().has(who) else ""
-	return str(kind.def) if kind.get("tree",false) else ""
+	return str(kind.get("look",kind.def)) if not kind.is_empty() else who
 
 func _def(who: String) -> String:
 	var kind := _kind(who)
 	return str(kind.def) if not kind.is_empty() else who
 
-## Who may be added to a battle, and who is chosen: Chiron and the hired, up to the slots.
+## Every hero in camp but the protagonist: any of them may be picked to march.
 func _reserves() -> Array:
-	var pool: Array = []
-	if entry.get("chiron_joined",false): pool.append("chiron")
+	var pool: Array = _story_party().filter(func(who): return who != "hero")
 	pool.append_array(entry.get("roster",[]).map(func(hand): return hand.id))
 	return pool
 
+## Who the player has picked to march beside the protagonist, up to the seats.
 func _marching() -> Array:
 	var pool := _reserves()
 	if not entry.has("deploy"):
-		return pool.slice(0,Save.EXTRA_SLOTS)
-	return (entry.deploy as Array).filter(func(who): return pool.has(who)).slice(0,Save.EXTRA_SLOTS)
+		return pool.slice(0,Save.SEATS)
+	return (entry.deploy as Array).filter(func(who): return pool.has(who)).slice(0,Save.SEATS)
+
+## Who a battle's story needs there, of those in camp.
+func _required(battle: String) -> Array:
+	var pool := _reserves()
+	return (Save.REQUIRED.get(battle,[]) as Array).filter(func(who): return pool.has(who))
+
+## Who marches to a given battle: those it requires, then the player's picks.
+func _marching_to(battle: String) -> Array:
+	var going := _required(battle)
+	for who: String in _marching():
+		if not going.has(who): going.append(who)
+	return going.slice(0,Save.SEATS)
 
 func _coins() -> int:
 	return int(entry.get("purse",{}).get("coins",Save.STARTING_COINS))
@@ -547,7 +618,7 @@ func _report(news: Dictionary, gains: Dictionary) -> void:
 		var who: String = fielded[i]
 		var down := fallen.has(who)
 		var edge := Px.block(panel,Rect2(cell.position,Vector2(100,2)),Color(trim,0))
-		var face := Px.picture(panel,Px.face(_def(who),48),Rect2(cell.position+Vector2(26,8),Vector2(48,48)))
+		var face := Px.picture(panel,Px.face(_look(who),48),Rect2(cell.position+Vector2(26,8),Vector2(48,48)))
 		if down:
 			face.modulate = Color(.45,.4,.4)
 			Px.text(panel,"倒下",Rect2(cell.position+Vector2(0,40),Vector2(96,0)),Px.SMALL,Px.RED.lightened(.4),HORIZONTAL_ALIGNMENT_RIGHT)
@@ -730,7 +801,7 @@ func _head(title: String, over: String, words: String, face: Texture2D, sheets :
 func _person_head(key: String) -> void:
 	for person: Dictionary in PEOPLE:
 		if person.key == key:
-			_head(person.name,person.role,_story(key),Px.face(person.def,32),key != "trader")
+			_head(person.name,person.role,_story(key),Px.face(person.look,32),key != "trader")
 
 ## A scrolling area of `height` content pixels. Returns the control to draw into.
 func _scroll(key: String, rect: Rect2, height: float) -> Control:
@@ -812,15 +883,15 @@ func _party() -> void:
 	var going := _marching()
 	var rows_data := []
 	for who: String in everyone:
-		var sub := "出战" if who in ["hero","atalanta"] or going.has(who) else "留守"
+		var sub := "出战" if who == "hero" or going.has(who) else "留守"
 		if _tree_of(who) != "":
 			var spare := _budget(who)-SkillTree.cost(_tree_of(who),entry.get("picks",{}).get(who,[]))
 			if spare > 0: sub += " · 余 %d 点" % spare
 		var grade := _rarity(who)
 		if grade.is_empty():
-			rows_data.append([who,_name(who),sub,Px.face(_def(who),32),Color.WHITE])
+			rows_data.append([who,_name(who),sub,Px.face(_look(who),32),Color.WHITE])
 		else:
-			rows_data.append([who,_name(who),"%s · %s" % [grade[0],sub],Px.face(_def(who),32),Color.WHITE,grade[1]])
+			rows_data.append([who,_name(who),"%s · %s" % [grade[0],sub],Px.face(_look(who),32),Color.WHITE,grade[1]])
 	var rows := _list("成员",rows_data,member,_pick_member)
 	_sheet(rows)
 
@@ -975,7 +1046,7 @@ func _sheet(rows: Array) -> void:
 	Px.text(body,_role(member),Rect2(after_name,y+12,160,0),Px.SMALL,Px.OCHRE)
 	if not grade.is_empty():
 		Px.text(body,grade[0],Rect2(after_name+Px.width_of(_role(member),Px.SMALL)+10,y+12,60,0),Px.SMALL,grade[1])
-	var marching := member in ["hero","atalanta"] or _marching().has(member)
+	var marching := member == "hero" or _marching().has(member)
 	Px.text(body,"出战" if marching else "留守营地",Rect2(x+wide-120,y+2,120,0),Px.SMALL,Px.GREEN if marching else Px.FAINT,HORIZONTAL_ALIGNMENT_RIGHT)
 	# Their level, and how far along the next one they are.
 	var rank := Save.standing(_xp(member))
@@ -1223,7 +1294,7 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 		# Nothing open: who this is.
 		var kind := _kind(member)
 		Px.text(body,"身世",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
-		Px.text(body,str(kind.lore) if not kind.is_empty() else "随主线加入的同伴。",Rect2(x,y+18,wide,0),Px.BODY,Px.MUTED)
+		Px.text(body,str(kind.lore) if not kind.is_empty() else str(LORE.get(member,"")),Rect2(x,y+18,wide,0),Px.BODY,Px.MUTED)
 		Px.text(body,"点一个部位、一格技能或一个物品格来更换。",Rect2(x,DETAIL.end.y-28,wide,0),Px.SMALL,Px.FAINT)
 		if asking == "": _focus(whose)
 
@@ -1467,7 +1538,7 @@ func _pack() -> void:
 		var has := theirs == pack_item
 		var taker := Px.row(people,"",Rect2(0,i*26,wide+2,24),has,_strip.bind(who,goods.slot) if has else _wear.bind(pack_item,who))
 		taker.disabled = not has and loose <= 0
-		Px.picture(people,Px.face(_def(who),16),Rect2(8,i*26+4,16,16))
+		Px.picture(people,Px.face(_look(who),16),Rect2(8,i*26+4,16,16))
 		Px.text(people,_name(who),Rect2(30,i*26+5,90,0),Px.SMALL,Px.IVORY)
 		Px.text(people,"戴着 · 点一下卸下" if has else ("换下%s" % Save.GOODS[theirs].name if theirs != "" else ""),Rect2(wide-110,i*26+5,106,0),Px.SMALL,Px.GREEN if has else Px.FAINT,HORIZONTAL_ALIGNMENT_RIGHT)
 		takers.append(taker)
@@ -1590,7 +1661,7 @@ func _trader() -> void:
 			var who: String = everyone[i]
 			var face := Px.row(body,"",Rect2(x+44+i*26,y+3,24,22),member == who,_fit.bind(who))
 			face.tooltip_text = _name(who)
-			Px.picture(body,Px.face(_def(who),16),Rect2(x+48+i*26,y+6,16,16))
+			Px.picture(body,Px.face(_look(who),16),Rect2(x+48+i*26,y+6,16,16))
 			faces.append(face)
 		Px.chain(faces,false)
 		y += 32
@@ -1706,7 +1777,7 @@ func _recruit() -> void:
 	for offer: Dictionary in offers:
 		var kind: Dictionary = Save.RECRUITS[offer.kind]
 		var grade := _grade(kind.rarity)
-		rows_data.append([offer.id,offer.name,grade[0],Px.face(kind.def,32),Color.WHITE,grade[1],int(offer.fee)])
+		rows_data.append([offer.id,offer.name,grade[0],Px.face(str(kind.get("look",kind.def)),32),Color.WHITE,grade[1],int(offer.fee)])
 	var rows := _list("今天来应募的",rows_data,picked.recruit,_pick.bind("recruit"),40.0)
 	# Others can be sent for, at a price.
 	var again := Px.button(body,"换一批　　　",Rect2(LIST.position.x+10,LIST.end.y-36,LIST.size.x-20,26),_reroll)
@@ -1722,7 +1793,7 @@ func _recruit() -> void:
 	var offer: Dictionary = offers.filter(func(candidate): return candidate.id == picked.recruit)[0]
 	var kind: Dictionary = Save.RECRUITS[offer.kind]
 	var grade := _grade(kind.rarity)
-	var y := _title("",kind.title,Px.face(kind.def,48))
+	var y := _title("",kind.title,Px.face(str(kind.get("look",kind.def)),48))
 	Px.text(body,offer.name,Rect2(x+60,DETAIL.position.y+30,380,0),Px.TITLE,grade[1])
 	Px.text(body,grade[0],Rect2(x+60+Px.width_of(kind.title,Px.SMALL)+10,DETAIL.position.y+14,80,0),Px.SMALL,grade[1])
 	# A band in the rarity's colour under the name.
@@ -1739,8 +1810,8 @@ func _recruit() -> void:
 	Px.text(body,"、".join(known),Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.IVORY)
 	y += 22
 	Px.text(body,"技艺",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
-	if kind.get("tree",false):
-		var arms: Array = SkillTree.trees().get(kind.def,[]).map(func(branch): return "%s（%d 招）" % [branch.branch,branch.nodes.size()])
+	if SkillTree.trees().has(offer.kind):
+		var arms: Array = SkillTree.trees().get(offer.kind,[]).map(func(branch): return "%s（%d 招）" % [branch.branch,branch.nodes.size()])
 		Px.text(body,"专属　"+"、".join(arms),Rect2(x+60,y,MEASURE-60,0),Px.SMALL,grade[1])
 	else:
 		Px.text(body,"没有可修习的分支",Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.FAINT)
@@ -1788,7 +1859,7 @@ func _hire(offer_id: String) -> void:
 	next.purse = purse
 	# A new hand marches at once if there is room.
 	var going := _marching()
-	if going.size() < Save.EXTRA_SLOTS: going.append(who)
+	if going.size() < Save.SEATS: going.append(who)
 	next.deploy = going
 	if _keep(next):
 		note = "%s加入了营地。" % offer.name
@@ -1828,17 +1899,16 @@ func _march() -> void:
 	y += 14+Px.measure(str(site.goal),Px.BODY,MEASURE-60)
 	Px.rule(body,Vector2(x,y),DETAIL.size.x-40,Color(Px.OCHRE,.2))
 	y += 10
-	# Who goes: those the battle brings, and up to two more from the camp.
-	var going := _marching()
+	# Who goes: the protagonist, and up to three heroes of the player's choosing. A battle
+	# whose story needs someone there takes one of the three for them.
+	var needed := _required(str(site.id))
+	var going := _marching_to(str(site.id))
 	Px.text(body,"出战名单",Rect2(x,y,120,0),Px.SMALL,Px.OCHRE)
-	Px.text(body,"另选 %d / %d 人" % [going.size(),Save.EXTRA_SLOTS],Rect2(x+230,y,200,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+	Px.text(body,"另选 %d / %d 人" % [going.size(),Save.SEATS],Rect2(x+230,y,200,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
 	y += 20
-	var slot := 0
-	for who: String in ["hero","atalanta"]:
-		Px.picture(body,Px.face(who,32),Rect2(x+slot*220,y,32,32))
-		Px.text(body,_name(who),Rect2(x+slot*220+40,y+2,120,0),Px.BODY,Px.IVORY)
-		Px.text(body,"必定出战",Rect2(x+slot*220+40,y+18,120,0),Px.SMALL,Px.FAINT)
-		slot += 1
+	Px.picture(body,Px.face("hero",32),Rect2(x,y,32,32))
+	Px.text(body,_name("hero"),Rect2(x+40,y+2,120,0),Px.BODY,Px.IVORY)
+	Px.text(body,"必定出战",Rect2(x+40,y+18,120,0),Px.SMALL,Px.FAINT)
 	y += 42
 	var toggles: Array[Button] = []
 	var pool := _reserves()
@@ -1849,11 +1919,12 @@ func _march() -> void:
 		var on := going.has(who)
 		var at := Vector2(x+(i%2)*220,y+(i/2)*40)
 		var toggle := Px.row(body,"",Rect2(at.x-10,at.y,214,36),on,_toggle_march.bind(who))
-		toggle.disabled = not on and going.size() >= Save.EXTRA_SLOTS
-		Px.picture(body,Px.face(_def(who),32),Rect2(at.x,at.y+2,32,32)).modulate = Color.WHITE if on else Color(1,1,1,.45)
+		var must := needed.has(who)
+		toggle.disabled = must or (not on and going.size() >= Save.SEATS)
+		Px.picture(body,Px.face(_look(who),32),Rect2(at.x,at.y+2,32,32)).modulate = Color.WHITE if on else Color(1,1,1,.45)
 		var ink: Color = _rarity(who)[1] if not _rarity(who).is_empty() else Px.IVORY
 		Px.text(body,_name(who),Rect2(at.x+40,at.y+3,120,0),Px.BODY,ink if on else ink.darkened(.3))
-		Px.text(body,"出战 · 点一下留守" if on else ("名额已满" if toggle.disabled else "留守 · 点一下出战"),Rect2(at.x+40,at.y+19,160,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
+		Px.text(body,"这一战必须出战" if must else "出战 · 点一下留守" if on else ("名额已满" if toggle.disabled else "留守 · 点一下出战"),Rect2(at.x+40,at.y+19,160,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
 		toggles.append(toggle)
 	Px.chain(toggles)
 	var go: Button
@@ -1875,7 +1946,7 @@ func _march() -> void:
 func _toggle_march(who: String) -> void:
 	var going := _marching()
 	if going.has(who): going.erase(who)
-	elif going.size() < Save.EXTRA_SLOTS: going.append(who)
+	elif going.size() < Save.SEATS: going.append(who)
 	var next: Dictionary = entry.duplicate(true)
 	next.deploy = going
 	_keep(next)
@@ -1892,14 +1963,16 @@ func _depart(site: Dictionary) -> void:
 	next.choose_route = false
 	next.campaign = persistent
 	next.erase("camp_summary")
-	next.deploy = _marching()
+	next.deploy = _marching_to(str(site.id))
+	next.bench = Save.PLACED.filter(func(who): return not next.deploy.has(who))
 	var party := []
 	for who: String in next.deploy:
+		if Save.PLACED.has(who): continue
 		var own := str(_kind(who).get("skill",""))
-		party.append({"id":who,"def":_def(who),"name":_name(who),"skills":[own] if own != "" else []})
+		party.append({"id":who,"def":_def(who),"name":_name(who),"skills":[own] if own != "" else [],"look":_look(who) if _look(who) != _def(who) else "","tree":_tree_of(who)})
 	next.party = party
 	var loadout := {}
-	for who: String in ["hero","atalanta"]+next.deploy: loadout[who] = _carried(who)
+	for who: String in ["hero"]+next.deploy: loadout[who] = _carried(who)
 	next.loadout = loadout
 	get_tree().set_meta("battle_entry",next)
 	get_tree().change_scene_to_file(BATTLE)

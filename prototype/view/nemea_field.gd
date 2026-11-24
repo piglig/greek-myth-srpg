@@ -73,16 +73,23 @@ static func flora(kind: PackedScene, width: float) -> Node3D:
 	return model
 
 
-static func landmark(scene: PackedScene, width: float) -> Node3D:
-	if kit_flora and scene in [OLIVE,CYPRESS,THYME]:
-		return flora(scene,width)
-	var model := scene.instantiate() as Node3D
+## The painted surface every landmark wears. A part given the instance parameter
+## `limestone` 1 is drawn as the pale rock of the valley.
+static func finish() -> ShaderMaterial:
 	if landmark_finish == null:
 		landmark_finish = ShaderMaterial.new()
 		landmark_finish.shader = preload("res://view/landmark.gdshader")
 		landmark_finish.set_shader_parameter("grain", preload("res://art/original/earth.webp"))
 		landmark_finish.set_shader_parameter("cliff", preload("res://art/original/cliff.webp"))
 		landmark_finish.set_shader_parameter("leaf_strokes", preload("res://art/original/leaf_strokes.png"))
+	return landmark_finish
+
+
+static func landmark(scene: PackedScene, width: float) -> Node3D:
+	if kit_flora and scene in [OLIVE,CYPRESS,THYME]:
+		return flora(scene,width)
+	var model := scene.instantiate() as Node3D
+	finish()
 	var parts := model.find_children("*","MeshInstance3D",true,false)
 	if model is MeshInstance3D:
 		parts.append(model)

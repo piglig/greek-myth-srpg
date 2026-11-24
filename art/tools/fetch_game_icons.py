@@ -66,6 +66,8 @@ ICONS = {
     "ui_keys": "delapouite/keyboard",
     "ui_menu": "delapouite/hamburger-menu",
     "ui_next": "delapouite/next-button",
+    # conditions shown beside a unit's bar
+    "st_poison": "lorc/poison-bottle", "st_stun": "lorc/star-swirl", "st_dodge": "lorc/dodging", "st_shield": "lorc/shield-reflect",
     # things carried into battle
     "item_potion": "lorc/potion-ball",
     "item_antidote": "lorc/round-bottom-flask",

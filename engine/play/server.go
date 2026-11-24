@@ -107,6 +107,8 @@ type partyMember struct {
 	ID   string `json:"id"`
 	Def  string `json:"def"`
 	Name string `json:"name"`
+	// Tree 是这个人自己的技能树的名字；空着就用单位定义的那棵。
+	Tree string `json:"tree"`
 	// Skills 是这个人自带、单位定义里没有的招式（招募来的人的起始技能）。
 	Skills []string `json:"skills"`
 }
@@ -116,24 +118,26 @@ type request struct {
 	Party        []partyMember       `json:"party"`
 	Reward       rules.ChapterReward `json:"reward"`
 	ChironJoined bool                `json:"chiron_joined"`
-	Op           string              `json:"op"`
-	SID          int                 `json:"sid"`
-	Battle       string              `json:"battle"`
-	Picks        map[string][]string `json:"picks"`
+	// Bench 是关卡文件里写了、但这一场留在营地的我方单位。主角不能留守。
+	Bench  []string            `json:"bench"`
+	Op     string              `json:"op"`
+	SID    int                 `json:"sid"`
+	Battle string              `json:"battle"`
+	Picks  map[string][]string `json:"picks"`
 	// Loadout 按单位 id 给出带进战斗的招式（最多 rules.LoadoutSlots 个）。没列出的单位带上全部招式。
 	Loadout map[string][]string `json:"loadout"`
 	// Mods 按单位 id 给出装备带来的属性增减（hp/str/def/wil/div/move/jump）。
 	Mods map[string]map[string]int `json:"mods"`
 	// Items 按单位 id 给出随身物品（每件一个 id，最多 rules.KitSlots 件）。
-	Items map[string][]string `json:"items"`
-	Action       *actionJSON         `json:"action"`
-	Unit         string              `json:"unit"`
-	Budget       *int                `json:"budget"`
-	Cell         *cell               `json:"cell"`
-	Skill        string              `json:"skill"`
-	Def          string              `json:"def"`
-	Nodes        []string            `json:"nodes"`
-	Actions      []*actionJSON       `json:"actions"`
+	Items   map[string][]string `json:"items"`
+	Action  *actionJSON         `json:"action"`
+	Unit    string              `json:"unit"`
+	Budget  *int                `json:"budget"`
+	Cell    *cell               `json:"cell"`
+	Skill   string              `json:"skill"`
+	Def     string              `json:"def"`
+	Nodes   []string            `json:"nodes"`
+	Actions []*actionJSON       `json:"actions"`
 }
 
 type obj = map[string]any
@@ -187,6 +191,21 @@ func toAction(a *actionJSON) rules.Action {
 
 // deploy 把额外出战的人放到主角身边：从主角所在格向外一圈圈找，站到最近的空地上。
 // 只用和主角高差不超过 1、不是深水也不在燃烧的格子，免得开场就被困住。
+// bench 把关卡文件里的一名我方单位留在营地：这一场没有他。
+func bench(st *rules.BattleState, id string) error {
+	for i, u := range st.Units {
+		if u.ID != id {
+			continue
+		}
+		if id == "hero" || u.Team != rules.TeamPlayer {
+			return fmt.Errorf("%s 不能留守", id)
+		}
+		st.Units = append(st.Units[:i], st.Units[i+1:]...)
+		return nil
+	}
+	return nil
+}
+
 func (s *Server) deploy(st *rules.BattleState, party []partyMember, picks map[string][]string) error {
 	hero := st.Unit("hero")
 	if hero == nil || len(party) == 0 {
@@ -231,6 +250,10 @@ func (s *Server) deploy(st *rules.BattleState, party []partyMember, picks map[st
 					}
 					u.AddSkill(sk)
 				}
+				if member.Tree != "" && s.data.Trees(member.Tree) == nil {
+					return fmt.Errorf("出战名单里的 %s 要学不存在的技能树 %s", member.ID, member.Tree)
+				}
+				u.Tree = member.Tree
 				s.data.ApplyPicks(u, picks[member.ID])
 				u.HP = u.MaxHP
 				st.AddUnit(u)
@@ -261,6 +284,11 @@ func (s *Server) dispatch(req *request) obj {
 		st, err := s.data.Build(req.Battle, req.Picks)
 		if err != nil {
 			return fail("%v", err)
+		}
+		for _, id := range req.Bench {
+			if err := bench(st, id); err != nil {
+				return fail("%v", err)
+			}
 		}
 		party := req.Party
 		if party == nil && req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {

@@ -41,7 +41,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 			traits = append(traits, [2]any{name, v})
 		}
 		units[i] = obj{
-			"id": u.ID, "def": u.DefID, "name": u.Name, "team": int(u.Team), "pos": xy(u.Pos), "size": u.Size,
+			"id": u.ID, "def": u.DefID, "tree": u.TreeKey(), "name": u.Name, "team": int(u.Team), "pos": xy(u.Pos), "size": u.Size,
 			"facing": xy(u.Facing), "max_hp": u.MaxHP, "hp": u.HP, "str": u.Strength, "div": u.Divinity,
 			"defense": u.Defense, "wil": u.Will, "move": u.Move, "jump": u.Jump, "skills": skills, "traits": traits,
 			"statuses": kvJSON(u.Statuses), "cooldowns": kvJSON(u.Cooldowns), "items": kvJSON(u.Charges), "shield": u.Shield,

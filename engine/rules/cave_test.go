@@ -45,7 +45,7 @@ func TestPounceAdjacentTargetTakesDamageAndIsPushed(t *testing.T) {
 	eq(t, Validate(s, LeapSkill("lion", "pounce", c(8, 3), c(11, 3))), "already acted", "one action per activation")
 }
 
-func TestRoarFearsPlayersInTwoTilesOnly(t *testing.T) {
+func TestRoarHurlsBackPlayersInTwoTilesOnly(t *testing.T) {
 	s := flat(12, 8)
 	ally(s, "hero", "hero", c(5, 3))
 	ally(s, "atalanta", "ata", c(9, 3))
@@ -54,13 +54,9 @@ func TestRoarFearsPlayersInTwoTilesOnly(t *testing.T) {
 	EndPhase(s)
 	o := Perform(s, UseSkill("lion", "roar", c(2, 3)))
 	check(t, o.OK, o.Error)
-	check(t, s.Unit("hero").HasStatus("feared"), "hero (2 tiles from the 2x2 lion) is feared")
-	check(t, !s.Unit("ata").HasStatus("feared"), "atalanta is out of range")
-	FinishActivation(s, s.Unit("lion"))
-	Perform(s, Wait("lion"))
-	EndPhase(s)
-	check(t, !s.Unit("hero").HasStatus("feared"), "fear lasts one round: gone by the next player phase")
-	check(t, s.Unit("hero").HasStatus("control_immune"), "then immune for a round")
+	eq(t, s.Unit("hero").Pos, c(6, 3), "hero (2 tiles from the 2x2 lion) is hurled back a tile")
+	eq(t, s.Unit("ata").Pos, c(9, 3), "atalanta is out of range")
+	check(t, len(s.Unit("hero").Statuses) == 0, "and the roar leaves no status on anyone")
 }
 
 func TestBoulderBlocksAndSeals(t *testing.T) {

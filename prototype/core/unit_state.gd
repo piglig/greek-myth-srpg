@@ -24,6 +24,11 @@ var skills: Array[String] = []
 var traits := {}  ## 特性名 -> 值
 var statuses := {}  ## 状态名 -> 剩余回合（保持获得顺序）
 var shield := 0
+## Looks worn by particular units: unit id -> the folder under art/pixel that holds their
+## sheets. A hired fighter fights as an enemy kind but is drawn in their own colours.
+static var looks := {}
+## The technique tree this unit learns from: its kind's, or a hired hero's own.
+var tree := ""
 var cooldowns := {}
 var items := {}  ## things carried: id -> how many are left
 
@@ -52,6 +57,7 @@ var hidden := false
 func apply(d: Dictionary) -> void:
 	id = d["id"]
 	def_id = d["def"]
+	tree = str(d.get("tree",def_id))
 	display_name = d["name"]
 	team = d["team"]
 	pos = GoEngine.cell(d["pos"])
@@ -88,6 +94,11 @@ func apply(d: Dictionary) -> void:
 	escape = d["escape"]
 	alive = d["alive"]
 	hidden = d["hidden"]
+
+
+## The folder of sprite sheets this unit is drawn from.
+func look() -> String:
+	return str(looks.get(id,def_id))
 
 
 func is_boss() -> bool:

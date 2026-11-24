@@ -14,6 +14,21 @@ const DUST := preload("res://art/thirdparty/pixelfx/dust.png")
 const STEP_DUST := preload("res://art/original/fx/dust.png")
 const IMPACT := preload("res://art/thirdparty/pixelfx/hit.png")
 const SLASH := preload("res://art/thirdparty/pixelfx/slash.png")
+## What a thing carried does where it lands, and what comes over whoever takes a status.
+const BURST := preload("res://art/thirdparty/pixelfx/burst.png")
+const THUD := preload("res://art/thirdparty/pixelfx/thud.png")
+const BLESS := preload("res://art/thirdparty/pixelfx/bless.png")
+## The four ailments show on the body for as long as they last. With each, how high on the
+## body it sits (0 the feet, 1 the crown). A badge by the health bar says the same; this is what lets
+## the player see it across the field without reading badges.
+const AURAS := {
+	"burning": [preload("res://art/thirdparty/pixelfx/burning.png"),.30],
+	"poisoned": [preload("res://art/thirdparty/pixelfx/poisoned.png"),.04],
+	"stunned": [preload("res://art/thirdparty/pixelfx/stunned.png"),1.02],
+	# Drawn for the game by art/tools/draw_status_fx.py: no kit had a fitting one.
+	"rooted": [preload("res://art/original/fx/rooted.png"),.06],
+}
+var _auras := {}  ## "unit/status" -> the effect playing on them
 const ARROW := preload("res://art/original/fx/arrow.png")
 const ROAR := preload("res://art/original/fx/roar.png")
 const LOW_RES := Vector2(640, 360)
@@ -69,8 +84,12 @@ var _chiron_joined := false
 ## picked to march, and the marching list in the form the engine takes (null = not chosen).
 var _roster: Array = []
 var _deploy: Array = []
+## Heroes the battle file places who stay in camp this time.
+var _bench: Array = []
 var _party: Variant = null
 var _xp: Variant = null  ## each member's experience, carried through untouched
+var _haul := {}  ## spoils so far this battle: thing -> how many
+var _looted := {}  ## enemies whose spoils have been rolled
 var _loadout: Variant = null  ## techniques each member carries, chosen at the camp
 var _build_panel: BuildPanel
 
@@ -82,6 +101,9 @@ func _ready() -> void:
 			_capture_path = arg.trim_prefix("--capture=")
 		elif arg.begins_with("--demo="):
 			_demo = arg.trim_prefix("--demo=")
+		elif arg.begins_with("--bench="):
+			# Leave heroes the battle places in camp, to see the field without them.
+			_bench = Array(arg.trim_prefix("--bench=").split(","))
 		elif arg.begins_with("--battle="):
 			_battle_id = arg.trim_prefix("--battle=")
 	if not GoEngine.ensure():
@@ -103,6 +125,7 @@ func _ready() -> void:
 		_chiron_joined = entry.get("chiron_joined",false)
 		_roster = entry.get("roster",[])
 		_deploy = entry.get("deploy",[])
+		_bench = entry.get("bench",[])
 		_party = entry.get("party")
 		_loadout = entry.get("loadout")
 		_xp = entry.get("xp")
@@ -118,7 +141,18 @@ func _ready() -> void:
 		_build_panel.open(ui_scale)
 		hud.set_battle_controls_visible(false)
 	else:
-		_start_battle(_battle_id if _battle_id != "" else "1-4", SkillTree.default_picks())
+		var picks := SkillTree.default_picks()
+		if _demo == "heroes":
+			# The four hired heroes with all their trees learnt, in place of Atalanta.
+			_party = []
+			_bench = ["atalanta"]
+			for kind: String in ["iphicles","phalerus","ancaeus","pholus"]:
+				var hero: Dictionary = Checkpoint.RECRUITS[kind]
+				_party.append({"id":kind,"def":hero.def,"name":hero.name,"skills":[hero.skill],"look":hero.look,"tree":kind})
+				picks[kind] = []
+				for branch: Dictionary in SkillTree.trees()[kind]:
+					for node: Dictionary in branch.nodes: picks[kind].append(node.id)
+		_start_battle(_battle_id if _battle_id != "" else "1-4", picks)
 	if _capture_path != "":
 		_run_capture.call_deferred()
 
@@ -153,7 +187,12 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	var gear:=_campaign_reward.duplicate()
 	Checkpoint.settle_purse(_purse)
 	gear["charms"]=Checkpoint.charms(_purse)
-	state = Battles.build(battle_id, picks, _chiron_joined,gear,_party,_loadout,Checkpoint.gear_mods(_purse),_purse.get("kit",{}))
+	state = Battles.build(battle_id, picks, _chiron_joined,gear,_party,_loadout,Checkpoint.gear_mods(_purse),_purse.get("kit",{}),_bench)
+	# Who is drawn in colours of their own: the hired, by the look the camp gave them.
+	UnitState.looks.clear()
+	if _party is Array:
+		for member: Dictionary in _party:
+			if str(member.get("look","")) != "": UnitState.looks[member.id] = member.look
 	if state == null:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
@@ -425,7 +464,7 @@ func _on_key(k: InputEventKey) -> void:
 
 
 func _entry(id: String) -> Dictionary:
-	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate(),"roster":_roster,"deploy":_deploy}
+	var entry: Dictionary={"purse":_purse.duplicate(true),"id":id,"picks":_skill_picks,"chiron_joined":_chiron_joined,"rescued":_rescued,"outcomes":_outcomes.duplicate(),"roster":_roster,"deploy":_deploy,"bench":_bench}
 	if _party != null: entry.party = _party
 	# What was used in this battle is gone from the bag and from whoever carried it.
 	if state != null and entry.purse.has("kit"):
@@ -822,6 +861,8 @@ func _play(events: Array, from_round := -1) -> void:
 					await shot.finished
 					spark.queue_free()
 					attacker.set_pose(-1,.18)
+				elif SkillCatalog.get_skill(e.skill).get("item",false):
+					await _throw_thing(attacker,unit_views[e.target],e.skill)
 				elif e["skill"] == "heracles_bow":
 					recovery = await _bow_shot(attacker,unit_views[e.target])
 				elif e.skill == "bandit_bow":
@@ -882,6 +923,7 @@ func _play(events: Array, from_round := -1) -> void:
 				if e.target == thrown_target:
 					(unit_views[e.target] as PixelUnit).start_fall(34.)
 				await (unit_views[e.target] as PixelUnit).finish_fall()
+				_drop_spoils(e.target)
 			"broken":
 				Soundscape.cue("break_guard")
 				_popup(e["target"], "破势！", Color(1, 0.85, 0.2))
@@ -961,8 +1003,12 @@ func _play(events: Array, from_round := -1) -> void:
 				if e["target"] != "":
 					_popup(e["target"], EventText.END_REASONS.get(e["why"], ""), Color(0.85, 0.85, 0.85))
 			"heal":
-				recovery=await _chiron_shot(unit_views[e.unit] as PixelUnit,unit_views[e.target])
-				_popup(e.target,"净化箭　+%d"%e.amount,Color("#98e3ae"))
+				if SkillCatalog.get_skill(e.skill).get("item",false):
+					await _take_tonic(unit_views[e.unit],unit_views[e.target],e.skill)
+					_popup(e.target,"%s　+%d" % [SkillCatalog.get_skill(e.skill).name,e.amount],Color("#98e3ae"))
+				else:
+					recovery=await _chiron_shot(unit_views[e.unit] as PixelUnit,unit_views[e.target])
+					_popup(e.target,"净化箭　+%d"%e.amount,Color("#98e3ae"))
 			"status":
 				_popup(e["target"], EventText.STATUS_NAMES.get(e["status"], e["status"]), Color(0.8, 0.9, 1))
 			"stun_skip":
@@ -1213,6 +1259,128 @@ func _follow_slope(t: float, view: UnitView, start: Vector3, finish: Vector3) ->
 		var ground := map_view.to_local(point)
 		point.y = map_view.field.elevation(ground.x,ground.z)
 	view.position = point
+
+
+## Rolls what a beaten enemy leaves and adds it to the battle's haul. Shown over where they
+## fell, one line a thing, unless `shown` is false. Each enemy is counted once.
+func _drop_spoils(id: String, shown := true) -> void:
+	var fallen := state.unit(id)
+	if fallen == null or fallen.team != Defs.Team.ENEMY or _looted.has(id) or not (_campaign or _demo == "spoils"):
+		return
+	_looted[id] = true
+	var dice := RandomNumberGenerator.new()
+	dice.randomize()
+	var left := Checkpoint.roll_loot([fallen.def_id],dice)
+	var view: UnitView = unit_views.get(id)
+	for thing: String in left:
+		_haul[thing] = int(_haul.get(thing,0))+int(left[thing])
+		if shown and view != null:
+			var rare: String = Checkpoint.GOODS[thing].get("rarity","common")
+			var words: String = Checkpoint.GOODS[thing].name+(" ×%d" % int(left[thing]) if int(left[thing]) > 1 else "")
+			hud.overlay.add_popup(view.position+Vector3.UP*.9,words,Color(str(Checkpoint.RARITY[rare].tint)),Px.icon(Checkpoint.art(thing),32))
+	if shown and not left.is_empty(): Soundscape.cue("confirm")
+
+
+## A small card of a thing's drawing, standing in the world: what is thrown or drunk.
+func _thing_card(thing: String, at: Vector3, tint: Color) -> Sprite3D:
+	var card := Sprite3D.new()
+	card.texture = Px.icon(Checkpoint.art(thing) if Checkpoint.GOODS.has(thing) else thing,32)
+	card.pixel_size = .014
+	card.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	card.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	card.shaded = false
+	card.no_depth_test = true
+	card.modulate = tint
+	card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_units_root.add_child(card)
+	card.position = at
+	return card
+
+
+## Something carried is thrown: it leaves the thrower's hand, arcs over, and lands on the target.
+func _throw_thing(thrower: UnitView, target: UnitView, thing: String) -> void:
+	await thrower.turn_to_strike(target.position)
+	var hand := thrower.position+Vector3.UP*thrower.sprite_height*.72
+	var mark := _effect_origin(target)
+	var fiery := thing == "item_firepot"
+	var card := _thing_card(thing,hand,Color("#ffb066") if fiery else Color("#f1e3c4"))
+	var flight := clampf(hand.distance_to(mark)/9.0,.26,.5)
+	var lift := 1.1+hand.distance_to(mark)*.12
+	Soundscape.cue("swing")
+	var arc := create_tween()
+	arc.tween_method(func(t: float):
+		card.position = hand.lerp(mark,t)+Vector3.UP*lift*4.0*t*(1.0-t)
+		card.rotation.z = -t*TAU*(2.0 if thing in ["item_stone","item_firepot","item_net"] else .0),0.0,1.0,flight)
+	await arc.finished
+	card.queue_free()
+	if thing in ["item_stone","item_javelin"]:
+		BattleFX.spawn(_units_root,THUD,mark,.3)
+	if thing == "item_net":
+		# The net opens over them and settles.
+		var net := _thing_card(thing,mark,Color("#e9dcc0"))
+		net.scale = Vector3.ONE*.6
+		var settle := create_tween()
+		settle.tween_property(net,"scale",Vector3.ONE*2.6,.18).set_ease(Tween.EASE_OUT)
+		settle.parallel().tween_property(net,"modulate:a",0.0,.5).set_delay(.25)
+		settle.tween_callback(net.queue_free)
+	elif fiery:
+		BattleFX.spawn(_units_root,BURST,target.position+Vector3.UP*.08,.3)
+		# Three tongues of flame where it breaks.
+		for n in 3:
+			var flame := _thing_card("kindling",mark+cam_rig.camera.global_basis.x*(n-1)*.22,Color("#ff8a3a"))
+			flame.scale = Vector3.ONE*.5
+			var rise := create_tween()
+			rise.tween_property(flame,"scale",Vector3.ONE*(1.5+n*.2),.22).set_delay(n*.05)
+			rise.parallel().tween_property(flame,"position:y",flame.position.y+.55,.5).set_delay(n*.05)
+			rise.parallel().tween_property(flame,"modulate:a",0.0,.3).set_delay(.25+n*.05)
+			rise.tween_callback(flame.queue_free)
+
+
+## Something carried is drunk or handed over: it rises over whoever takes it and fades, with
+## a ring of green opening at their feet.
+func _take_tonic(giver: UnitView, taker: UnitView, thing: String) -> void:
+	if giver != taker:
+		await giver.turn_to_strike(taker.position)
+	var over := taker.position+Vector3.UP*(taker.sprite_height*.55)
+	var card := _thing_card(thing,over,Color("#b9f0c4"))
+	card.scale = Vector3.ONE*.7
+	Soundscape.cue("confirm")
+	BattleFX.spawn(_units_root,BLESS,taker.position+Vector3.UP*.08,.3)
+	var sip := create_tween()
+	sip.tween_property(card,"scale",Vector3.ONE*1.5,.16).set_ease(Tween.EASE_OUT)
+	sip.tween_property(card,"position:y",over.y+.8,.42).set_ease(Tween.EASE_OUT)
+	sip.parallel().tween_property(card,"modulate:a",0.0,.3).set_delay(.14)
+	sip.tween_callback(card.queue_free)
+	for n in 5:
+		var mote := _thing_card("heart",taker.position+Vector3(randf_range(-.35,.35),.15+randf_range(0,.3),randf_range(-.2,.2)),Color("#8fe6a6"))
+		mote.scale = Vector3.ONE*.35
+		var drift := create_tween()
+		drift.tween_property(mote,"position:y",mote.position.y+1.2,.7).set_delay(n*.06)
+		drift.parallel().tween_property(mote,"modulate:a",0.0,.35).set_delay(.35+n*.06)
+		drift.tween_callback(mote.queue_free)
+	await get_tree().create_timer(.45).timeout
+
+
+## Keeps the effects worn on bodies in step with the statuses the rules say they have:
+## one appears the moment a status does and goes when it ends, or when its wearer falls.
+func _process(_delta: float) -> void:
+	if state == null: return
+	var due := {}
+	for id: String in unit_views:
+		var wearer := state.unit(id)
+		if wearer == null or not wearer.alive or wearer.hidden or not is_instance_valid(unit_views[id]): continue
+		for status: String in AURAS:
+			if wearer.has_status(status): due["%s/%s" % [id,status]] = [id,status]
+	for key: String in _auras.keys():
+		if not due.has(key) or not is_instance_valid(_auras[key]):
+			if is_instance_valid(_auras[key]): _auras[key].queue_free()
+			_auras.erase(key)
+	for key: String in due:
+		if _auras.has(key): continue
+		var view: UnitView = unit_views[due[key][0]]
+		var look: Array = AURAS[due[key][1]]
+		# A hair toward the camera, so the card is drawn over its wearer and not through them.
+		_auras[key] = BattleFX.aura(view,look[0],Vector3.UP*view.sprite_height*float(look[1])+Vector3(0,0,.05),float(look[2]) if look.size() > 2 else 1.0)
 
 
 func _effect_origin(unit: UnitView) -> Vector3:
@@ -1614,13 +1782,11 @@ func _news(after: Dictionary, summary: String) -> Dictionary:
 	if won and before.get("outcomes",{}).get(_battle_id,"")!="已通关": news.xp = Checkpoint.xp_for(_battle_id)
 	if won:
 		# What the beaten leave behind goes into the bag (both the one being saved and ours).
-		var beaten := []
+		# Most of it fell as each enemy did; anyone not yet counted is counted now.
 		for id: String in state.order:
 			var foe := state.unit(id)
-			if foe != null and foe.team == Defs.Team.ENEMY and not foe.alive: beaten.append(foe.def_id)
-		var dice := RandomNumberGenerator.new()
-		dice.randomize()
-		var haul := Checkpoint.roll_loot(beaten,dice)
+			if foe != null and foe.team == Defs.Team.ENEMY and not foe.alive: _drop_spoils(id,false)
+		var haul := _haul
 		for purse: Dictionary in [_purse,after.get("purse",{})]:
 			Checkpoint.settle_purse(purse)
 			for thing: String in haul: purse.bag[thing] = int(purse.bag.get(thing,0))+int(haul[thing])
@@ -1630,7 +1796,7 @@ func _news(after: Dictionary, summary: String) -> Dictionary:
 	var fallen := []
 	for id: String in ["hero","atalanta"]+_deploy:
 		var fighter := state.unit(id)
-		if fighter == null: continue
+		if fighter == null or fielded.has(id): continue
 		fielded.append(id)
 		if not fighter.alive: fallen.append(id)
 	news.fielded = fielded
@@ -1969,9 +2135,10 @@ func _show_targets(u: UnitState) -> void:
 ## was learnt from the tree, the trader's for a thing, else its numbers.
 func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 	if Checkpoint.GOODS.has(id): return Checkpoint.effect_of(id)
-	for branch: Dictionary in SkillTree.trees().get(u.def_id,[]):
+	for branch: Dictionary in SkillTree.trees().get(u.tree,[]):
 		for node: Dictionary in branch.nodes:
 			if str(node.get("skill","")) == id: return str(node.desc)
+	if int(def.get("area_knockback",0)) > 0: return "周围 %d 格内的敌人各被震退 %d 格。" % [int(def.get("radius",1)),int(def.area_knockback)]
 	if def.has("self_status") or def.has("area_status"): return ""
 	var words := "%s 倍%s伤害" % [str(def.get("mult",1)),"神性" if int(def.get("type",0)) == Defs.DamageType.DIVINE else "物理"]
 	if int(def.get("knockback",0)) > 0: words += "，击退 %d 格" % int(def.knockback)
@@ -1981,7 +2148,7 @@ func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 
 ## Reach and waiting time of a technique or a thing, in a few words.
 func _brief(sk: Dictionary) -> String:
-	if sk.has("self_status") or sk.has("area_status"): return "自身"
+	if sk.has("self_status") or sk.has("area_status") or sk.has("area_knockback"): return "自身"
 	var near := int(sk.get("min_range",1))
 	var far := int(sk.get("max_range",1))
 	return "射程 %d" % near if near == far else "射程 %d–%d" % [near,far]
@@ -2014,7 +2181,7 @@ func _actions_for(u: UnitState) -> Array:
 			entry.brief += "　·　剩 %d 件" % entry.count
 		if def.has("self_status"):
 			entry.kind = "do"
-			entry.enabled = can_act and cd == 0 and u.grappling_id == "" and not u.has_status("feared")
+			entry.enabled = can_act and cd == 0 and u.grappling_id == ""
 			entry.erase("active")
 		out.append(entry)
 	if u.has_trait("grapple"):
@@ -2231,6 +2398,120 @@ func _run_capture() -> void:
 			for i in _actions.size():
 				if _actions[i].group == "move": hud._show_detail(i)
 			await get_tree().create_timer(.4).timeout
+		"spoils":
+			# What a beaten enemy leaves, shown over where they fell.
+			await get_tree().create_timer(.4).timeout
+			for id: String in state.order:
+				var foe := state.unit(id)
+				if foe.team == Defs.Team.ENEMY and not foe.hidden:
+					cam_rig.focus(unit_views[id].position)
+					await get_tree().create_timer(.4).timeout
+					_drop_spoils(id)
+					_drop_spoils(state.order[state.order.find(id)+1])
+					break
+			await get_tree().create_timer(.12).timeout
+		"badges":
+			# Every condition at once on one of ours and one of theirs, to see the badges.
+			await get_tree().create_timer(.4).timeout
+			for id: String in state.order:
+				var foe := state.unit(id)
+				if foe.team == Defs.Team.ENEMY and not foe.hidden:
+					foe.statuses = {"burning":2,"rooted":1,"stunned":1}
+					cam_rig.focus(unit_views[id].position.lerp(unit_views["hero"].position,.5))
+					break
+			state.unit("hero").statuses = {"guard":1,"poisoned":2}
+			await get_tree().create_timer(.6).timeout
+		"fx":
+			# The effects of things carried and of statuses, one on each of whoever is about.
+			await get_tree().create_timer(.4).timeout
+			var shown := ["burning","poisoned","stunned"]
+			var seen := 0
+			for id: String in state.order:
+				if state.unit(id).hidden or not unit_views.has(id): continue
+				if seen < shown.size(): state.unit(id).statuses[shown[seen]] = 2
+				elif seen == shown.size(): BattleFX.spawn(_units_root,BLESS,unit_views[id].position+Vector3.UP*.08,.3)
+				elif seen == shown.size()+1: BattleFX.spawn(_units_root,BURST,unit_views[id].position+Vector3.UP*.08,.3)
+				seen += 1
+			cam_rig.focus(unit_views["hero"].position)
+			await get_tree().create_timer(.75).timeout
+		"reel":
+			# Everything a thing carried or a status puts on screen, one after another, for a
+			# recording: the hero throws each thing at the nearest enemy, drinks, then the
+			# enemy takes each status in turn.
+			var foe_id := ""
+			for id: String in state.order:
+				var other := state.unit(id)
+				if other.team != Defs.Team.ENEMY or other.hidden or not unit_views.has(id): continue
+				if foe_id == "" or unit_views[id].position.distance_to(unit_views["hero"].position) < unit_views[foe_id].position.distance_to(unit_views["hero"].position):
+					foe_id = id
+			var me: UnitView = unit_views["hero"]
+			var foe: UnitView = unit_views[foe_id]
+			cam_rig.focus(me.position.lerp(foe.position,.5))
+			await get_tree().create_timer(1.0).timeout
+			for thrown: Array in [["item_firepot","火油罐"],["item_stone","石块"],["item_javelin","标枪"],["item_net","捕网"]]:
+				_popup("hero",thrown[1],Color("#f1e3c4"))
+				await _throw_thing(me,foe,thrown[0])
+				await get_tree().create_timer(1.6).timeout
+			_popup("hero","药剂",Color("#b9f0c4"))
+			await _take_tonic(me,me,"item_potion")
+			await get_tree().create_timer(1.8).timeout
+			# Statuses stay on the body while they last: one alone, then all three together,
+			# then gone.
+			for status: String in ["burning","poisoned","rooted","stunned"]:
+				_popup(foe_id,EventText.STATUS_NAMES.get(status,status),Color(.8,.9,1))
+				state.unit(foe_id).statuses = {status:2}
+				await get_tree().create_timer(2.6).timeout
+			state.unit(foe_id).statuses = {"burning":2,"poisoned":2,"rooted":1,"stunned":1}
+			state.unit("hero").statuses = {"rooted":2,"poisoned":2}
+			await get_tree().create_timer(3.5).timeout
+			state.unit(foe_id).statuses = {}
+			state.unit("hero").statuses = {}
+			await get_tree().create_timer(1.0).timeout
+		"heroes":
+			# The hired heroes fight a few rounds with what their trees taught them, for a
+			# recording: each uses the last-learnt technique that has a target, walking up
+			# first if nothing is in reach.
+			for turn in 4:
+				for member: Dictionary in _party:
+					var id: String = member.id
+					var u := state.unit(id)
+					if u == null or not u.alive or not unit_views.has(id): continue
+					cam_rig.focus(unit_views[id].position)
+					await get_tree().create_timer(.5).timeout
+					for step in 2:
+						var used := false
+						var known := u.skills.duplicate()
+						known.reverse()
+						for sk: String in known:
+							if u.cooldown(sk) > 0: continue
+							var aim := Rules.targeting(state,{"type":"skill","unit":id,"skill":sk})
+							if aim.valid.is_empty(): continue
+							_popup(id,str(SkillCatalog.get_skill(sk).get("name",sk)),Color("#f1e3c4"))
+							await _perform({"type":"skill","unit":id,"skill":sk,"target":aim.valid[0]})
+							await get_tree().create_timer(1.2).timeout
+							used = true
+							break
+						if used or step == 1 or u.has_moved: break
+						# Nothing in reach: close on the nearest enemy, archers to bowshot.
+						var want := 3 if SkillCatalog.get_skill(u.skills[0]).get("ranged",false) else 1
+						var best := u.pos
+						var score := 999
+						var reach := Movement.destinations(state,u,-1)
+						for cell: Vector2i in reach:
+							for other_id: String in state.order:
+								var other := state.unit(other_id)
+								if other.team != Defs.Team.ENEMY or not other.alive or other.hidden: continue
+								var gap: int = absi(abs(cell.x-other.pos.x)+abs(cell.y-other.pos.y)-want)
+								if gap < score:
+									score = gap
+									best = cell
+						if best == u.pos: break
+						await _perform({"type":"move","unit":id,"to":best})
+						await get_tree().create_timer(.4).timeout
+				_end_turn()
+				await get_tree().create_timer(1.0).timeout
+				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
+				await get_tree().create_timer(.8).timeout
 		"guard":
 			# Two of ours brace: how the stance shows on the field.
 			await get_tree().create_timer(.4).timeout

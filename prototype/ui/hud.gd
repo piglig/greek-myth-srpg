@@ -512,7 +512,7 @@ func set_enemy_order(state: BattleState, active: String, finished: bool) -> void
 		chip.custom_minimum_size = Vector2(Metrics.CONTROL,Metrics.CONTROL)*ui_scale
 		var count := unit.actions_left if enemy_phase else unit.actions_per_turn
 		var face := TextureRect.new()
-		face.texture = Px.face(unit.def_id,32)
+		face.texture = Px.face(unit.look(),32)
 		face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -617,7 +617,7 @@ func set_unit(u: UnitState, height: int, resolving: bool) -> void:
 		_selected_id = u.id
 		_diamond.open_group = ""
 		_unit_name.set_pressed_no_signal(false)
-		_portrait.texture = Px.face(u.def_id,64)
+		_portrait.texture = Px.face(u.look(),64)
 	_unit_name.flat = true
 	_unit_name.text = u.display_name + "  ▾"
 	_vitals.text = "生命  %d / %d" % [maxi(u.hp,0),u.max_hp]
@@ -1028,7 +1028,7 @@ func record_events(state: BattleState,events: Array,from_round := -1) -> void:
 func _person_chip(person: Dictionary) -> HBoxContainer:
 	var chip := HBoxContainer.new()
 	var image := TextureRect.new()
-	image.texture = Px.face(person.kind,32)
+	image.texture = Px.face(str(person.get("look",person.kind)),32)
 	image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

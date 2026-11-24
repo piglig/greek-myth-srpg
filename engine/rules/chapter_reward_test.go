@@ -16,7 +16,7 @@ func TestChapterOneRewards(t *testing.T) {
 	eq(t, hit.Base, max(1, before.Base-3), "pelt mitigation")
 	o := Perform(s, UseSkill("hero", "impervious_hide", NoPos))
 	eq(t, o.OK, true, "activate pelt")
-	eq(t, s.Reward.Divinity, 2, "active divinity")
+	eq(t, s.Reward.Divinity, 0, "using a relic does not raise divinity")
 	eq(t, h.Cooldown("impervious_hide"), 4, "relic cooldown")
 	eq(t, Compute(s, w, h, 1, Physical, false, NoPos).Immune, true, "physical immunity")
 	eq(t, Compute(s, w, h, 1, Divine, false, NoPos).Immune, false, "divine passes")

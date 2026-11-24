@@ -91,6 +91,10 @@ type UnitState struct {
 
 	MaxHP, HP, Strength, Divinity, Defense, Will, Move, Jump int
 
+	// Tree 是这个人学的技能树的名字；空着就用单位定义的名字（主角和剧情同伴）。
+	// 招募来的英雄借用别的单位定义出战，但各有各的技能树。
+	Tree string
+
 	Skills    []*Skill
 	Traits    Traits
 	Statuses  []KV // 状态 → 剩余回合；staggered / stunned 由破势系统设置
@@ -362,4 +366,12 @@ func (u *UnitState) dropSkill(id string) {
 		}
 	}
 	u.Skills = kept
+}
+
+// TreeKey 返回这个单位的技能树在 skill_tree.json 里的名字。
+func (u *UnitState) TreeKey() string {
+	if u.Tree != "" {
+		return u.Tree
+	}
+	return u.DefID
 }

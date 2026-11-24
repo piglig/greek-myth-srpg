@@ -79,11 +79,14 @@
       "item": {"type": "boolean"},
       "heal": {"type": "integer", "minimum": 1, "maximum": 99},
       "cleanse": {"type": "integer", "minimum": 1, "maximum": 5},
-      "status": {"enum": ["burning", "rooted", "feared", "weakened", "exposed", "poisoned"]},
+      "status": {"enum": ["burning", "poisoned", "rooted", "stunned"]},
+      "pierce": {"type": "boolean"},
+      "area_knockback": {"type": "integer", "minimum": 1, "maximum": 3},
       "self_status": {"enum": ["impervious_hide"]},
       "area_status": {
         "enum": [
-          "feared",
+          "burning",
+          "poisoned",
           "rooted",
           "stunned"
         ]
@@ -114,6 +117,13 @@
           "area_status",
           "radius"
         ]
+      },
+      {
+        "required": [
+          "area_knockback",
+          "radius"
+        ],
+        "not": {"required": ["area_status"]}
       },
       {
         "required": ["heal", "min_range", "max_range"],

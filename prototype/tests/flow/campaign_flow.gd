@@ -134,7 +134,8 @@ func _new_game() -> void:
 	_check("purse starts with the opening coins",_coins() == Save.STARTING_COINS,_coins())
 	_check("hero has learnt nothing yet",saved.picks.get("hero",[]).is_empty(),saved.picks.get("hero"))
 	_check("atalanta holds her starting technique",saved.picks.get("atalanta",[]) == [Save.STARTERS.atalanta],saved.picks.get("atalanta"))
-	_check("the drillmaster has people on offer",saved.get("offers",[]).size() == Save.OFFERS,saved.get("offers",[]).size())
+	# Each hero is one person, and only Iphicles has come this far at the start.
+	_check("the drillmaster has someone on offer",saved.get("offers",[]).size() == 1 and saved.offers[0].kind == "iphicles",saved.get("offers",[]))
 	_check("nobody is asking anything at the start",camp.asking == "",camp.asking)
 	_check("everyone starts at level 1",_level("hero") == 1 and _level("atalanta") == 1)
 
@@ -179,13 +180,13 @@ func _buy_and_wear() -> void:
 	var camp := _scene()
 	camp._go("trader")
 	await _frames()
-	_check("the trader's shelf holds the first chapter's goods",_button("草鞋") != null)
-	camp._pick("sandal","trader")
+	_check("the trader's shelf holds the first chapter's goods",_button("亚麻短衣") != null)
+	camp._pick("tunic","trader")
 	await _frames()
 	var before := _coins()
 	if not await _press("买下"): return
-	_check("the price left the purse",_coins() == before-int(Save.GOODS.sandal.price),"%d -> %d" % [before,_coins()])
-	_check("the sandals are in the bag",int(_bag().get("sandal",0)) == 1,_bag())
+	_check("the price left the purse",_coins() == before-int(Save.GOODS.tunic.price),"%d -> %d" % [before,_coins()])
+	_check("the tunic is in the bag",int(_bag().get("tunic",0)) == 1,_bag())
 	camp._pick("leather","trader")
 	await _frames()
 	var short := _button("还差")
@@ -195,13 +196,13 @@ func _buy_and_wear() -> void:
 	await _frames()
 	camp._pick_member("hero")
 	await _press("信息")
-	camp._pick_place("foot")
+	camp._pick_place("body")
 	await _frames()
-	_check("the sandals are offered for the foot",camp.candidate == "sandal",camp.candidate)
+	_check("the tunic is offered for the body",camp.candidate == "tunic",camp.candidate)
 	if not await _press("戴上"): return
-	_check("the hero is saved as wearing them",_disk().purse.worn.get("hero",{}).get("foot","") == "sandal",_disk().purse.get("worn"))
-	_check("none are left loose",Save.loose(_disk().purse,"sandal") == 0)
-	_check("the sheet counts them in",int(camp._worn_changes("hero").get("move",0)) == 1,camp._worn_changes("hero"))
+	_check("the hero is saved as wearing them",_disk().purse.worn.get("hero",{}).get("body","") == "tunic",_disk().purse.get("worn"))
+	_check("none are left loose",Save.loose(_disk().purse,"tunic") == 0)
+	_check("the sheet counts them in",int(camp._worn_changes("hero").get("hp",0)) == 3,camp._worn_changes("hero"))
 
 
 func _cannot_hire_when_poor() -> void:
@@ -229,8 +230,9 @@ func _march_and_check_first_battle() -> bool:
 	var field := _scene()
 	_check("the battle is 1-1",field._battle_id == "1-1",field._battle_id)
 	var hero: UnitState = field.state.unit("hero")
-	var plain := int(UnitCatalog.unit_def("hero").move)
-	_check("the sandals reached the battlefield",hero.move == plain+1,"%d, plain %d" % [hero.move,plain])
+	var sheet: Dictionary = UnitCatalog.unit_def("hero")
+	var plain := int(sheet.get("max_hp",sheet.get("hp",0)))
+	_check("the tunic reached the battlefield",hero.max_hp == plain+3,"%d, plain %d" % [hero.max_hp,plain])
 	_check("the hero brings a plain attack and one technique",hero.skills.size() == 2,hero.skills)
 	_check("盾墙 came along",hero.has_trait("shield_wall"),hero.traits)
 	var atalanta: UnitState = field.state.unit("atalanta")
@@ -287,14 +289,14 @@ func _first_report() -> void:
 	_check("the report was not kept for next time",not saved.has("news"))
 	_check("1-1 is saved as cleared",saved.outcomes.get("1-1","") == "已通关",saved.outcomes)
 	_check("the save moved on to 1-2",saved.id == "1-2",saved.id)
-	_check("the battle paid",_coins() == Save.STARTING_COINS-int(Save.GOODS.sandal.price)+60,_coins())
+	_check("the battle paid",_coins() == Save.STARTING_COINS-int(Save.GOODS.tunic.price)+60,_coins())
 	_check("those who marched took the whole experience",int(saved.xp.get("hero",0)) == Save.xp_for("1-1"),saved.get("xp"))
 	_check("the hero is level 2",_level("hero") == 2,_level("hero"))
 	var spoils := 0
 	for thing: String in _bag():
 		if Save.GOODS[thing].slot == "material": spoils += int(_bag()[thing])
 	_check("the beaten left materials in the bag",spoils > 0,_bag())
-	_check("the sandals are still on",saved.purse.worn.get("hero",{}).get("foot","") == "sandal")
+	_check("the tunic is still on",saved.purse.worn.get("hero",{}).get("body","") == "tunic")
 	_check("the drillmaster has a fresh list",saved.get("offers",[]).size() == Save.OFFERS,saved.get("offers",[]).size())
 	if not await _press("去分配技能点"): return
 	_check("the report is gone",camp.asking == "",camp.asking)
@@ -314,7 +316,7 @@ func _sell_spoils() -> void:
 	await _frames()
 	if not await _press("卖"): return
 	_check("the sell page is open",camp.shop_tab == "sell",camp.shop_tab)
-	_check("what is worn is not for sale",_button("草鞋") == null)
+	_check("what is worn is not for sale",_button("亚麻短衣") == null)
 	var worth := 0
 	for thing: String in _bag():
 		if Save.GOODS[thing].slot == "material": worth += Save.sell_price(thing)*int(_bag()[thing])
@@ -422,6 +424,7 @@ func _lose_a_battle() -> bool:
 	_check("the battle is 1-2",field._battle_id == "1-2",field._battle_id)
 	var who: String = _disk().roster[0].id if not _disk().get("roster",[]).is_empty() else ""
 	var hire: UnitState = field.state.unit(who)
+	_check("the hire is drawn in colours of their own",UnitState.looks.has(who) and UnitState.looks[who] != hire.def_id if hire != null else false,UnitState.looks)
 	if _check("the hire is on the field",hire != null,who):
 		_check("on the player's side",hire.team == Defs.Team.PLAYER)
 		_check("with a plain attack and a technique",hire.skills.size() == 2,hire.skills)
@@ -533,7 +536,7 @@ func _to_the_second_chapter() -> void:
 func _old_save() -> void:
 	_begin("an old save")
 	var old := {"id":"1-4","stage":"camp","picks":{"hero":["slam"],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":true,
-		"outcomes":{"1-1":"已通关","1-2":"已通关","1-3":"已通关"},"choose_route":false,"roster":["sword"],"deploy":["chiron","sword"],
+		"outcomes":{"1-1":"已通关","1-2":"已通关","1-3":"已通关"},"choose_route":false,"roster":["iphicles"],"deploy":["atalanta","chiron","iphicles"],
 		"purse":{"coins":200,"owned":["olive","anklet"],"equipped":{"olive":"hero"},"paid":["1-1","1-2","1-3"]}}
 	_check("the old save can be written",Save.write_entry(old) == OK)
 	get_tree().change_scene_to_file("res://camp.tscn")
@@ -541,16 +544,22 @@ func _old_save() -> void:
 	if not await _arrive("camp.tscn"): return
 	var camp := _scene()
 	_check("no report for a save that brings no news",camp.asking == "",camp.asking)
-	_check("the hire has a record of their own",camp.entry.roster.size() == 1 and camp.entry.roster[0] is Dictionary,camp.entry.roster)
+	_check("the hire has a record of their own",camp.entry.roster.size() == 1 and camp.entry.roster[0].name == "伊菲克勒斯",camp.entry.roster)
+	_check("he has a tree of his own to learn from",camp._tree_of("iphicles") == "iphicles",camp._tree_of("iphicles"))
 	var purse: Dictionary = camp._purse()
 	_check("things are counted",int(purse.bag.get("olive",0)) == 1 and int(purse.bag.get("anklet",0)) == 1,purse.get("bag"))
 	_check("the olive branch is still on the hero",purse.worn.get("hero",{}).get("hand","") == "olive",purse.get("worn"))
 	_check("the old lists are gone",not purse.has("owned") and not purse.has("equipped"))
 	_check("everyone has experience for the level they were",camp._level("hero") == 4 and camp._level("chiron") == 4,camp.entry.get("xp"))
-	_check("the party still marches",camp._marching().size() == 2,camp._marching())
+	_check("the party still marches, Atalanta now among the chosen",camp._marching() == ["atalanta","chiron","iphicles"],camp._marching())
+	# Only the protagonist is fixed: Atalanta may stay behind, unless the battle needs her.
+	camp._toggle_march("atalanta")
+	_check("Atalanta can be left in camp",not camp._marching_to("1-4").has("atalanta"),camp._marching_to("1-4"))
+	_check("the lion hunt takes her along all the same",camp._marching_to("1-5")[0] == "atalanta",camp._marching_to("1-5"))
+	camp._toggle_march("atalanta")
 	camp._go("march")
 	await _frames()
 	if not await _press("出征"): return
 	if not await _battle_ready(): return
 	_check("the old save reaches its battle",_scene()._battle_id == "1-4",_scene()._battle_id)
-	_check("the old hire is on the field",_scene().state.unit(camp.entry.roster[0].id) != null if is_instance_valid(camp) else _scene().state.unit("sword") != null)
+	_check("the old hire is on the field",_scene().state.unit(camp.entry.roster[0].id) != null if is_instance_valid(camp) else _scene().state.unit("iphicles") != null)

@@ -161,11 +161,24 @@ func TestChironMedicineAndMentorship(t *testing.T) {
 	enemy.StaggerMax = 100
 	StartBattle(s)
 	testData.ApplyPicks(u, []string{"weak_point", "mentor_stagger"})
+	enemy.Defense = 4
+	plain := Compute(s, u, enemy, 0.8, Physical, true, NoPos).Amount
+	hp := enemy.HP
 	o = Perform(s, UseSkill(u.ID, "weak_point", enemy.Pos))
-	check(t, o.OK && enemy.HasStatus("exposed") && enemy.Stagger >= 20, "weak point exposes and staggers")
-	with := Compute(s, u, enemy, 1, Physical, true, NoPos)
-	enemy.EraseStatus("exposed")
-	check(t, with.Amount > Compute(s, u, enemy, 1, Physical, true, NoPos).Amount, "physical attacks exploit opening")
+	check(t, o.OK && enemy.Stagger >= 20, "weak point staggers")
+	check(t, len(enemy.Statuses) == 0, "and leaves no status behind")
+	check(t, hp-enemy.HP > plain, "the shot finds the gap: armour does not count")
+
+	s = flat(8, 8)
+	u = ally(s, "chiron", "chiron", c(1, 2))
+	enemy = foe(s, "bandit_chief", "chief", c(1, 5))
+	enemy.Defense = 0
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"weak_point", "mentor_stagger", "keen_eye"})
+	full := Compute(s, u, enemy, 1.0, Physical, true, NoPos).Amount
+	hp = enemy.HP
+	o = Perform(s, UseSkill(u.ID, "weak_point", enemy.Pos))
+	check(t, o.OK && hp-enemy.HP == full, "keen eye: the shot lands at full strength")
 }
 
 func TestMedeaFireAndHex(t *testing.T) {
@@ -183,10 +196,30 @@ func TestMedeaFireAndHex(t *testing.T) {
 	enemy = foe(s, "bandit_chief", "chief", c(1, 5))
 	StartBattle(s)
 	testData.ApplyPicks(u, []string{"frailty", "lingering_hex"})
-	before := Compute(s, enemy, u, 1, Physical, false, NoPos)
 	o = Perform(s, UseSkill(u.ID, "frailty", enemy.Pos))
-	duration, _ := enemy.Status("weakened")
-	check(t, o.OK && duration == 3 && Compute(s, enemy, u, 1, Physical, false, NoPos).Amount < before.Amount, "lingering curse reduces physical output")
+	duration, _ := enemy.Status("poisoned")
+	check(t, o.OK && duration == 4, "the marrow hex poisons, and lingers a round longer")
+
+	// 长夜咒：非首领眩晕一回合，首领不受。
+	s = flat(8, 8)
+	u = ally(s, "medea", "medea", c(1, 2))
+	enemy = foe(s, "bandit", "raider", c(1, 5))
+	StartBattle(s)
+	testData.ApplyPicks(u, []string{"frailty", "bind_hex", "night_hex"})
+	o = Perform(s, UseSkill(u.ID, "night_hex", enemy.Pos))
+	check(t, o.OK && enemy.HasStatus("stunned") && u.Cooldown("night_hex") == 5, "the long night stuns")
+}
+
+// 游戏里只有四种异常状态；数据里出现别的就不该读得进来。
+func TestOnlyFourAilments(t *testing.T) {
+	for id, sk := range testData.skills {
+		for _, given := range []string{sk.Status, sk.AreaStatus} {
+			check(t, given == "" || IsAilment(given), id+" gives a status outside the four: "+given)
+		}
+	}
+	for _, gone := range []string{"feared", "weakened", "exposed"} {
+		check(t, !IsAilment(gone) && statusNames[gone] == "", gone+" is no longer a status")
+	}
 }
 
 func TestBranchTraining(t *testing.T) {

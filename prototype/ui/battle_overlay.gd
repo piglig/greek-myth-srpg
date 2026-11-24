@@ -22,6 +22,14 @@ var resolving := false
 var hit_target := ""
 
 const POPUP_LIFE := 1.1
+## Conditions worth seeing at a glance, in the order they are laid out: [status, drawing, colour].
+## Each is a small round badge beside the unit's bar for as long as it lasts.
+## The game has four ailments and no more: burning, poisoned, rooted, stunned. The rest
+## here are stances a unit takes itself. A boss's broken guard is told by its stagger bar,
+## which fills and holds while it lasts, so it has no badge.
+const BADGES := [["burning","kindling","#ff9a4a"],["poisoned","st_poison","#9be07c"],
+	["rooted","bind_hex","#c9a0ff"],["stunned","st_stun","#ffe08a"],
+	["guard","act_guard","#8fd0ff"],["dodge","st_dodge","#9fe3d6"],["impervious_hide","st_shield","#f2d08a"]]
 
 
 func _ready() -> void:
@@ -29,13 +37,14 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-func add_popup(world: Vector3, text: String, color: Color) -> void:
+## `icon` is drawn before the words when given (a thing picked up, say), in the same colour.
+func add_popup(world: Vector3, text: String, color: Color, icon: Texture2D = null) -> void:
 	# Stack popups that land on the same spot.
 	var stacked := 0
 	for p in popups:
 		if (p["world"] as Vector3).distance_to(world) < 0.1 and p["age"] < 0.4:
 			stacked += 1
-	popups.append({"world": world, "text": text, "color": color, "age": -0.18 * stacked})
+	popups.append({"world": world, "text": text, "color": color, "age": -0.18 * stacked, "icon": icon})
 
 
 func set_health_forecast(row: Dictionary) -> void:
@@ -221,14 +230,23 @@ func _draw() -> void:
 				var relation: String = {"侧面":"侧击","背面":"背击"}.get(prediction.direction,"")
 				caption = "−%d  %s剩 %d" % [prediction.before-prediction.after,relation+" · " if relation else "",prediction.after]
 			labels.append({"anchor":r,"text":caption})
+		# What is on them, as a row of badges beside the bar: ours to the left of it, theirs to
+		# the right (their left holds the number of their turn).
+		var ours := u.team == Defs.Team.PLAYER
+		var worn: Array = []
+		for badge: Array in BADGES:
+			if u.has_status(badge[0]): worn.append(badge)
+		if u.grappled_by_id != "": worn.append(["grappled","act_grapple","#ffc09b"])
+		if u.id in [state.marked_id,state.previous_mark]: worn.append(["marked","act_mark","#ffe08a"])
+		for n in worn.size():
+			var tint := Color(str(worn[n][2]))
+			var step := (13+n*23)*s
+			var badge := Vector2(r.position.x-step,r.get_center().y) if ours else Vector2(r.end.x+step,r.get_center().y)
+			draw_circle(badge,10.5*s,Color("#16232c"),true,-1,true)
+			draw_arc(badge,10.5*s,0,TAU,28,tint,2*s,true)
+			draw_texture_rect(Px.icon(str(worn[n][1]),16),Rect2(badge-Vector2(8,8)*s,Vector2(16,16)*s),false,tint.lightened(.45))
 		if u.has_status("guard"):
-			# Braced: a shield beside the bar and a pale ring round the feet for as long as
-			# the stance holds, so it reads at a glance on either side.
-			var ours := u.team == Defs.Team.PLAYER
-			var badge := Vector2(r.position.x-13*s,r.get_center().y) if ours else Vector2(r.end.x+13*s,r.get_center().y)
-			draw_circle(badge,11*s,Color("#16232c"),true,-1,true)
-			draw_arc(badge,11*s,0,TAU,28,Color("#8fd0ff"),2*s,true)
-			draw_texture_rect(Px.icon("act_guard",16),Rect2(badge-Vector2(8,8)*s,Vector2(16,16)*s),false,Color("#d6efff"))
+			# Braced also shows on the ground: a pale ring round the feet.
 			var feet: Vector2 = controller.world_to_screen(view.position)
 			draw_set_transform(feet,0.0,Vector2(1.0,.5))
 			draw_arc(Vector2.ZERO,30*s*(1.4 if u.size > 1 else 1.0),0,TAU,40,Color("#16232c"),5*s,true)
@@ -260,10 +278,6 @@ func _draw() -> void:
 		var tags: Array[String] = []
 		if u.grappled_by_id != "":
 			tags.append("挣脱 %d" % u.escape)
-		if u.id in [state.marked_id,state.previous_mark]:
-			tags.append("◎标记")
-		if u.has_status("staggered"):
-			tags.append("破势")
 		if not tags.is_empty() and (detailed or u.grappled_by_id != "" or u.has_status("staggered")):
 			var t := " ".join(tags)
 			var tw := font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
@@ -326,7 +340,15 @@ func _draw() -> void:
 		col.a = clampf(1.5 - age / POPUP_LIFE * 1.5, 0, 1)
 		var size := int(22 * s)
 		var tw := font.get_string_size(p["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-		_text(font, sp + Vector2(-tw / 2, -age * 40 * s), p["text"], size, col)
+		var at := sp + Vector2(-tw / 2, -age * 40 * s)
+		if p.get("icon") != null:
+			# The drawing leads the words, on a dark disc so it reads over any ground.
+			var side := 22.0*s
+			at.x += side*.5+3*s
+			var disc := at+Vector2(-side*.5-5*s,-size*.36)
+			draw_circle(disc,side*.62,Color(0.09,0.07,0.06,col.a*.9),true,-1,true)
+			draw_texture_rect(p["icon"],Rect2(disc-Vector2.ONE*side*.5,Vector2.ONE*side),false,col)
+		_text(font, at, p["text"], size, col)
 
 
 func _marker_offset(rect: Rect2, scale_factor: float) -> Vector2:

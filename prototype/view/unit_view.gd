@@ -101,7 +101,7 @@ func setup(u: UnitState, tex: Texture2D, motion: Texture2D) -> void:
 		_pivot_speed = deg_to_rad(445. if u.def_id == "wolf" else 325.)
 	mat.set_shader_parameter("spear_carrier",u.def_id == "hero")
 	if _has_pivot and _art_scale==.5:
-		mat.set_shader_parameter("pivot_sheet",load("res://art/pixel/%s/turns.png"%u.def_id))
+		mat.set_shader_parameter("pivot_sheet",load("res://art/pixel/%s/turns.png"%u.look()))
 	elif _bow_carrier:
 		mat.set_shader_parameter("pivot_sheet",preload("res://art/original/turns/atalanta.png"))
 	elif _braced_step:

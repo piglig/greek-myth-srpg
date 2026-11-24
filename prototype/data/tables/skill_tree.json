@@ -190,7 +190,7 @@
             "name": "净化箭",
             "cost": 1,
             "skill": "purify_arrow",
-            "desc": "射程 2–4。友军恢复 8 点生命，并解除灼烧、中毒、恐惧中的一种。冷却 2。"
+            "desc": "射程 2–4。友军恢复 8 点生命，并解除灼烧、中毒、束缚中的一种。冷却 2。"
           },
           {
             "id": "field_medicine",
@@ -234,7 +234,7 @@
             "name": "指隙箭",
             "cost": 1,
             "skill": "weak_point",
-            "desc": "射程 2–4。轻射命中后揭示破绽，使目标物防降低 3，持续 2 回合。冷却 2。"
+            "desc": "射程 2–4。0.8 倍射击，瞄准甲胄的缝隙：这一箭不计算目标的物理防御。冷却 2。"
           },
           {
             "id": "mentor_stagger",
@@ -256,7 +256,7 @@
             "id": "keen_eye",
             "name": "观隙",
             "trait": "keen_eye",
-            "desc": "指隙箭造成的破绽持续 3 回合。",
+            "desc": "指隙箭的伤害提高到 1.0 倍。",
             "parent": "mentor_stagger",
             "cost": 3
           },
@@ -321,17 +321,17 @@
         "nodes": [
           {
             "id": "frailty",
-            "name": "衰弱咒",
+            "name": "蚀骨咒",
             "cost": 1,
             "skill": "frailty",
-            "desc": "射程 1–4。造成 0.6 倍神力伤害，并降低目标 3 点力量，持续 2 回合。冷却 2。"
+            "desc": "射程 1–4。造成 0.6 倍神力伤害，目标中毒 3 回合。冷却 2。"
           },
           {
             "id": "lingering_hex",
             "name": "缠身咒",
             "cost": 2,
             "trait": "lingering_hex",
-            "desc": "衰弱咒造成的力量削弱延长至 3 回合。",
+            "desc": "蚀骨咒造成的中毒延长至 4 回合。",
             "parent": "frailty"
           },
           {
@@ -354,14 +354,14 @@
             "id": "night_hex",
             "name": "长夜咒",
             "skill": "night_hex",
-            "desc": "1.25 倍神力伤害，命中后施加恐惧 1 回合，冷却 4。",
+            "desc": "1.25 倍神力伤害，命中后目标眩晕 1 回合，冷却 5。首领不受眩晕。",
             "parent": "bind_hex",
             "cost": 4
           }
         ]
       }
     ],
-    "bandit_chief": [
+    "idas": [
       {
         "branch": "蛮力",
         "nodes": [
@@ -435,7 +435,7 @@
         ]
       }
     ],
-    "centaur": [
+    "eurytion": [
       {
         "branch": "冲锋",
         "nodes": [
@@ -497,6 +497,198 @@
             "skill": "breaker",
             "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
             "parent": "eury_stomp"
+          }
+        ]
+      }
+    ],
+    "iphicles": [
+      {
+        "branch": "并肩",
+        "nodes": [
+          {
+            "id": "iph_stand",
+            "name": "并肩而立",
+            "cost": 1,
+            "trait": "shield_wall",
+            "desc": "处于防御姿态时，相邻同伴受到的伤害 −15%。"
+          },
+          {
+            "id": "iph_cover",
+            "name": "以身相护",
+            "cost": 2,
+            "trait": "intercept",
+            "desc": "相邻同伴被攻击时，伊菲克勒斯代为承受（每回合 1 次）。",
+            "parent": "iph_stand"
+          },
+          {
+            "id": "iph_grit",
+            "name": "凡人筋骨",
+            "cost": 2,
+            "trait": "wrestler",
+            "desc": "永久增加 8 点生命上限。",
+            "parent": "iph_stand"
+          },
+          {
+            "id": "iph_cleave",
+            "name": "断矛斩",
+            "cost": 3,
+            "skill": "spear_breaker",
+            "desc": "近身打击，1.5 倍物理伤害，额外破势 15，冷却 3。",
+            "parent": "iph_cover"
+          }
+        ]
+      }
+    ],
+    "phalerus": [
+      {
+        "branch": "雅典射术",
+        "nodes": [
+          {
+            "id": "pha_steady",
+            "name": "稳弓",
+            "cost": 1,
+            "trait": "patience",
+            "desc": "本回合没有移动时，伤害 +25%。"
+          },
+          {
+            "id": "pha_snare",
+            "name": "绊足箭",
+            "cost": 2,
+            "skill": "snare_arrow",
+            "desc": "射程 2–4。0.8 倍射击，命中后束缚 1 回合，冷却 2。",
+            "parent": "pha_steady"
+          },
+          {
+            "id": "pha_far",
+            "name": "远射",
+            "cost": 2,
+            "skill": "long_shot",
+            "desc": "射程 3–6。1.0 倍射击，冷却 2。",
+            "parent": "pha_steady"
+          },
+          {
+            "id": "pha_bodkin",
+            "name": "破甲箭",
+            "cost": 3,
+            "skill": "bodkin_arrow",
+            "desc": "射程 2–4。0.9 倍射击，这一箭不计算目标的物理防御，冷却 3。",
+            "parent": "pha_far"
+          }
+        ]
+      }
+    ],
+    "ancaeus": [
+      {
+        "branch": "熊皮",
+        "nodes": [
+          {
+            "id": "anc_hide",
+            "name": "熊皮",
+            "cost": 1,
+            "trait": "bulwark",
+            "desc": "永久增加 3 点防御。"
+          },
+          {
+            "id": "anc_bulk",
+            "name": "阿卡迪亚筋骨",
+            "cost": 2,
+            "trait": "wrestler",
+            "desc": "永久增加 8 点生命上限。",
+            "parent": "anc_hide"
+          },
+          {
+            "id": "anc_defy",
+            "name": "不信预言",
+            "cost": 3,
+            "trait": "hex_ward",
+            "desc": "永久增加 4 点意志。",
+            "parent": "anc_bulk"
+          }
+        ]
+      },
+      {
+        "branch": "双刃斧",
+        "nodes": [
+          {
+            "id": "anc_split",
+            "name": "劈盾",
+            "cost": 1,
+            "skill": "shield_split",
+            "desc": "近身打击，1.1 倍物理伤害，这一斧不计算目标的物理防御，冷却 3。"
+          },
+          {
+            "id": "anc_sweep",
+            "name": "回旋斧",
+            "cost": 2,
+            "skill": "axe_sweep",
+            "desc": "近身打击，0.9 倍物理伤害，击退 2 格，冷却 3。",
+            "parent": "anc_split"
+          },
+          {
+            "id": "anc_fell",
+            "name": "伐木式",
+            "cost": 4,
+            "skill": "felling_blow",
+            "desc": "近身打击，1.8 倍物理伤害，额外破势 20，冷却 4。",
+            "parent": "anc_sweep"
+          }
+        ]
+      }
+    ],
+    "pholus": [
+      {
+        "branch": "待客",
+        "nodes": [
+          {
+            "id": "pho_wine",
+            "name": "陈酒",
+            "cost": 1,
+            "skill": "old_wine",
+            "desc": "相邻的同伴恢复 8 点生命，冷却 3。"
+          },
+          {
+            "id": "pho_shelter",
+            "name": "洞口相迎",
+            "cost": 2,
+            "trait": "shield_wall",
+            "desc": "处于防御姿态时，相邻同伴受到的伤害 −15%。",
+            "parent": "pho_wine"
+          },
+          {
+            "id": "pho_calm",
+            "name": "好客之心",
+            "cost": 3,
+            "trait": "hex_ward",
+            "desc": "永久增加 4 点意志。",
+            "parent": "pho_shelter"
+          }
+        ]
+      },
+      {
+        "branch": "山行",
+        "nodes": [
+          {
+            "id": "pho_gallop",
+            "name": "熟路",
+            "cost": 1,
+            "trait": "fleet",
+            "desc": "永久增加 1 点移动。"
+          },
+          {
+            "id": "pho_vault",
+            "name": "跃涧",
+            "cost": 2,
+            "trait": "high_jump",
+            "desc": "永久增加 2 点跳跃。",
+            "parent": "pho_gallop"
+          },
+          {
+            "id": "pho_kick",
+            "name": "后蹄",
+            "cost": 2,
+            "skill": "hind_kick",
+            "desc": "近身打击，0.7 倍物理伤害，击退 2 格，冷却 3。",
+            "parent": "pho_gallop"
           }
         ]
       }

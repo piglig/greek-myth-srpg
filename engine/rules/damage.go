@@ -66,6 +66,12 @@ func isTeam(s *BattleState, c Cell, team Team) bool {
 // 否则按“假如站在 fromAnchor”来算。
 func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmgType DamageType,
 	ranged bool, fromAnchor Cell) Hit {
+	return ComputeHit(s, attacker, target, skillMult, dmgType, ranged, fromAnchor, false)
+}
+
+// ComputeHit 与 Compute 相同；pierce 为真时这一击不计算目标的物理防御。
+func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, dmgType DamageType,
+	ranged bool, fromAnchor Cell, pierce bool) Hit {
 	if fromAnchor == NoPos {
 		fromAnchor = attacker.Pos
 	}
@@ -77,18 +83,14 @@ func Compute(s *BattleState, attacker, target *UnitState, skillMult float64, dmg
 	}
 
 	stat := attacker.Strength
-	if attacker.HasStatus("weakened") {
-		stat = max(0, stat-3)
-	}
 	if dmgType == Divine {
 		stat = attacker.Divinity
 	}
 	raw := FloorInt(float64(float64(stat) * skillMult))
 	mitigation := 0
 	if dmgType == Physical {
-		mitigation = target.Defense
-		if target.HasStatus("exposed") {
-			mitigation = max(0, mitigation-3)
+		if !pierce {
+			mitigation = target.Defense
 		}
 	} else if dmgType == Divine {
 		mitigation = target.Will

@@ -164,10 +164,9 @@ func checkSkillTree(t *Tables) (errs []string) {
 		}
 		return
 	}
+	// 一棵树的名字是单位定义（主角、剧情同伴），或招募英雄自己的名字（名单在原型的
+	// campaign_checkpoint.gd 里，这里看不到），所以不检查名字，只检查树里的内容。
 	for _, def := range trees.Keys() {
-		if !t.Units.Has(def) {
-			errs = append(errs, "skill tree for unknown unit "+def)
-		}
 		ids, byID, _ := nodesOf(def)
 		if len(byID) != len(ids) {
 			errs = append(errs, "duplicate node ids in "+def)

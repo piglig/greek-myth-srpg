@@ -8,8 +8,8 @@ import (
 // 把规则事件写成中文，用于预览面板、战斗日志和回放。
 
 var statusNames = map[string]string{
-	"exposed": "破绽", "weakened": "衰弱", "guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
-	"feared": "恐惧", "rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
+	"guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
 
@@ -32,7 +32,7 @@ var errorTexts = map[string]string{
 	"wounded ally": "负伤的喀戎会自行射击", "no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
 	"grappled": "正被擒抱", "grappling": "正在擒抱", "cannot move now": "现在不能移动",
 	"unreachable": "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
-	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "feared": "恐惧中，不能攻击", "no enemy there": "那里没有敌人",
+	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "no enemy there": "那里没有敌人",
 	"grappled: can only strike the grappler": "被擒抱时只能攻击擒抱者", "out of range": "超出射程",
 	"not in line": "不在直线上", "no line of sight": "视线被挡住", "cannot grapple": "不会擒抱",
 	"not adjacent": "不相邻", "cannot grapple that": "不能擒抱这个目标", "already grappled": "已被擒抱",

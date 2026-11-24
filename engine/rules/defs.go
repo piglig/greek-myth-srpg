@@ -116,7 +116,7 @@ const (
 
 // 首领“霸体”无视的控制状态（破势期间除外）。
 func isControlStatus(s string) bool {
-	return s == "stunned" || s == "feared" || s == "rooted"
+	return s == "stunned" || s == "rooted"
 }
 
 func terrainCost(t Terrain, forestStride bool) int {

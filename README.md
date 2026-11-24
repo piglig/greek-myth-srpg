@@ -40,7 +40,7 @@
 13. [设计总纲：支柱、体量、定价、平台、必备选项](13-design-brief.md)
 14. [全角色技能（其余 8 名同伴）](14-roster-skills.md)
 15. [圣物、神性、神赐](15-relics-boons.md)
-16. [装备：专属武器与护符](16-equipment.md)
+16. [装备、随身物品与战利品](16-equipment.md)
 17. [经济与营地设施](17-economy-shops.md)
 18. [敌人与 Boss](18-enemies-bosses.md)
 19. [关卡清单](19-battles.md)
@@ -52,6 +52,7 @@
 25. [美术资产规格](25-art-asset-specs.md)
 26. [全游戏主美设定](26-art-bible.md)
 27. [后续章节美术与动画制作指南](27-chapter-art-production.md)
+28. [待补美术素材清单](28-art-backlog.md)
 
 ## 程序
 

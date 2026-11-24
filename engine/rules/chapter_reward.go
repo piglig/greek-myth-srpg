@@ -1,7 +1,8 @@
 package rules
 
 // ChapterReward travels with the party between battles. Divinity is campaign
-// progression, separate from the attacker's divine damage stat.
+// progression, separate from the attacker's divine damage stat: it rises by a
+// tier for each relic taken from a chapter's boss, never from using one in battle.
 type ChapterReward struct {
 	Charms        map[string]string `json:"charms,omitempty"`
 	EquippedRelic string            `json:"equipped_relic"`

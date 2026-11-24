@@ -23,13 +23,32 @@ const DISPLAY := 36
 
 static var _faces := {}
 static var _cache := {}
+## Whether the window shows the canvas at a whole multiple of its size. Only then can the
+## pixel face be drawn dot for dot; at any other size its strokes are smoothed, or they
+## come out uneven and letters run together.
+static var _whole := true
+
+
+## Tells the faces how large the window is, so they are drawn the way that reads best.
+## The canvas is doubled and then stretched to the window; left to itself the engine
+## would draw each letter at the stretched size and double that, which at 1280x720 means
+## eight-pixel letters blown up. So away from whole multiples the letters are drawn at the
+## size they will really have on screen.
+static func fit_window(window: Window) -> void:
+	var by := minf(window.size.x/SIZE.x,window.size.y/SIZE.y)
+	var whole := by >= 1.0 and absf(by-roundf(by)) < .02
+	window.oversampling_override = 0.0 if whole else by
+	if whole == _whole: return
+	_whole = whole
+	for face: FontFile in _faces.values():
+		face.antialiasing = TextServer.FONT_ANTIALIASING_NONE if whole else TextServer.FONT_ANTIALIASING_GRAY
 
 
 static func font(points: int) -> FontFile:
 	var design := 10 if points % 10 == 0 and points % 12 != 0 else 12
 	if not _faces.has(design):
 		var face := load("res://art/thirdparty/fusion-pixel/fusion-pixel-%dpx-proportional-zh_hans.ttf" % design) as FontFile
-		face.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+		face.antialiasing = TextServer.FONT_ANTIALIASING_NONE if _whole else TextServer.FONT_ANTIALIASING_GRAY
 		face.hinting = TextServer.HINTING_NONE
 		face.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
 		_faces[design] = face

@@ -3,9 +3,8 @@ extends RefCounted
 ## Turns rule events into Chinese lines for the preview panel and battle log.
 
 const STATUS_NAMES := {
-	"exposed":"破绽","weakened":"衰弱",
 	"impervious_hide":"不坏之皮","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
-	"feared": "恐惧", "rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
+	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
 const SOURCE_NAMES := {
@@ -25,7 +24,7 @@ const ERRORS := {
 	"wounded ally":"负伤的喀戎会自行射击","no such unit": "没有这个单位", "not this unit's phase": "不是它的回合", "already acted": "已经行动过",
 	"grappled": "正被擒抱", "grappling": "正在擒抱", "cannot move now": "现在不能移动",
 	"unreachable": "到不了", "nothing to undo": "没有可撤销的移动", "unknown skill": "没有这个技能",
-	"on cooldown": "冷却中", "feared": "恐惧中，不能攻击", "no enemy there": "那里没有敌人",
+	"on cooldown": "冷却中", "no enemy there": "那里没有敌人",
 	"grappled: can only strike the grappler": "被擒抱时只能攻击擒抱者", "out of range": "超出射程",
 	"not in line": "不在直线上", "no line of sight": "视线被挡住", "cannot grapple": "不会擒抱",
 	"not adjacent": "不相邻", "cannot grapple that": "不能擒抱这个目标", "already grappled": "已被擒抱",

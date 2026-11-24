@@ -4,7 +4,15 @@ extends Sprite3D
 
 ## Effects baked from pixelfx by art/tools/bake_pixelfx.py, with how long each one runs.
 const KIT := "res://art/thirdparty/pixelfx/"
-const KIT_SECONDS := {"hit.png":.55,"slash.png":.8,"dust.png":1.667}
+static var _seconds := {}
+
+
+## How long a baked effect runs, from the list the bake writes beside the sheets.
+static func kit_seconds(file: String) -> float:
+	if _seconds.is_empty():
+		var listed: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(KIT+"effects.json"))
+		for effect: String in listed: _seconds[effect+".png"] = float(listed[effect].seconds)
+	return float(_seconds.get(file,.5))
 
 
 static func _sprite(parent: Node3D, effect: Texture2D) -> BattleFX:
@@ -28,7 +36,7 @@ static func spawn(parent: Node3D, effect: Texture2D, origin: Vector3, duration: 
 	var fx := _sprite(parent,effect)
 	fx.position = origin
 	if effect.resource_path.begins_with(KIT):
-		duration = maxf(duration,KIT_SECONDS[effect.resource_path.get_file()])
+		duration = maxf(duration,kit_seconds(effect.resource_path.get_file()))
 		# Lift the card toward the camera so its lower half is not buried in the ground.
 		fx.position += parent.get_viewport().get_camera_3d().global_basis.z*effect.get_height()*fx.pixel_size*.5
 	var animation := fx.create_tween()
@@ -38,6 +46,22 @@ static func spawn(parent: Node3D, effect: Texture2D, origin: Vector3, duration: 
 		animation.tween_interval(duration)
 	animation.tween_callback(fx.queue_free)
 	return animation
+
+
+## An effect that stays on someone and plays round and round until it is freed: the
+## flame on the burning, the stars over the stunned. Smaller and fainter than the
+## one-shots, so three of them on one person still leave the person in view.
+static func aura(wearer: Node3D, effect: Texture2D, offset: Vector3, size := 1.0) -> BattleFX:
+	var fx := _sprite(wearer,effect)
+	fx.pixel_size = .021*size
+	fx.modulate.a = .9
+	fx.position = offset
+	fx.render_priority = 1
+	var round := fx.create_tween().set_loops()
+	# Sheets from the kit say how long they run; ones drawn for the game play at ten a second.
+	var kit := effect.resource_path.begins_with(KIT)
+	round.tween_property(fx,"frame",fx.hframes-1,kit_seconds(effect.resource_path.get_file()) if kit else fx.hframes*.1).from(0)
+	return fx
 
 
 static func nock(parent: Node3D, arrow: Texture2D) -> BattleFX:

@@ -20,6 +20,14 @@ import (
 
 // 对拍测试：testdata/parity 下的基准文件由原 GDScript 引擎在 Godot 4.7.2 里生成
 // （gen_reference.sh / gen_variant.sh / probe.gd）。Go 引擎必须逐字节重现它们，只有耗时 ms 例外。
+//
+// 规则有意改动之后，受影响的战斗不可能再和原引擎一致。这些用例标了 rebased：它们的基准
+// 改由 Go 引擎自己生成，只用来发现无意的改动。重新生成：
+//
+//	SRPG_REBASE=1 go test ./sim -run TestRowsMatchGodot
+//
+// 2026-11-24：1-5 的六个用例改为 rebased。涅墨亚狮子的咆哮从「恐惧」改成了「震退 1 格」
+// （游戏只保留灼烧、中毒、束缚、眩晕四种异常状态，见 06-decisions）。
 
 const parityDir = "../testdata/parity/"
 
@@ -29,23 +37,24 @@ var picksVariant = map[string][]string{
 }
 
 var goldenCases = []struct {
-	file string
-	opts Options
+	file    string
+	opts    Options
+	rebased bool
 }{
-	{"godot_1-4_novice", Options{Battle: "1-4", Bot: "novice"}},
-	{"godot_1-4_skilled", Options{Battle: "1-4", Bot: "skilled"}},
-	{"godot_1-5_novice", Options{Battle: "1-5", Bot: "novice"}},
-	{"godot_1-5_skilled", Options{Battle: "1-5", Bot: "skilled"}},
-	{"godot_test_novice", Options{Battle: "test", Bot: "novice"}},
-	{"godot_test_skilled", Options{Battle: "test", Bot: "skilled"}},
-	{"godot_overlay_1-4x_novice", Options{Battle: "1-4x", Bot: "novice", DataDir: parityDir + "overlay"}},
-	{"godot_overlay_1-4x_skilled", Options{Battle: "1-4x", Bot: "skilled", DataDir: parityDir + "overlay"}},
-	{"godot_overlay_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", DataDir: parityDir + "overlay"}},
-	{"godot_set_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Sets: []string{"units:wolf.str=9", "units:heracles.max_hp=70"}}},
-	{"godot_picks_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Picks: picksVariant}},
-	{"godot_picks_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", Picks: picksVariant}},
-	{"godot_picks_1-5_novice", Options{Battle: "1-5", Bot: "novice", Picks: picksVariant}},
-	{"godot_maxrounds_1-5_novice", Options{Battle: "1-5", Bot: "novice", MaxRounds: 3}},
+	{"godot_1-4_novice", Options{Battle: "1-4", Bot: "novice"}, false},
+	{"godot_1-4_skilled", Options{Battle: "1-4", Bot: "skilled"}, false},
+	{"godot_1-5_novice", Options{Battle: "1-5", Bot: "novice"}, true},
+	{"godot_1-5_skilled", Options{Battle: "1-5", Bot: "skilled"}, true},
+	{"godot_test_novice", Options{Battle: "test", Bot: "novice"}, false},
+	{"godot_test_skilled", Options{Battle: "test", Bot: "skilled"}, false},
+	{"godot_overlay_1-4x_novice", Options{Battle: "1-4x", Bot: "novice", DataDir: parityDir + "overlay"}, false},
+	{"godot_overlay_1-4x_skilled", Options{Battle: "1-4x", Bot: "skilled", DataDir: parityDir + "overlay"}, false},
+	{"godot_overlay_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", DataDir: parityDir + "overlay"}, true},
+	{"godot_set_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Sets: []string{"units:wolf.str=9", "units:heracles.max_hp=70"}}, false},
+	{"godot_picks_1-4_skilled", Options{Battle: "1-4", Bot: "skilled", Picks: picksVariant}, false},
+	{"godot_picks_1-5_skilled", Options{Battle: "1-5", Bot: "skilled", Picks: picksVariant}, true},
+	{"godot_picks_1-5_novice", Options{Battle: "1-5", Bot: "novice", Picks: picksVariant}, true},
+	{"godot_maxrounds_1-5_novice", Options{Battle: "1-5", Bot: "novice", MaxRounds: 3}, true},
 }
 
 var msField = regexp.MustCompile(`"ms":\d+`)
@@ -81,6 +90,21 @@ func TestRowsMatchGodot(t *testing.T) {
 			rows, err := Run(context.Background(), opts)
 			if err != nil {
 				t.Fatal(err)
+			}
+			if gc.rebased && os.Getenv("SRPG_REBASE") != "" {
+				var fresh bytes.Buffer
+				for i := range rows {
+					line, err := rows[i].JSON()
+					if err != nil {
+						t.Fatal(err)
+					}
+					fresh.Write(msField.ReplaceAll(line, []byte(`"ms":0`)))
+					fresh.WriteByte(10)
+				}
+				if err := os.WriteFile(parityDir+gc.file+".jsonl", fresh.Bytes(), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				return
 			}
 			bad := 0
 			for i := range rows {

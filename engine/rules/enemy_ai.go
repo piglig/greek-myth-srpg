@@ -86,7 +86,7 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 				if Validate(sim, roar) == "" {
 					caught := 0
 					for _, t := range AreaTargets(sim, su, sk) {
-						if !t.HasStatus("control_immune") && !t.HasStatus(sk.AreaStatus) {
+						if sk.AreaStatus == "" || (!t.HasStatus("control_immune") && !t.HasStatus(sk.AreaStatus)) {
 							caught++
 						}
 					}

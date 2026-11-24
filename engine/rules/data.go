@@ -51,13 +51,23 @@ type Skill struct {
 	Status string
 
 	SelfStatus string
-	AreaStatus string // 非空表示以自身为中心的范围状态技能
-	Radius     int
-	HasRadius  bool
-	Rounds     int
+	AreaStatus string // 非空表示以自身为中心、给范围内敌人加状态的技能
+	// AreaKnockback 大于 0 表示以自身为中心、把范围内敌人各震退这么多格的技能。
+	AreaKnockback int
+	Radius        int
+	HasRadius     bool
+	Rounds        int
+	// Pierce 表示这一击不计算目标的物理防御。
+	Pierce bool
 }
 
-func (sk *Skill) IsArea() bool { return sk.AreaStatus != "" }
+func (sk *Skill) IsArea() bool { return sk.AreaStatus != "" || sk.AreaKnockback > 0 }
+
+// 游戏里只有这四种异常状态。招式和物品能给别人加上的状态必须在其中。
+var ailments = map[string]bool{"burning": true, "poisoned": true, "rooted": true, "stunned": true}
+
+// IsAilment 表示这个状态是四种异常状态之一。
+func IsAilment(status string) bool { return ailments[status] }
 
 // Mends 表示这个招式或物品是用在己方身上的（回复或解除状态）。
 func (sk *Skill) Mends() bool { return sk.Heal > 0 || sk.Cleanse > 0 }
@@ -416,6 +426,13 @@ func (d *Data) loadSkills() error {
 		sk.Status = raw.str("status", "")
 		sk.SelfStatus = raw.str("self_status", "")
 		sk.AreaStatus = raw.str("area_status", "")
+		sk.AreaKnockback = raw.int("area_knockback", 0)
+		sk.Pierce, _ = raw.m["pierce"].(bool)
+		for _, given := range []string{sk.Status, sk.AreaStatus} {
+			if given != "" && !IsAilment(given) {
+				return fmt.Errorf("招式 %s 的状态 %s 不是四种异常状态（灼烧、中毒、束缚、眩晕）之一", id, given)
+			}
+		}
 		sk.HasRadius, sk.Radius = raw.has("radius"), raw.int("radius", 0)
 		sk.Rounds = raw.int("rounds", 1)
 		if sk.IsArea() {
@@ -547,7 +564,7 @@ func (d *Data) loadTree() error {
 	return nil
 }
 
-// Trees 返回某个单位的技能树分支。
+// Trees 返回一棵技能树的分支。名字是单位定义（主角、剧情同伴）或招募英雄自己的名字。
 func (d *Data) Trees(defID string) []TreeBranch { return d.trees[defID] }
 
 // DefaultPicks 返回表里的默认加点（副本，可以随意改）。
@@ -640,7 +657,7 @@ func (d *Data) AllBuilds(defID string) [][]string {
 // ApplyPicks 把加点落到单位身上。
 func (d *Data) ApplyPicks(u *UnitState, picks []string) {
 	for _, id := range picks {
-		n := d.TreeNode(u.DefID, id)
+		n := d.TreeNode(u.TreeKey(), id)
 		if n == nil {
 			continue
 		}

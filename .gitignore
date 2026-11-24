@@ -16,3 +16,4 @@ Thumbs.db
 *.tmp
 engine/*.exe
 engine/*.test
+__pycache__/

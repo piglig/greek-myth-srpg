@@ -20,56 +20,61 @@ static func slot_name(key: String) -> String:
 ## Their `mods` mirror what the engine applies; if one changes, change the other.
 ## Everything after them is plain: any number may be owned, the trader sells them unless
 ## marked `loot`, and their `mods` are sent to the engine as they are.
+##
+## A plain thing's price follows what it does: 18 to begin with, then for each point
+## 生命 9, 力量 38, 防御 36, 意志 24, 神性 34, 移动 85, 跳跃 48; a point taken away gives back
+## half its worth; 稀有 ×1.08 and 史诗 ×1.18; rounded to 5. Change a `mods` and the price
+## should move with it.
 const GOODS := {
 	"olive": {"unique":true,"rarity":"common","slot":"hand","name":"橄榄枝","price":120,"group":"守御","effect":"防御时回复 4 点生命。","lore":"山麓的野橄榄枝，用一小段红线系在盾带上。","icon":0},
 	"wrist": {"unique":true,"rarity":"rare","mods":{"move":-1},"slot":"hand","name":"牛皮腕带","price":120,"group":"攻势","effect":"击退距离 +1，移动 −1。","lore":"赶车人缝的双层牛皮。收紧铜扣，手腕就能稳稳抵住盾缘。","icon":1},
 	"brooch": {"unique":true,"rarity":"rare","mods":{"wil":2,"move":-1},"slot":"body","name":"戈耳戈肩扣","price":90,"group":"守御","effect":"意志 +2，移动 −1。","lore":"守夜的士兵把这张青铜鬼面朝外别在披风上。","icon":3},
 	"anklet": {"unique":true,"rarity":"common","mods":{"jump":1,"str":-2},"slot":"foot","name":"斥候踝带","price":80,"group":"行军","effect":"跳跃 +1，力量 −2。","lore":"山道信使缠在脚踝上的细带，银翼磨得只剩浅浅的羽纹。","icon":4},
 	"stone": {"unique":true,"rarity":"rare","mods":{"move":1,"def":-2},"slot":"trinket","name":"路标石","price":150,"group":"行军","effect":"移动 +1，防御 −2。","lore":"石上的回纹被指尖磨平，仍能辨出通往科林斯的方向。","icon":2,"chapter":2},
-	"glove_hide": {"slot":"hand","name":"皮手套","rarity":"common","price":60,"art":"art_glove","mods":{"def":1},"lore":"牧人冬天戴的羊皮手套，掌心磨得发亮。"},
-	"fist_wrap": {"slot":"hand","name":"拳带","rarity":"common","price":70,"art":"art_knuckle","mods":{"str":1},"lore":"角力场上缠手用的牛皮条。"},
-	"bracer_bronze": {"slot":"hand","name":"青铜护腕","rarity":"common","price":90,"art":"art_bracers","mods":{"def":2,"jump":-1},"lore":"一对沉手的青铜护腕，挡得住刀，也拖得慢人。"},
-	"ring_oath": {"slot":"hand","name":"誓约指环","rarity":"rare","price":150,"art":"art_ring_hand","mods":{"wil":3},"lore":"内圈刻着一句誓词，字迹已经磨平了一半。"},
-	"gauntlet": {"slot":"hand","name":"铁臂甲","rarity":"rare","price":160,"art":"art_gauntlet","mods":{"str":2,"def":1,"jump":-1},"lore":"头目们才用得起的整片臂甲。"},
-	"red_thread": {"slot":"hand","name":"红线团","rarity":"epic","price":320,"art":"art_thread","mods":{"wil":2,"move":1},"lore":"克里特来的红线。握着它的人，据说不会迷路。","chapter":2},
-	"tunic": {"slot":"body","name":"亚麻短衣","rarity":"common","price":50,"art":"art_tunic","mods":{"hp":3},"lore":"洗得发白的短衣，胜在合身。"},
-	"belt_wide": {"slot":"body","name":"宽皮带","rarity":"common","price":70,"art":"art_belt","mods":{"hp":2,"str":1},"lore":"勒紧腰腹，发力时不泄气。"},
+	"glove_hide": {"slot":"hand","name":"皮手套","rarity":"common","price":55,"art":"art_glove","mods":{"def":1},"lore":"牧人冬天戴的羊皮手套，掌心磨得发亮。"},
+	"fist_wrap": {"slot":"hand","name":"拳带","rarity":"common","price":55,"art":"art_knuckle","mods":{"str":1},"lore":"角力场上缠手用的牛皮条。"},
+	"bracer_bronze": {"slot":"hand","name":"青铜护腕","rarity":"common","price":65,"art":"art_bracers","mods":{"def":2,"jump":-1},"lore":"一对沉手的青铜护腕，挡得住刀，也拖得慢人。"},
+	"ring_oath": {"slot":"hand","name":"誓约指环","rarity":"rare","price":95,"art":"art_ring_hand","mods":{"wil":3},"lore":"内圈刻着一句誓词，字迹已经磨平了一半。"},
+	"gauntlet": {"slot":"hand","name":"铁臂甲","rarity":"rare","price":115,"art":"art_gauntlet","mods":{"str":2,"def":1,"jump":-1},"lore":"头目们才用得起的整片臂甲。"},
+	"red_thread": {"slot":"hand","name":"红线团","rarity":"epic","price":180,"art":"art_thread","mods":{"wil":2,"move":1},"lore":"克里特来的红线。握着它的人，据说不会迷路。","chapter":2},
+	"tunic": {"slot":"body","name":"亚麻短衣","rarity":"common","price":45,"art":"art_tunic","mods":{"hp":3},"lore":"洗得发白的短衣，胜在合身。"},
+	"belt_wide": {"slot":"body","name":"宽皮带","rarity":"common","price":75,"art":"art_belt","mods":{"hp":2,"str":1},"lore":"勒紧腰腹，发力时不泄气。"},
 	"leather": {"slot":"body","name":"皮甲","rarity":"common","price":90,"art":"art_leather","mods":{"def":2},"lore":"几层硬牛皮缝成的胸甲。"},
-	"cloak_travel": {"slot":"body","name":"旅人斗篷","rarity":"rare","price":140,"art":"art_cloak","mods":{"wil":2,"hp":3},"lore":"走过远路的人才有的厚斗篷，风雨都认得它。"},
-	"scale": {"slot":"body","name":"鳞甲","rarity":"rare","price":190,"art":"art_scale","mods":{"def":4,"move":-1},"lore":"铜片一片压一片，走起来哗哗作响。"},
-	"cuirass": {"slot":"body","name":"青铜胸甲","rarity":"epic","price":340,"art":"art_breastplate","mods":{"def":5,"hp":4,"move":-1},"lore":"整块青铜敲成的胸甲，照得出人影。","chapter":2},
-	"wolf_cape": {"slot":"body","name":"狼皮披肩","rarity":"rare","price":150,"art":"art_pelt","mods":{"hp":4,"str":1},"lore":"整张狼皮连着头，披在肩上还带着林子的气味。","loot":true},
-	"sandal": {"slot":"foot","name":"草鞋","rarity":"common","price":50,"art":"art_sandal","mods":{"move":1,"def":-1},"lore":"轻，快，不经踩。"},
-	"boots": {"slot":"foot","name":"牧人皮靴","rarity":"common","price":80,"art":"art_boots","mods":{"jump":1},"lore":"山上放羊的人穿的高帮靴。"},
-	"greaves": {"slot":"foot","name":"胫甲","rarity":"rare","price":150,"art":"art_greaves","mods":{"def":2},"lore":"扣在小腿上的青铜片，方阵里人人都有一对。"},
-	"trail_wraps": {"slot":"foot","name":"山行绑腿","rarity":"rare","price":160,"art":"art_steps","mods":{"jump":2,"str":-1},"lore":"半人马的同伴们用的绑腿，翻山不费力。"},
-	"wingfoot": {"slot":"foot","name":"飞翼凉鞋","rarity":"epic","price":360,"art":"art_wingfoot","mods":{"move":1,"jump":1},"lore":"鞋跟上钉着一对小翅膀。没人说得清它是真的还是仿的。","chapter":2},
-	"feather": {"slot":"trinket","name":"鹰羽","rarity":"common","price":60,"art":"art_feather","mods":{"jump":1},"lore":"山鹰落下的一根长羽，别在发间。"},
-	"fang_charm": {"slot":"trinket","name":"狼牙坠","rarity":"common","price":70,"art":"art_fang_charm","mods":{"str":1},"lore":"头狼的牙，穿了孔挂在颈上。"},
-	"cup": {"slot":"trinket","name":"祭酒杯","rarity":"rare","price":140,"art":"art_cup","mods":{"hp":3,"wil":1},"lore":"祭酒用的小杯。出发前斟满，洒一半给大地。"},
-	"necklace": {"slot":"trinket","name":"琥珀项链","rarity":"rare","price":150,"art":"art_necklace","mods":{"hp":5},"lore":"北方来的琥珀，握久了是温的。"},
-	"pendant": {"slot":"trinket","name":"青金坠","rarity":"rare","price":160,"art":"art_pendant","mods":{"div":2},"lore":"一小块青金石，颜色像黄昏以后的天。"},
-	"owl": {"slot":"trinket","name":"猫头鹰小像","rarity":"rare","price":170,"art":"art_owl","mods":{"wil":2,"div":1},"lore":"雅典娜的鸟。夜里守营的人喜欢带着它。"},
-	"amulet": {"slot":"trinket","name":"祭司护符","rarity":"epic","price":330,"art":"art_amulet","mods":{"div":3,"wil":2},"lore":"神庙里流出来的东西，阿齐尔不肯说是怎么到手的。","chapter":2},
+	"cloak_travel": {"slot":"body","name":"旅人斗篷","rarity":"rare","price":100,"art":"art_cloak","mods":{"wil":2,"hp":3},"lore":"走过远路的人才有的厚斗篷，风雨都认得它。"},
+	"scale": {"slot":"body","name":"鳞甲","rarity":"rare","price":130,"art":"art_scale","mods":{"def":4,"move":-1},"lore":"铜片一片压一片，走起来哗哗作响。"},
+	"cuirass": {"slot":"body","name":"青铜胸甲","rarity":"epic","price":225,"art":"art_breastplate","mods":{"def":5,"hp":4,"move":-1},"lore":"整块青铜敲成的胸甲，照得出人影。","chapter":2},
+	"wolf_cape": {"slot":"body","name":"狼皮披肩","rarity":"rare","price":100,"art":"art_pelt","mods":{"hp":4,"str":1},"lore":"整张狼皮连着头，披在肩上还带着林子的气味。","loot":true},
+	"sandal": {"slot":"foot","name":"草鞋","rarity":"common","price":85,"art":"art_sandal","mods":{"move":1,"def":-1},"lore":"轻，快，不经踩。"},
+	"boots": {"slot":"foot","name":"牧人皮靴","rarity":"common","price":65,"art":"art_boots","mods":{"jump":1},"lore":"山上放羊的人穿的高帮靴。"},
+	"greaves": {"slot":"foot","name":"胫甲","rarity":"rare","price":95,"art":"art_greaves","mods":{"def":2},"lore":"扣在小腿上的青铜片，方阵里人人都有一对。"},
+	"trail_wraps": {"slot":"foot","name":"山行绑腿","rarity":"rare","price":105,"art":"art_steps","mods":{"jump":2,"str":-1},"lore":"半人马的同伴们用的绑腿，翻山不费力。"},
+	"wingfoot": {"slot":"foot","name":"飞翼凉鞋","rarity":"epic","price":180,"art":"art_wingfoot","mods":{"move":1,"jump":1},"lore":"鞋跟上钉着一对小翅膀。没人说得清它是真的还是仿的。","chapter":2},
+	"feather": {"slot":"trinket","name":"鹰羽","rarity":"common","price":65,"art":"art_feather","mods":{"jump":1},"lore":"山鹰落下的一根长羽，别在发间。"},
+	"fang_charm": {"slot":"trinket","name":"狼牙坠","rarity":"common","price":55,"art":"art_fang_charm","mods":{"str":1},"lore":"头狼的牙，穿了孔挂在颈上。"},
+	"cup": {"slot":"trinket","name":"祭酒杯","rarity":"rare","price":75,"art":"art_cup","mods":{"hp":3,"wil":1},"lore":"祭酒用的小杯。出发前斟满，洒一半给大地。"},
+	"necklace": {"slot":"trinket","name":"琥珀项链","rarity":"rare","price":70,"art":"art_necklace","mods":{"hp":5},"lore":"北方来的琥珀，握久了是温的。"},
+	"pendant": {"slot":"trinket","name":"青金坠","rarity":"rare","price":95,"art":"art_pendant","mods":{"div":2},"lore":"一小块青金石，颜色像黄昏以后的天。"},
+	"owl": {"slot":"trinket","name":"猫头鹰小像","rarity":"rare","price":110,"art":"art_owl","mods":{"wil":2,"div":1},"lore":"雅典娜的鸟。夜里守营的人喜欢带着它。"},
+	"amulet": {"slot":"trinket","name":"祭司护符","rarity":"epic","price":200,"art":"art_amulet","mods":{"div":3,"wil":2},"lore":"神庙里流出来的东西，阿齐尔不肯说是怎么到手的。","chapter":2},
 	"item_potion": {"slot":"item","name":"回复药","rarity":"common","price":40,"effect":"回复 12 点生命。给自己或身边的同伴。","lore":"蜂蜜、酒和几味草药熬成的浓浆，装在小陶瓶里。"},
-	"item_antidote": {"slot":"item","name":"解毒药","rarity":"common","price":50,"effect":"解除灼烧、中毒、恐惧中的两种，回复 4 点生命。","lore":"喀戎的方子，苦得让人忘了自己在怕什么。"},
+	"item_antidote": {"slot":"item","name":"解毒药","rarity":"common","price":50,"effect":"解除灼烧、中毒、束缚中的两种，回复 4 点生命。","lore":"喀戎的方子，苦得让人忘了自己在怕什么。"},
 	"item_stone": {"slot":"item","name":"投石","rarity":"common","price":20,"effect":"射程 2–3。0.6 倍物理伤害，额外破势 15。","lore":"河滩上捡的卵石，一袋三枚，这里按一枚算。"},
 	"item_javelin": {"slot":"item","name":"标枪","rarity":"common","price":45,"effect":"射程 2–4。1.2 倍物理伤害。","lore":"轻木杆，铁尖头，扔出去就别指望捡回来。"},
 	"item_firepot": {"slot":"item","name":"火油罐","rarity":"rare","price":90,"effect":"射程 2–3。0.7 倍神性伤害，点燃目标 2 回合。","lore":"封着松脂和橄榄油的陶罐，罐口塞着浸过油的麻布。"},
 	"item_net": {"slot":"item","name":"捕网","rarity":"rare","price":80,"effect":"射程 1–3。0.3 倍物理伤害，目标 1 回合无法移动。","lore":"渔夫的手抛网，四角坠着铅块。"},
 	"wolf_hide": {"slot":"material","name":"狼皮","rarity":"common","price":30,"art":"art_pelt","lore":"剥得不算整齐，皮匠照样收。"},
-	"wolf_fang": {"slot":"material","name":"狼牙","rarity":"common","price":20,"art":"art_tooth"},
-	"bone": {"slot":"material","name":"兽骨","rarity":"common","price":12,"art":"art_bone"},
-	"claw": {"slot":"material","name":"兽爪","rarity":"rare","price":60,"art":"art_claw"},
-	"boar_tusk": {"slot":"material","name":"野猪獠牙","rarity":"rare","price":50,"art":"art_tusk"},
-	"boar_hide": {"slot":"material","name":"野猪皮","rarity":"common","price":44,"art":"art_pelt"},
+	"wolf_fang": {"slot":"material","name":"狼牙","rarity":"common","price":20,"art":"art_tooth","lore":"磨一磨能做箭头，也有人拿去当护身符。"},
+	"bone": {"slot":"material","name":"兽骨","rarity":"common","price":12,"art":"art_bone","lore":"熬汤、做针、刻骰子，总有人要。"},
+	"claw": {"slot":"material","name":"兽爪","rarity":"rare","price":60,"art":"art_claw","lore":"涅墨亚狮子的爪，割得开青铜。"},
+	"boar_tusk": {"slot":"material","name":"野猪獠牙","rarity":"rare","price":50,"art":"art_tusk","lore":"弯得像新月，猎人把它钉在门楣上。"},
+	"boar_hide": {"slot":"material","name":"野猪皮","rarity":"common","price":44,"art":"art_pelt","lore":"又厚又硬，做盾面正合适。"},
 	"coin_pouch": {"slot":"material","name":"钱袋","rarity":"common","price":60,"art":"art_pouch","lore":"强盗腰上解下来的，里面是别人的钱。"},
-	"bronze_scrap": {"slot":"material","name":"青铜碎片","rarity":"common","price":36,"art":"art_bronze"},
-	"broken_shield": {"slot":"material","name":"破盾","rarity":"common","price":24,"art":"art_broken"},
-	"arrows": {"slot":"material","name":"箭束","rarity":"common","price":20,"art":"art_arrows"},
-	"rope": {"slot":"material","name":"麻绳","rarity":"common","price":14,"art":"art_rope"},
+	"bronze_scrap": {"slot":"material","name":"青铜碎片","rarity":"common","price":36,"art":"art_bronze","lore":"不知从哪副甲上掉下来的，回炉就是新的。"},
+	"broken_shield": {"slot":"material","name":"破盾","rarity":"common","price":24,"art":"art_broken","lore":"盾面裂了，铜箍还是好的。"},
+	"arrows": {"slot":"material","name":"箭束","rarity":"common","price":20,"art":"art_arrows","lore":"箭羽参差不齐，胜在数量。"},
+	"rope": {"slot":"material","name":"麻绳","rarity":"common","price":14,"art":"art_rope","lore":"三股麻拧成，够结实。"},
 	"wine_skin": {"slot":"material","name":"酒囊","rarity":"common","price":30,"art":"art_wine","lore":"还剩小半袋没掺水的酒。"},
-	"horsehair": {"slot":"material","name":"马鬃","rarity":"common","price":28,"art":"art_horsehair"},
+	"horsehair": {"slot":"material","name":"马鬃","rarity":"common","price":28,"art":"art_horsehair","lore":"半人马的尾鬃，做弓弦比牛筋还韧。"},
 	"lion_mane": {"slot":"material","name":"狮鬃","rarity":"epic","price":200,"art":"art_mane","lore":"涅墨亚狮子的鬃毛，刀割不断。"},
 }
 ## Shown for a rarity where no hired fighter is involved.
@@ -180,33 +185,37 @@ static func roll_loot(beaten: Array, rng: RandomNumberGenerator) -> Dictionary:
 					break
 	return haul
 
-## How rare a hired fighter is: its name and colour, how often it turns up among the
+## How rare a hired hero is: its name and colour, how often it turns up among the
 ## drillmaster's offers (weights), and the range its fee is drawn from.
 const RARITY := {
 	"common": {"name":"普通","tint":"#cfc4b0","odds":62,"fee":[60,100]},
 	"rare": {"name":"稀有","tint":"#b78cf0","odds":30,"fee":[130,180]},
 	"epic": {"name":"史诗","tint":"#f2b84b","odds":8,"fee":[220,280]},
 }
-## The kinds of fighter that can be hired. `def` is the unit they fight as. `after` is the
-## battle that must be cleared before the kind turns up. A kind with a `name` is one person
-## and can be hired once; the others are a trade, and each hire is given a name of their own.
-## Only kinds marked `tree` have techniques to learn (the tree belongs to their `def`).
+## The heroes who can be hired at the camp. Each is one person of the old stories, hired
+## once. `def` is the unit they fight as, `look` the sheets they are drawn from, `skill` the
+## technique they come with, and `after` the battle that must be cleared before they turn
+## up. Each has a technique tree of their own under their key in skill_tree.json: a small
+## one for the common, a middling one for the rare, a full one for the epic.
 const RECRUITS := {
-	"sword": {"skill":"heavy_cut","def":"bandit","title":"佣兵剑士","rarity":"common","after":"","lore":"从烧毁的村子里逃出来的护院，只剩一把短剑和一身力气。"},
-	"archer": {"skill":"aimed_shot","def":"bandit_archer","title":"佣兵弓手","rarity":"common","after":"1-1","lore":"山里的猎户，箭术平平，胜在肯跟着走远路。"},
-	"captain": {"skill":"heavy_cut","def":"bandit_chief","title":"佣兵队长","rarity":"rare","after":"1-1","lore":"带过十几个人的老兵。队伍散了，手艺还在。"},
-	"lancer": {"skill":"trample","def":"centaur","title":"半人马枪手","rarity":"rare","after":"1-3","lore":"酒宴上少数没喝醉的半人马。他欠喀戎一个人情。"},
-	"idas": {"skill":"heavy_cut","def":"bandit_chief","title":"墨塞涅的力士","name":"伊达斯","rarity":"epic","after":"1-2","tree":true,"lore":"墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
-	"eurytion": {"skill":"trample","def":"centaur","title":"半人马首领","name":"欧律提翁","rarity":"epic","after":"1-3","tree":true,"lore":"酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"},
+	"iphicles": {"look":"merc_sword","skill":"heavy_cut","def":"bandit","title":"忒拜的凡人","name":"伊菲克勒斯","rarity":"common","after":"","lore":"赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
+	"phalerus": {"look":"merc_archer","skill":"aimed_shot","def":"bandit_archer","title":"雅典的弓手","name":"法勒洛斯","rarity":"common","after":"1-1","lore":"小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
+	"ancaeus": {"look":"merc_captain","skill":"heavy_cut","def":"bandit_chief","title":"阿卡迪亚的斧手","name":"安开俄斯","rarity":"rare","after":"1-1","lore":"披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
+	"pholus": {"look":"merc_lancer","skill":"trample","def":"centaur","title":"福洛厄山的主人","name":"福洛斯","rarity":"rare","after":"1-3","lore":"酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
+	"idas": {"look":"idas","skill":"heavy_cut","def":"bandit_chief","title":"墨塞涅的力士","name":"伊达斯","rarity":"epic","after":"1-2","lore":"墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
+	"eurytion": {"look":"eurytion","skill":"trample","def":"centaur","title":"半人马首领","name":"欧律提翁","rarity":"epic","after":"1-3","lore":"酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"},
 }
 ## Everyone starts with one plain attack and one technique. A hired hand's technique is the
 ## `skill` of their kind. A story companion's is the first node of their tree, held from the
 ## start at no cost; the hero's (盾击) is already part of the unit.
 const STARTERS := {"atalanta":"vital_shot","chiron":"purify_arrow","medea":"frailty"}
-## Given names for hired hands who have none of their own.
-const HAND_NAMES := ["吕科斯","克勒翁","狄翁","墨农","阿革诺耳","忒隆","欧迈俄斯","菲洛","卡里阿斯","尼卡诺耳","安提丰","西蒙","堤丢斯","厄喀翁"]
-## How many fighters may march besides those the battle itself brings.
-const EXTRA_SLOTS := 2
+## How many heroes march beside the protagonist, who always goes. The player picks them all.
+const SEATS := 3
+## Battles whose story needs someone there: they march whatever the player picked.
+const REQUIRED := {"1-1":["atalanta"],"1-2":["atalanta"],"1-5":["atalanta"]}
+## Heroes a battle's own file places on the field. Left behind, they are benched; taken
+## along, they are not sent as extra party members.
+const PLACED := ["atalanta"]
 ## How many the drillmaster has on offer at a time, and what it costs to see others.
 const OFFERS := 3
 const REROLL_FEE := 15
@@ -217,20 +226,16 @@ static func for_hire(kind: String, entry: Dictionary) -> bool:
 	return gate == "" or entry.get("outcomes",{}).get(gate,"") == "已通关" or entry.has("equipped_relic")
 
 ## Draws the drillmaster's offers: each is {id, kind, name, fee}. Rarity is rolled by its
-## odds among the kinds open at this point of the journey; a named person is offered only
-## while not yet hired, and never twice in one draw.
+## odds among the heroes open at this point of the journey; a hero is offered only while
+## not yet hired, and never twice in one draw.
 static func draw_offers(entry: Dictionary, rng: RandomNumberGenerator) -> Array:
 	var taken := {}
-	var names := {}
-	for hand: Dictionary in entry.get("roster",[]):
-		taken[hand.kind] = true
-		names[hand.name] = true
+	for hand: Dictionary in entry.get("roster",[]): taken[hand.kind] = true
 	var offers := []
 	for slot in OFFERS:
 		var open := {}
 		for kind: String in RECRUITS:
-			if not for_hire(kind,entry): continue
-			if RECRUITS[kind].has("name") and taken.has(kind): continue
+			if not for_hire(kind,entry) or taken.has(kind): continue
 			var grade: String = RECRUITS[kind].rarity
 			if not open.has(grade): open[grade] = []
 			open[grade].append(kind)
@@ -245,15 +250,9 @@ static func draw_offers(entry: Dictionary, rng: RandomNumberGenerator) -> Array:
 				chosen = grade
 				break
 		var kind: String = open[chosen][rng.randi_range(0,open[chosen].size()-1)]
-		var name := str(RECRUITS[kind].get("name",""))
-		if name == "":
-			var free := HAND_NAMES.filter(func(candidate): return not names.has(candidate))
-			name = free[rng.randi_range(0,free.size()-1)] if not free.is_empty() else "无名氏"
-		else:
-			taken[kind] = true
-		names[name] = true
+		taken[kind] = true
 		var fee: Array = RARITY[chosen].fee
-		offers.append({"id":"o%d" % rng.randi(),"kind":kind,"name":name,"fee":int(rng.randi_range(int(fee[0]),int(fee[1]))/5)*5})
+		offers.append({"id":"o%d" % rng.randi(),"kind":kind,"name":str(RECRUITS[kind].name),"fee":int(rng.randi_range(int(fee[0]),int(fee[1]))/5)*5})
 	return offers
 
 ## Whether the trader has a thing on the shelf at this point of the journey.

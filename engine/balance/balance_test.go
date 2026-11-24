@@ -356,8 +356,10 @@ func TestDataTablesAndStaticSpecs(t *testing.T) {
 		if _, err := Lookup(hits, "hero", "nope", "hero", "front"); err == nil {
 			t.Error("查不到应当报错")
 		}
-		if !strings.HasPrefix(HitsCSV(hits), "\xef\xbb\xbfattacker,damage,immune,relation,scenario,skill,target,target_hp,target_max_hp,hits_to_kill,hp_fraction\nhero,6,False,0,front,spear,hero,40,40,7.0,0.15\n") {
-			t.Errorf("hits.csv 开头不对：%q", HitsCSV(hits)[:160])
+		// 行的顺序跟着导出时单位表的顺序走，所以只认表头和主角那一行在不在。
+		if csv := HitsCSV(hits); !strings.HasPrefix(csv, "\xef\xbb\xbfattacker,damage,immune,relation,scenario,skill,target,target_hp,target_max_hp,hits_to_kill,hp_fraction\n") ||
+			!strings.Contains(csv, "\nhero,6,False,0,front,spear,hero,40,40,7.0,0.15\n") {
+			t.Errorf("hits.csv 不对：%q", csv[:160])
 		}
 	}
 	xfail := 0
