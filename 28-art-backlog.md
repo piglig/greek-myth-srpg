@@ -67,7 +67,7 @@
 
 首领战现在最不像样的就是它。概念图 `art/direction/lerna-hydra.png` 可以当参考图一起给。
 
-#### [ ] 许德拉之首 `hydra_head`（六格原画）
+#### [x] 许德拉之首 `hydra_head`（六格原画）
 
 每个头是一个不会移动的单位，从地面立起来。按 6.1 的六格出，三列分别是待机、后仰蓄力、前探噬咬，没有行走。
 
@@ -75,7 +75,7 @@
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same single head and neck of the Lernaean hydra rising straight out of the ground like a thick column, the neck as thick as a tree trunk and twice a man's height, pale olive and bone-coloured overlapping scales, a row of spikes down the back of the neck, heavy wedge-shaped serpent head with yellow eyes, no body and no legs, the base of the neck cut off cleanly at the ground line, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns swaying upright at rest, rearing back with jaws closed, lunging forward and down with jaws wide open. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, the whole neck and head fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 断颈 `hydra_stump`（两格）
+#### [x] 断颈 `hydra_stump`（两格）
 
 头倒下后留在原地的东西。左格是刚砍断、还会再生的；右格是被火封住、再也长不出来的。两格大小和位置一致。
 
@@ -83,7 +83,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 2 columns and 1 row. The same severed stump of a hydra's neck in both cells, a thick scaled column cut off at knee height, seen from a high overhead 35 degree orthographic view. Left cell: the cut is raw and wet, dark red, with two small pale buds of new flesh already swelling from it. Right cell: the cut is burnt black and sealed, cracked like charcoal, with a few orange embers and a thin thread of smoke. Ancient Mediterranean gouache illustration, broad rich earthy color planes, wide empty gutter between the two. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 许德拉的身体 `hydra_body`（单张）
+#### [x] 许德拉的身体 `hydra_body`（单张）
 
 放在地图中央，占 3×3 格，五个头围着它。它不动，不需要动作帧。
 
@@ -91,37 +91,41 @@ Original PC tactical game sprite atlas on transparent background, precisely 2 co
 The coiled body of the Lernaean hydra with no heads, a great knot of thick scaled coils piled into a low mound three times as wide as a man is tall, pale olive and bone-coloured scales with a row of spikes along each coil, five short neck roots rising from it where the heads would join, half sunk in marsh mud with a few reeds against it. Seen from a high three-quarter angle about 35 degrees, lit softly from the upper left. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork. Transparent background, the whole mound inside the picture with empty margin on every side. No heads, no characters, no text.
 ```
 
-#### [ ] 三个头像：沼蛇、巨蟹、许德拉之首
+#### [x] 三个头像：沼蛇、巨蟹、许德拉之首
 
 回合顺序条和信息卡用。按 1.3 的半身像规格出（6.2），动物就画头和前半身。
 
 | 完成 | 谁 | 文件名 | 接在共用后半段前面 |
 |---|---|---|---|
-| [ ] | 沼蛇 | `portraits/marsh_snake.png` | `A large marsh water snake, thick mottled olive body, head raised and turned three-quarters, mouth slightly open showing one fang, a coil of its body behind the head.` |
-| [ ] | 巨蟹 | `portraits/giant_crab.png` | `A giant marsh crab, dark green shell crusted with mud, seen from the front three-quarters, two small stalked eyes, one oversized claw raised beside its face.` |
-| [ ] | 许德拉之首 | `portraits/hydra_head.png` | `One head of the Lernaean hydra, heavy wedge-shaped serpent head with yellow eyes, pale olive and bone-coloured scales, a crest of spikes, jaws slightly parted, the thick neck filling the bottom of the picture.` |
+| [x] | 沼蛇 | `portraits/marsh_snake.png` | `A large marsh water snake, thick mottled olive body, head raised and turned three-quarters, mouth slightly open showing one fang, a coil of its body behind the head.` |
+| [x] | 巨蟹 | `portraits/giant_crab.png` | `A giant marsh crab, dark green shell crusted with mud, seen from the front three-quarters, two small stalked eyes, one oversized claw raised beside its face.` |
+| [x] | 许德拉之首 | `portraits/hydra_head.png` | `One head of the Lernaean hydra, heavy wedge-shaped serpent head with yellow eyes, pale olive and bone-coloured scales, a crest of spikes, jaws slightly parted, the thick neck filling the bottom of the picture.` |
 
 共用后半段把 `Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression.` 换成 `Head and upper body only, three-quarter view.`，其余不变。
+
+2026-11-25 原画交付：[六格头颈](art/originals/hydra_head.png)、[两态断颈](art/originals/hydra_stump.png)、[盘绕身体](art/originals/hydra_body.png)，以及[沼蛇](art/originals/portraits/marsh_snake.png)、[巨蟹](art/originals/portraits/giant_crab.png)、[许德拉之首](art/originals/portraits/hydra_head.png)三张头像。勾选范围为原画，战场切图和回合条接入待办。
 
 ### 0.3.2 伊俄拉俄斯 `iolaus`
 
 放过许德拉后加入的英雄：赫拉克勒斯的侄子，神话里举着火把烧断颈的人。定位是持火把的辅助。武器定为**火把加短剑**，攻击动作是短剑刺。先出原画，再拿原画当参考出半身像。
 
-#### [ ] 原画
+#### [x] 原画
 
 ```
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same young Greek charioteer about eighteen, slim and quick, short sun-bleached brown hair held back by a leather band, short white tunic with a rust-red border belted high, a charioteer's long leather wrist guards, a burning pine torch held high in the left hand and a short sword in the right, soot smudges on his forearms, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with a short sword thrust while the torch is held back. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 半身像 `portraits/iolaus.png`
+#### [x] 半身像 `portraits/iolaus.png`
 
 ```
 A young Greek charioteer about eighteen, slim, short sun-bleached brown hair held back by a leather band, short white tunic with a rust-red border, a burning pine torch held up beside his face so its light falls warm on one cheek, soot on his forearm. Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork, soft warm side light. Transparent background, about one tenth empty space above the head. No text, no frame, no border.
 ```
 
+2026-11-25 原画交付：[六格原画](art/originals/iolaus.png)与[持火把半身像](art/originals/portraits/iolaus.png)。
+
 ### 0.3.3 场景
 
-#### [ ] 2-2 对岸的神龛 `lerna-shrine`（单张）
+#### [x] 2-2 对岸的神龛 `lerna-shrine`（单张）
 
 玩家要走到的地方，隔着沼泽要能认出来。概念图 `art/direction/lerna-marsh.png` 右上角就是它。
 
@@ -129,47 +133,51 @@ A young Greek charioteer about eighteen, slim, short sun-bleached brown hair hel
 A small ruined Greek shrine on a low stone platform of two worn steps: four slim Doric columns at the corners, two still standing and carrying a broken piece of lintel, one snapped off at half height, one fallen and lying in drums on the ground; a plain block altar in the middle and a bronze tripod bowl with a small fire burning in it beside the altar; moss in the cracks and reeds growing against the steps. Seen from a high three-quarter angle about 35 degrees, lit softly from the upper left. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork. Transparent background, the whole shrine inside the picture with empty margin on every side. No characters, no text.
 ```
 
-#### [ ] 沼泽的树（三张，各单张）
+#### [x] 沼泽的树（三张，各单张）
 
 替换沼泽里的橄榄树。每张一棵，透明底，同一个角度。
 
 | 完成 | 树 | 文件名 | 提示词开头 |
 |---|---|---|---|
-| [ ] | 垂柳 | `marsh-willow.png` | `A weeping willow on a marsh bank, a thick leaning trunk and long thin branches hanging almost to the ground in grey-green curtains,` |
-| [ ] | 水生的树 | `marsh-alder.png` | `A black alder growing out of standing water, several slim dark trunks rising from one root mass that stands above the water on arched roots, a small crown of dull green leaves,` |
-| [ ] | 枯树 | `marsh-snag.png` | `A dead drowned tree standing in a marsh, bare bleached trunk and a few broken branches, the bark peeling, a clump of reeds at its foot,` |
+| [x] | 垂柳 | `marsh-willow.png` | `A weeping willow on a marsh bank, a thick leaning trunk and long thin branches hanging almost to the ground in grey-green curtains,` |
+| [x] | 水生的树 | `marsh-alder.png` | `A black alder growing out of standing water, several slim dark trunks rising from one root mass that stands above the water on arched roots, a small crown of dull green leaves,` |
+| [x] | 枯树 | `marsh-snag.png` | `A dead drowned tree standing in a marsh, bare bleached trunk and a few broken branches, the bark peeling, a clump of reeds at its foot,` |
 
 每条后面接：
 
 > …seen from a high three-quarter angle about 35 degrees, lit softly from the upper left. Ancient Mediterranean gouache illustration, broad colour planes, visible brushwork. Transparent background, the whole tree inside the picture with empty margin on every side. No ground plane, no characters, no text.
 
-#### [ ] 沼泽的五张地面（各 1024×1024，可平铺）
+#### [x] 沼泽的五张地面（各 1024×1024，可平铺）
 
 替换现在的三张照片贴图，并补上林地和焦土两种。每条后面接 3.3 的"地表材质共用的后半段"。
 
 | 完成 | 用在哪 | 文件名 | 提示词开头 |
 |---|---|---|---|
-| [ ] | 干的岸和沙洲 | `lerna-sand.png` | `Pale grey-brown river sand with faint wind ripples, a few small shells and bits of dry reed.` |
-| [ ] | 水边和水底的湿泥 | `lerna-mud.png` | `Dark wet marsh mud, glossy in patches, with small stones, rotting leaves and a few water-filled hollows.` |
-| [ ] | 陡坎的断面 | `lerna-bank.png` | `A cut earth bank seen face on: horizontal layers of brown clay, grey silt and a band of pebbles, with thin roots hanging out of it.` |
-| [ ] | 林地的地面 | `lerna-litter.png` | `Damp forest floor under trees: dark green moss, brown fallen leaves, twigs and a few fern fronds lying flat.` |
-| [ ] | 烧过的焦土 | `lerna-ash.png` | `Burnt ground after a brush fire: black ash and grey cinders, charred twigs, a few pale patches of white ash.` |
+| [x] | 干的岸和沙洲 | `lerna-sand.png` | `Pale grey-brown river sand with faint wind ripples, a few small shells and bits of dry reed.` |
+| [x] | 水边和水底的湿泥 | `lerna-mud.png` | `Dark wet marsh mud, glossy in patches, with small stones, rotting leaves and a few water-filled hollows.` |
+| [x] | 陡坎的断面 | `lerna-bank.png` | `A cut earth bank seen face on: horizontal layers of brown clay, grey silt and a band of pebbles, with thin roots hanging out of it.` |
+| [x] | 林地的地面 | `lerna-litter.png` | `Damp forest floor under trees: dark green moss, brown fallen leaves, twigs and a few fern fronds lying flat.` |
+| [x] | 烧过的焦土 | `lerna-ash.png` | `Burnt ground after a brush fire: black ash and grey cinders, charred twigs, a few pale patches of white ash.` |
 
 注意第三张"断面"不是从正上方看的，把共用后半段里的 `seen from directly above` 换成 `seen face on`。
+
+2026-11-25 原画交付：[神龛](art/originals/lerna-shrine.png)、[垂柳](art/originals/marsh-willow.png)、[黑桤木](art/originals/marsh-alder.png)、[枯树](art/originals/marsh-snag.png)各为一张透明 PNG。[干岸](art/originals/lerna-terrain/lerna-sand.png)、[湿泥](art/originals/lerna-terrain/lerna-mud.png)、[岸壁断面](art/originals/lerna-terrain/lerna-bank.png)、[林地](art/originals/lerna-terrain/lerna-litter.png)、[焦土](art/originals/lerna-terrain/lerna-ash.png)各为 1024×1024，已检查 2×2 平铺。第 3.3 节的旧版湿泥仍在原位置。勾选范围为场景原画和地表贴图。
 
 ### 0.3.4 特效
 
 按 2.2 的特效模板出。
 
-| 完成 | 特效 | 文件名 | {内容} | {帧数} | 循环 |
-|---|---|---|---|---|---|
-| [ ] | 林地着火 | `brushfire.png` | `a bush and a small tree burning, tall orange and yellow flames with dark smoke rising, the branches visible as black lines inside the fire` | 8 | 是 |
-| [ ] | 烧尽的残桩 | `charred.png` | `a burnt tree stump and a few blackened sticks with thin smoke rising and two or three embers glowing and fading` | 6 | 是 |
-| [ ] | 烧封断颈 | `cauterize.png` | `a burst of fire closing over a wound: flames rush inward to a point, flare white once, then leave a ring of orange embers that fade` | 8 | 否 |
-| [ ] | 断颈再生 | `regrow.png` | `pale flesh swelling up fast from a stump into the shape of a snake's head, wet and glistening, with a spray of dark droplets as it bursts upward` | 8 | 否 |
-| [ ] | 毒涎 | `venom_spit.png` | `a glob of sickly green venom flying left to right, stretching into a tail, then splashing into a small puddle with a few rising bubbles` | 8 | 否 |
-| [ ] | 女祭司的赐福 | `hera_blessing.png` | `a soft ring of pale gold light rising from the ground around a figure, with three peacock-feather eyes of light opening and closing in it` | 8 | 否 |
-| [ ] | 剧毒（蛇血的主动） | `hydra_venom.png` | `dark green vapour coiling round a figure like a snake, tightening once, then sinking into them and leaving a faint green stain` | 8 | 否 |
+| 完成 | 特效 | 文件名 | {内容} | {帧数} | 循环 | 建议帧/秒 |
+|---|---|---|---|---|---|---|
+| [x] | 林地着火 | `brushfire.png` | `a bush and a small tree burning, tall orange and yellow flames with dark smoke rising, the branches visible as black lines inside the fire` | 8 | 是 | 10 |
+| [x] | 烧尽的残桩 | `charred.png` | `a burnt tree stump and a few blackened sticks with thin smoke rising and two or three embers glowing and fading` | 6 | 是 | 6 |
+| [x] | 烧封断颈 | `cauterize.png` | `a burst of fire closing over a wound: flames rush inward to a point, flare white once, then leave a ring of orange embers that fade` | 8 | 否 | 16 |
+| [x] | 断颈再生 | `regrow.png` | `pale flesh swelling up fast from a stump into the shape of a snake's head, wet and glistening, with a spray of dark droplets as it bursts upward` | 8 | 否 | 12 |
+| [x] | 毒涎 | `venom_spit.png` | `a glob of sickly green venom flying left to right, stretching into a tail, then splashing into a small puddle with a few rising bubbles` | 8 | 否 | 16 |
+| [x] | 女祭司的赐福 | `hera_blessing.png` | `a soft ring of pale gold light rising from the ground around a figure, with three peacock-feather eyes of light opening and closing in it` | 8 | 否 | 12 |
+| [x] | 剧毒（蛇血的主动） | `hydra_venom.png` | `dark green vapour coiling round a figure like a snake, tightening once, then sinking into them and leaving a faint green stain` | 8 | 否 | 12 |
+
+2026-11-25 原画交付：七张透明 PNG 横排序列位于 [特效目录](art/originals/fx/)，每帧 96×96。林火与残桩原地循环，其余五项按表中速度单次播放。断颈再生从浅色鳞芽长成许德拉之首，中段用深色水滴表现向上迸发。
 
 ### 0.3.5 图标
 
