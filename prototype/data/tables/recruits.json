@@ -1,8 +1,8 @@
 {
-  "iphicles": {"fee": 60, "opens": 2, "look": "merc_sword", "skill": "heavy_cut", "def": "bandit", "title": "忒拜的凡人", "name": "伊菲克勒斯", "rarity": "common", "after": "", "lore": "赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
-  "phalerus": {"fee": 80, "opens": 2, "look": "merc_archer", "skill": "aimed_shot", "def": "bandit_archer", "title": "雅典的弓手", "name": "法勒洛斯", "rarity": "common", "after": "1-1", "lore": "小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
-  "ancaeus": {"fee": 150, "opens": 2, "look": "merc_captain", "skill": "heavy_cut", "def": "bandit_chief", "title": "阿卡迪亚的斧手", "name": "安开俄斯", "rarity": "rare", "after": "1-1", "lore": "披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
-  "pholus": {"fee": 160, "opens": 2, "look": "merc_lancer", "skill": "trample", "def": "centaur", "title": "福洛厄山的主人", "name": "福洛斯", "rarity": "rare", "after": "1-3", "lore": "酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
-  "idas": {"fee": 240, "opens": 3, "look": "idas", "skill": "heavy_cut", "def": "bandit_chief", "title": "墨塞涅的力士", "name": "伊达斯", "rarity": "epic", "after": "1-2", "lore": "墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
-  "eurytion": {"fee": 260, "opens": 3, "look": "eurytion", "skill": "trample", "def": "centaur", "title": "半人马首领", "name": "欧律提翁", "rarity": "epic", "after": "1-3", "lore": "酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"}
+  "iphicles": {"support": "sup_iphicles", "fee": 60, "opens": 2, "look": "merc_sword", "skill": "heavy_cut", "def": "bandit", "title": "忒拜的凡人", "name": "伊菲克勒斯", "rarity": "common", "after": "", "lore": "赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
+  "phalerus": {"support": "sup_phalerus", "fee": 80, "opens": 2, "look": "merc_archer", "skill": "aimed_shot", "def": "bandit_archer", "title": "雅典的弓手", "name": "法勒洛斯", "rarity": "common", "after": "1-1", "lore": "小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
+  "ancaeus": {"support": "sup_ancaeus", "fee": 150, "opens": 2, "look": "merc_captain", "skill": "heavy_cut", "def": "bandit_chief", "title": "阿卡迪亚的斧手", "name": "安开俄斯", "rarity": "rare", "after": "1-1", "lore": "披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
+  "pholus": {"support": "sup_pholus", "fee": 160, "opens": 2, "look": "merc_lancer", "skill": "trample", "def": "centaur", "title": "福洛厄山的主人", "name": "福洛斯", "rarity": "rare", "after": "1-3", "lore": "酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
+  "idas": {"support": "sup_idas", "fee": 240, "opens": 3, "look": "idas", "skill": "heavy_cut", "def": "bandit_chief", "title": "墨塞涅的力士", "name": "伊达斯", "rarity": "epic", "after": "1-2", "lore": "墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
+  "eurytion": {"support": "sup_eurytion", "fee": 260, "opens": 3, "look": "eurytion", "skill": "trample", "def": "centaur", "title": "半人马首领", "name": "欧律提翁", "rarity": "epic", "after": "1-3", "lore": "酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"}
 }

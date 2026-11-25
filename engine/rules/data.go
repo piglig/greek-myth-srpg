@@ -68,6 +68,10 @@ type Skill struct {
 	Blast        int
 	Square       bool
 	FriendlyFire bool
+	// Support 非空表示这是一位支援英雄的那一手（见 support.go），值是哪一种；Power 是它的
+	// 固定伤害、护盾或回复量。
+	Support string
+	Power   int
 	// Blink 大于 0 表示瞬移到这么多格内的任意一格，不看地形和高度。
 	Blink int
 	// AreaShield 大于 0 表示给自己和 Radius 格内的同伴各加这么多护盾。
@@ -154,6 +158,10 @@ type Data struct {
 
 	mu      sync.Mutex
 	battles map[string]*BattleDef
+
+	marketOnce sync.Once
+	market     *Market
+	marketErr  error
 }
 
 // DefaultTablesDir 找到 prototype/data/tables：先看环境变量 SRPG_TABLES，
@@ -452,6 +460,8 @@ func (d *Data) loadSkills() error {
 		sk.Square, _ = raw.m["square"].(bool)
 		sk.FriendlyFire, _ = raw.m["friendly_fire"].(bool)
 		sk.Blink = raw.int("blink", 0)
+		sk.Support = raw.str("support", "")
+		sk.Power = raw.int("power", 0)
 		sk.AreaShield = raw.int("area_shield", 0)
 		for _, given := range []string{sk.Status, sk.AreaStatus} {
 			if given != "" && !IsAilment(given) {
@@ -466,6 +476,10 @@ func (d *Data) loadSkills() error {
 			}
 		} else if sk.Mends() {
 			if err := raw.need("物品 "+id, "min_range", "max_range"); err != nil {
+				return err
+			}
+		} else if sk.Support != "" {
+			if err := raw.need("支援 "+id, "power", "max_range", "cooldown"); err != nil {
 				return err
 			}
 		} else if sk.SelfStatus == "" {

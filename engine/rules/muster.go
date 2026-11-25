@@ -23,6 +23,7 @@ type Muster struct {
 	Mods    map[string]map[string]int // 按单位 id：装备带来的属性增减
 	Items   map[string][]string       // 按单位 id：随身物品
 	Reward  ChapterReward
+	Support string // 来支援的英雄；空着就是没带
 }
 
 // Muster 按关卡文件布阵，再把 m 里的东西都安排上。顺序固定：留守、出战名单、神性、
@@ -73,6 +74,9 @@ func (d *Data) Muster(battle string, m Muster) (*BattleState, error) {
 		}
 	}
 	st.EquipReward(d, m.Reward)
+	if err := st.GrantSupport(d, m.Support); err != nil {
+		return nil, err
+	}
 	return st, nil
 }
 

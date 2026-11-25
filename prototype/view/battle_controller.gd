@@ -132,6 +132,9 @@ func _ready() -> void:
 			_bench = Array(arg.trim_prefix("--bench=").split(","))
 		elif arg.begins_with("--battle="):
 			_battle_id = arg.trim_prefix("--battle=")
+		elif arg.begins_with("--support="):
+			# A hired hero to call on in a single battle: --support=phalerus
+			_campaign_reward["support"] = arg.trim_prefix("--support=")
 		elif arg.begins_with("--worn="):
 			# Which relics he wears in a single battle: --worn=lion_pelt,hydra_blood
 			_campaign_reward["relics_worn"] = Array(arg.trim_prefix("--worn=").split(","))
@@ -159,6 +162,7 @@ func _ready() -> void:
 		if entry.has("equipped_relic"):
 			for key in ["equipped_relic","boon","divinity","powers","relics_worn"]:
 				if entry.has(key): _campaign_reward[key]=entry[key]
+		if str(entry.get("support","")) != "": _campaign_reward["support"] = str(entry.support)
 		_saved_orders=entry.get("orders",[])
 		_resume=str(entry.get("resume",""))
 		_chiron_joined = entry.get("chiron_joined",false)
@@ -1071,6 +1075,13 @@ func _play(events: Array, from_round := -1) -> void:
 				_popup(e.target,"护盾 +%d" % int(e.amount),Color("#8fd0ff"))
 				if not events.any(func(ev): return ev.get("skill","")=="sky_dome"):
 					BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
+			"support":
+				# A hired hero answers the call: his name over the place he strikes.
+				var who := str(Checkpoint.RECRUITS.get(str(e.source),{}).get("name","援军"))
+				Soundscape.cue("warning")
+				hud.banner("%s · %s" % [who,EventText.skill_name(e.skill)])
+				BattleFX.spawn(_units_root,ROAR,map_view.anchor_world(state,Vector2i(int(e.to[0]),int(e.to[1])),1)+Vector3.UP*.3,.3)
+				await get_tree().create_timer(0.3).timeout
 			"area":
 				if Checkpoint.power_words(e.skill) != "":
 					await _divine(e,events)
@@ -2516,6 +2527,7 @@ func _show_targets(u: UnitState) -> void:
 func _words_for(u: UnitState, id: String, def: Dictionary) -> String:
 	if Checkpoint.GOODS.has(id): return Checkpoint.effect_of(id)
 	if Checkpoint.power_words(id) != "": return Checkpoint.power_words(id)
+	if def.has("support"): return Checkpoint.support_words(id)
 	for branch: Dictionary in SkillTree.trees().get(u.tree,[]):
 		for node: Dictionary in branch.nodes:
 			if str(node.get("skill","")) == id: return str(node.desc)
@@ -2876,6 +2888,17 @@ func _run_capture() -> void:
 				await get_tree().create_timer(1.0).timeout
 				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 				await get_tree().create_timer(.6).timeout
+		"support":
+			# Round two: the protagonist calls whoever came with him on the first target offered.
+			# Run with --support=phalerus.
+			_end_turn()
+			await get_tree().create_timer(1.0).timeout
+			while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
+			var move := str(Checkpoint.RECRUITS[str(_campaign_reward.get("support",""))].support)
+			var calls: Dictionary = Rules.targeting(state,{"type":"skill","unit":"hero","skill":move})
+			if not calls.valid.is_empty():
+				await _perform({"type":"skill","unit":"hero","skill":move,"target":calls.valid[0]})
+			_select("hero")
 		"fire":
 			# A fire pot thrown at empty forest, then two rounds for it to spread and burn out.
 			# Run with --kit=item_firepot.

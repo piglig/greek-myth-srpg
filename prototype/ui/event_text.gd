@@ -2,6 +2,8 @@ class_name EventText
 extends RefCounted
 ## Turns rule events into Chinese lines for the preview panel and battle log.
 
+const Checkpoint := preload("res://core/campaign_checkpoint.gd")
+
 const STATUS_NAMES := {
 	"impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
@@ -111,6 +113,8 @@ static func _line(s: BattleState, e: Dictionary) -> String:
 			return "%s 移动到 %s" % [name_of(s, e["unit"]), _cell(e["to"])]
 		"leap":
 			return "%s 跃到 %s" % [name_of(s, e["unit"]), _cell(e["to"])]
+		"support":
+			return "%s 前来支援：「%s」" % [str(Checkpoint.RECRUITS.get(str(e.get("source","")),{}).get("name","援军")), skill_name(e["skill"])]
 		"area":
 			return "%s 使用「%s」" % [name_of(s, e["unit"]), skill_name(e["skill"])]
 		"push":

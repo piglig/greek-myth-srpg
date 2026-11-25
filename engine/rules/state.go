@@ -65,6 +65,7 @@ type BattleState struct {
 	MarkedID     string
 	PreviousMark string
 	Reward       ChapterReward
+	Support      string // 这一场带来支援的英雄（recruits.json 里的名字），没有就是空的
 	EscortExits  []Cell
 	Escort       string   // 被护送的人的单位 id（不写就是美狄亚）
 	ReachExits   []Cell   // 对岸：我方活着的人全部站上去就赢。
@@ -348,7 +349,7 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 	if dst == nil {
 		dst = &BattleState{}
 	}
-	dst.Reward, dst.PreviousMark = s.Reward, s.PreviousMark
+	dst.Reward, dst.PreviousMark, dst.Support = s.Reward, s.PreviousMark, s.Support
 	dst.Village = s.Village
 	dst.RescueExits = s.RescueExits
 	dst.EscortExits, dst.Escort = s.EscortExits, s.Escort

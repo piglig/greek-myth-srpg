@@ -250,6 +250,24 @@ func _open_for_shot(which: String) -> void:
 			screen = "party"
 			member = "r1"
 			page = "tree"
+		"support":
+			# The map with two hired heroes to pick a supporter from.
+			entry.id = "2-2"
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.medea_joined = true
+			entry.outcomes = {"2-1":"已通关"}
+			entry.roster = [{"id":"r1","kind":"iphicles","name":"伊菲克勒斯"},{"id":"r2","kind":"phalerus","name":"法勒洛斯"}]
+			entry.support = "phalerus"
+			screen = "march"
+			chapter = 1
+		"hire":
+			# The drillmaster's offers once chapter two has opened a seat.
+			entry.id = "2-1"
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.roster = []
+			screen = "recruit"
 		"seat":
 			# Chapter two opens a third seat and nobody is there to take it.
 			entry.id = "2-1"
@@ -450,8 +468,9 @@ func _kind(who: String) -> Dictionary:
 	return Save.RECRUITS[hand.kind] if not hand.is_empty() else {}
 
 ## Story companions first, then the hired.
+## Those who take the field. The hired do not: they come when called (see Save.support_of).
 func _everyone() -> Array:
-	return _story_party()+entry.get("roster",[]).map(func(hand): return hand.id)
+	return _story_party()
 
 func _name(who: String) -> String:
 	return NAMES.get(who,_hand(who).get("name",who))
@@ -492,9 +511,7 @@ func _def(who: String) -> String:
 
 ## Every hero in camp but the protagonist: any of them may be picked to march.
 func _reserves() -> Array:
-	var pool: Array = _story_party().filter(func(who): return who != "hero")
-	pool.append_array(entry.get("roster",[]).map(func(hand): return hand.id))
-	return pool
+	return _story_party().filter(func(who): return who != "hero")
 
 ## How many may march beside the protagonist to the battle the journey stands at.
 func _seats() -> int:
@@ -2114,23 +2131,16 @@ func _recruit() -> void:
 	# A band in the rarity's colour under the name.
 	Px.block(body,Rect2(x,y-1,DETAIL.size.x-40,2),grade[1])
 	y += 14
-	var sheet: Dictionary = UnitCatalog.unit_def(kind.def)
-	_stats(sheet,Vector2(x,y),false)
-	y += 66
-	var known: Array = []
-	for skill: String in sheet.get("skills",[]):
-		known.append(SkillCatalog.get_skill(skill).get("name",skill))
-	if kind.has("skill"): known.append(SkillCatalog.get_skill(kind.skill).get("name",kind.skill))
-	Px.text(body,"招式",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
-	Px.text(body,"、".join(known),Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.IVORY)
-	y += 22
-	Px.text(body,"技艺",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
-	if SkillTree.trees().has(offer.kind):
-		var arms: Array = SkillTree.trees().get(offer.kind,[]).map(func(branch): return "%s（%d 招）" % [branch.branch,branch.nodes.size()])
-		Px.text(body,"专属　"+"、".join(arms),Rect2(x+60,y,MEASURE-60,0),Px.SMALL,grade[1])
-	else:
-		Px.text(body,"没有可修习的分支",Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.FAINT)
-	y += 28
+	# He does not take the field: what he does when the protagonist calls.
+	var move: Dictionary = SkillCatalog.get_skill(str(kind.get("support","")))
+	Px.text(body,"支援",Rect2(x,y,60,0),Px.SMALL,Px.OCHRE)
+	Px.text(body,"「%s」" % str(move.get("name","")),Rect2(x+60,y-3,200,0),Px.BODY,grade[1])
+	y += 24
+	var does := Save.support_words(str(offer.kind))
+	Px.text(body,does,Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.IVORY)
+	y += 10+Px.measure(does,Px.SMALL,MEASURE-60)
+	Px.text(body,"不占出战名额。出征时选一位同行，战斗第二回合起可以召他出手。",Rect2(x+60,y,MEASURE-60,0),Px.SMALL,Px.FAINT)
+	y += 40
 	Px.text(body,kind.lore,Rect2(x,y,MEASURE,0),Px.BODY,Px.MUTED)
 	var short := int(offer.fee)-_coins()
 	Px.text(body,"雇金",Rect2(x,DETAIL.end.y-34,40,0),Px.SMALL,Px.OCHRE)
@@ -2151,17 +2161,13 @@ func _hire(offer_id: String) -> void:
 	var who := "r%d" % serial
 	roster.append({"id":who,"kind":offer.kind,"name":offer.name})
 	next.roster = roster
-	if not next.has("xp"): next.xp = {}
-	next.xp[who] = _xp("hero")/2
 	var purse: Dictionary = next.get("purse",{})
 	purse.coins = _coins()-int(offer.fee)
 	next.purse = purse
-	# A new hand marches at once if there is room.
-	var going := _marching()
-	if going.size() < _seats(): going.append(who)
-	next.deploy = going
+	# The first one hired is the one who comes; after that it is the player's to pick.
+	if Save.support_of(entry) == "": next.support = str(offer.kind)
 	if _keep(next):
-		note = "%s加入了营地。" % offer.name
+		note = "%s愿意随时来援。" % offer.name
 		note_tone = _grade(Save.RECRUITS[offer.kind].rarity)[1]
 	_render()
 
@@ -2233,18 +2239,35 @@ func _march() -> void:
 	if empty > 0 and state == "可出发":
 		var ny := y+ceili(pool.size()/2.0)*40+(26 if pool.is_empty() else 6)
 		var idle := pool.filter(func(who): return not going.has(who)).size()
-		var hiring := not Save.offers(entry).is_empty()
 		Px.block(body,Rect2(x-10,ny,DETAIL.size.x-20,40),Color(Px.OCHRE,.14))
 		Px.block(body,Rect2(x-10,ny,3,40),Px.OCHRE)
 		Px.picture(body,Px.icon("talk",20),Rect2(x,ny+10,20,20)).modulate = Px.OCHRE
 		var say := "还有 %d 个出战名额空着。" % empty
-		if idle > 0: say += "点一下留守的人就能带上。"
-		elif hiring: say += "达蒙那里可以招募。"
-		else: say += "眼下还没有人可带。"
+		say += "点一下留守的人就能带上。" if idle > 0 else "眼下没有别的同伴可带。"
 		Px.text(body,say,Rect2(x+28,ny+12,DETAIL.size.x-200,0),Px.SMALL,Px.OCHRE)
-		if idle == 0 and hiring:
-			toggles.append(Px.button(body,"去招募",Rect2(DETAIL.end.x-20-96,ny+6,96,28),_go.bind("recruit")))
 	Px.chain(toggles)
+	# Who comes in support: one of the hired, from the chapter in which they can be hired.
+	if int(str(site.id).get_slice("-",0)) >= Save.HIRING_OPENS and state == "可出发":
+		var relics_too: bool = entry.has("equipped_relic") and (entry.get("relics",[]) as Array).filter(func(id): return Save.RELICS.has(id) and Save.RELICS[id].has("skill")).size() > 1
+		var sy := DETAIL.end.y-(140 if relics_too else 92)
+		var have := Save.hired(entry)
+		var coming := Save.support_of(entry)
+		Px.rule(body,Vector2(x,sy-8),DETAIL.size.x-40,Color(Px.OCHRE,.2))
+		Px.text(body,"支援",Rect2(x,sy,60,0),Px.SMALL,Px.OCHRE)
+		if have.is_empty():
+			Px.text(body,"还没有人能来支援。达蒙那里可以招募，雇来的英雄不占出战名额。",Rect2(x+84,sy+2,DETAIL.size.x-320,0),Px.SMALL,Px.OCHRE)
+			toggles.append(Px.button(body,"去招募",Rect2(DETAIL.end.x-20-96,sy-6,96,28),_go.bind("recruit")))
+		else:
+			Px.text(body,"带 1 位",Rect2(x,sy+14,80,0),Px.SMALL,Px.MUTED)
+			for i in have.size():
+				var hand: String = have[i]
+				var on := coming == hand
+				var call := Px.row(body,"",Rect2(x+84+i*152,sy-4,146,36),on,_pick_support.bind(hand))
+				call.tooltip_text = "%s「%s」\n%s" % [str(Save.RECRUITS[hand].name),str(SkillCatalog.get_skill(str(Save.RECRUITS[hand].support)).get("name","")),Save.support_words(hand)]
+				Px.picture(body,Px.face(str(Save.RECRUITS[hand].get("look",Save.RECRUITS[hand].def)),24),Rect2(x+92+i*152,sy+2,24,24)).modulate = Color.WHITE if on else Color(1,1,1,.45)
+				Px.text(body,str(Save.RECRUITS[hand].name),Rect2(x+122+i*152,sy,104,0),Px.SMALL,Px.IVORY if on else Px.FAINT)
+				Px.text(body,"「%s」" % str(SkillCatalog.get_skill(str(Save.RECRUITS[hand].support)).get("name","")) if on else "留在营地",Rect2(x+122+i*152,sy+14,104,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
+				toggles.append(call)
 	# Which relics he takes: asked only once he has more than he can carry or a choice.
 	var held: Array = (entry.get("relics",[]) as Array).filter(func(id): return Save.RELICS.has(id) and Save.RELICS[id].has("skill"))
 	if entry.has("equipped_relic") and held.size() > 1:
@@ -2289,6 +2312,12 @@ func _toggle_march(who: String) -> void:
 	_keep(next)
 	_render()
 
+func _pick_support(hand: String) -> void:
+	var next: Dictionary = entry.duplicate(true)
+	next.support = "none" if Save.support_of(entry) == hand else hand
+	_keep(next)
+	_render()
+
 func _toggle_relic(relic: String) -> void:
 	var wearing := Save.worn(entry)
 	if wearing.has(relic): wearing.erase(relic)
@@ -2314,6 +2343,7 @@ func _depart(site: Dictionary) -> void:
 	next.erase("camp_summary")
 	next.deploy = _marching_to(str(site.id))
 	next.relics_worn = Save.worn(entry)
+	next.support = Save.support_of(entry)
 	next.bench = Save.PLACED.filter(func(who): return not next.deploy.has(who))
 	var party := []
 	for who: String in next.deploy:

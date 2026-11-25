@@ -206,6 +206,16 @@
         3
       ],
       "facing": "W"
+    },
+    {
+      "id": "snake_12",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        12,
+        7
+      ],
+      "facing": "W"
     }
   ]
 }

@@ -44,8 +44,10 @@ type KitStep struct {
 	// Joins 是剧情里加入的人（不花钱）；Hire 是招募的英雄（recruits.json 里的名字）。
 	Joins []string `yaml:"joins"`
 	Hire  []string `yaml:"hire"`
-	Buy   []string `yaml:"buy"`  // 从行商那里买的东西，可以重复
-	Sell  []string `yaml:"sell"` // 卖掉的东西
+	// Support 是这一关起带去支援的英雄（要先雇到）；写 "none" 表示不带。
+	Support string   `yaml:"support"`
+	Buy     []string `yaml:"buy"`  // 从行商那里买的东西，可以重复
+	Sell    []string `yaml:"sell"` // 卖掉的东西
 	// Party 是跟主角出战的人，不含关卡文件里已经摆好的。写了就换掉之前的。
 	Party []string `yaml:"party"`
 	// Picks、Wear、Items 都按人写，写了就换掉那个人之前的。Wear 写这个人身上的全部装备。
@@ -149,6 +151,8 @@ func (k *Kits) Resolve(data *rules.Data, tier, battle string) (*rules.Muster, *L
 		problems = append(problems, at+" "+fmt.Sprintf(format, args...))
 	}
 	camp := map[string]rules.PartyMember{}
+	hired := map[string]bool{}
+	support := ""
 	owned := map[string]int{}
 	wear := map[string][]string{}
 	picks := map[string][]string{}
@@ -179,10 +183,22 @@ func (k *Kits) Resolve(data *rules.Data, tier, battle string) (*rules.Muster, *L
 					bad(at, "没有 %s 这位英雄", kind)
 				case r.Opens > rules.Chapter(at):
 					bad(at, "%s 要到第 %d 章才来投", r.Name, r.Opens)
+				case hired[kind]:
+					bad(at, "%s 已经雇过了", r.Name)
 				default:
-					camp[kind] = rules.PartyMember{ID: kind, Def: r.Def, Name: r.Name, Skills: []string{r.Skill}, Tree: kind}
+					// 雇来的英雄不上场，只来支援：不进营地的出战名单。
+					hired[kind] = true
 					ledger.Spent += r.Fee
 				}
+			}
+			switch {
+			case step.Support == "":
+			case step.Support == "none":
+				support = ""
+			case !hired[step.Support]:
+				bad(at, "还没雇到 %s，带不了他来支援", step.Support)
+			default:
+				support = step.Support
 			}
 			for _, id := range step.Buy {
 				g := market.Goods[id]
@@ -381,6 +397,7 @@ func (k *Kits) Resolve(data *rules.Data, tier, battle string) (*rules.Muster, *L
 	if len(charms) > 0 {
 		m.Reward.Charms = charms
 	}
+	m.Support = support
 	return m, ledger, problems, nil
 }
 

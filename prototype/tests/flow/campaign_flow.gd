@@ -357,11 +357,10 @@ func _hire() -> void:
 	_check("the hire is on the roster",saved.roster.size() == 1 and saved.roster[0].name == pick.name,saved.get("roster"))
 	_check("the hire left the list",Save.offers(saved).size() == listed.size()-1 and not Save.offers(saved).any(func(offer): return offer.kind == pick.kind),Save.offers(saved))
 	var who: String = saved.roster[0].id
-	# A new hand marches at once if there is a seat free, and the second chapter has just opened one.
-	_check("the hire takes the new seat at once",saved.deploy.has(who) and saved.deploy.size() <= Save.seats(str(saved.id)),saved.get("deploy"))
-	_check("the hire starts with half the hero's experience",int(saved.xp.get(who,-1)) == int(saved.xp.hero)/2,saved.xp)
-	_check("the hire has a plain attack",camp._basic(who) != "",camp._basic(who))
-	_check("and one technique besides",camp._known(who).size() == 1,camp._known(who))
+	# The hired do not take the field: they come when the protagonist calls.
+	_check("the hire takes no seat",not saved.get("deploy",[]).has(who) and not camp._reserves().has(who),saved.get("deploy"))
+	_check("the first one hired is the one who comes",Save.support_of(saved) == str(pick.kind),saved.get("support"))
+	_check("what he does is told in a sentence",Save.support_words(str(pick.kind)).contains("冷却"),Save.support_words(str(pick.kind)))
 
 
 func _swap_carried() -> void:
@@ -689,19 +688,17 @@ func _old_save() -> void:
 	camp._toggle_march("atalanta")
 	_check("Atalanta can be left in camp",not camp._marching_to("1-4").has("atalanta"),camp._marching_to("1-4"))
 	_check("the lion hunt takes her along all the same",camp._marching_to("1-5")[0] == "atalanta",camp._marching_to("1-5"))
-	camp._toggle_march("iphicles")
-	_check("the hire takes her place",camp._marching() == ["iphicles"],camp._marching())
+	_check("the hire is not among those who can march",not camp._reserves().has("iphicles"),camp._reserves())
+	_check("he is the one who comes in support",Save.support_of(camp.entry) == "iphicles",camp.entry.get("support"))
 	camp._toggle_march("atalanta")
-	_check("a second has no seat in the first chapter",camp._marching() == ["iphicles"],camp._marching())
+	_check("one beside the protagonist in the first chapter",camp._marching() == ["atalanta"],camp._marching())
 	_check("the party grows a seat a chapter, to four in all",Save.seats("2-2") == 2 and Save.seats("3-1") == 3 and Save.seats("7-4") == 3)
 	camp._go("march")
 	await _frames()
 	if not await _press("出征"): return
 	if not await _battle_ready(): return
 	_check("the old save reaches its battle",_scene()._battle_id == "1-4",_scene()._battle_id)
-	var hired: UnitState = _scene().state.unit("iphicles")
-	if _check("the old hire is on the field",hired != null):
-		_check("on the player's side",hired.team == Defs.Team.PLAYER)
-		_check("with a plain attack and a technique",hired.skills.size() == 2,hired.skills)
-		_check("drawn in colours of their own",UnitState.looks.has("iphicles") and UnitState.looks["iphicles"] != hired.def_id,UnitState.looks)
-	_check("Atalanta gave up the seat",_scene().state.unit("atalanta") == null)
+	_check("the old hire stays off the field",_scene().state.unit("iphicles") == null)
+	_check("and can be called: the protagonist has his move",_scene().state.unit("hero").skills.has("sup_iphicles"),_scene().state.unit("hero").skills)
+	_check("not in the first round",Rules.validate(_scene().state,{"type":"skill","unit":"hero","skill":"sup_iphicles","target":_scene().state.unit("atalanta").pos}) != "")
+	_check("Atalanta keeps her seat",_scene().state.unit("atalanta") != null)

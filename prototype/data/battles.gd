@@ -28,6 +28,8 @@ static func build(id: String, picks: Dictionary = {}, chiron_joined := false, re
 	if mods != null: ask["mods"] = mods
 	if items != null: ask["items"] = items
 	if not bench.is_empty(): ask["bench"] = bench
+	# Who comes in support rides along with the rest of what the camp sends.
+	if str(reward.get("support","")) != "": ask["support"] = str(reward.support)
 	var reply: Dictionary = GoEngine.request(ask)
 	if reply.has("fail"):
 		return null

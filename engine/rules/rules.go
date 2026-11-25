@@ -227,6 +227,9 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 	if sk.Item && u.Charge(skillID) <= 0 {
 		return "none left"
 	}
+	if sk.Support != "" {
+		return validateSupport(s, u, sk, cell)
+	}
 	if sk.SelfStatus != "" {
 		return ""
 	}
@@ -419,6 +422,10 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		if left <= 0 {
 			defer u.dropSkill(sk.ID)
 		}
+	}
+	if sk.Support != "" {
+		doSupport(s, u, sk, a.Target, ev)
+		return
 	}
 	defer relicUse(s, u, sk)
 	if sk.SelfStatus != "" {

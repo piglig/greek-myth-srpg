@@ -180,6 +180,9 @@ func (c *collector) countUse(e *rules.Event) {
 			m.Counts["power"]++
 		}
 		return
+	case rules.EvSupport:
+		m.Counts["support"]++
+		return
 	case rules.EvHeal, rules.EvAttack, rules.EvArea, rules.EvWard:
 	default:
 		return

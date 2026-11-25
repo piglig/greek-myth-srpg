@@ -93,6 +93,7 @@ type Bot struct {
 	memo map[string][]scored // 局面签名 + 单位 id -> 评过分的方案，只在一个我方回合内有效
 	key  []byte
 
+	live  bool                 // 正在真正落子（不是搜索里的试走）
 	pool  []*rules.BattleState // 用完的局面副本，留着复用内存
 	rough []scored
 	plans []Plan
@@ -161,7 +162,9 @@ func (b *Bot) playGreedy(s *rules.BattleState, rng *rules.RNG) []Step {
 		}
 		pick := softmaxPick(sc, b.Prof.Temperature, rng)
 		step := Step{Unit: u.ID, Events: []rules.Event{}}
+		b.live = true
 		b.ApplyPlan(s, u.ID, sc[pick].plan, &step.Events)
+		b.live = false
 		played = append(played, step)
 		b.release(sc)
 	}
@@ -232,7 +235,9 @@ func (b *Bot) playBeam(s *rules.BattleState, rng *rules.RNG) []Step {
 	for i := len(steps) - 1; i >= 0; i-- {
 		st := steps[i]
 		step := Step{Unit: st.unit, Events: []rules.Event{}}
+		b.live = true
 		b.ApplyPlan(s, st.unit, st.plan, &step.Events)
+		b.live = false
 		played = append(played, step)
 	}
 	return played
@@ -264,6 +269,57 @@ func (b *Bot) afterReply(s *rules.BattleState) float64 {
 		}
 	}
 	return b.Eval.Material(c)
+}
+
+func hasSupport(skills []*rules.Skill) bool {
+	for _, sk := range skills {
+		if sk.Support != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// callSupport 在主角走完、出手之前看一眼要不要召援：把够得着的每个目标各试一遍，哪一手
+// 让局面好得最多就用哪一手；都不值就留着。只在真正落子时做，搜索打分时不做。
+func (b *Bot) callSupport(s *rules.BattleState, u *rules.UnitState, ev *[]rules.Event) {
+	if u.ID != "hero" || !u.Alive || u.HasActed {
+		return
+	}
+	for _, sk := range u.Skills {
+		if sk.Support == "" || u.Cooldown(sk.ID) > 0 {
+			continue
+		}
+		var cells []rules.Cell
+		if sk.Support == "charge" {
+			for _, dir := range rules.Dirs {
+				cells = append(cells, u.Pos.Add(dir))
+			}
+		} else {
+			for _, o := range s.Units {
+				if o.Alive && !o.Hidden {
+					cells = append(cells, o.Pos)
+				}
+			}
+		}
+		best, gain := rules.NoPos, 1.0 // 至少要好出这么多才值得用掉
+		base := b.Eval.Score(s)
+		for _, c := range cells {
+			act := rules.UseSkill(u.ID, sk.ID, c)
+			if rules.Validate(s, act) != "" {
+				continue
+			}
+			trial := b.copyState(s)
+			rules.Do(trial, act, nil)
+			if d := b.Eval.Score(trial) - base; d > gain {
+				best, gain = c, d
+			}
+			b.pool = append(b.pool, trial)
+		}
+		if best != rules.NoPos {
+			rules.Do(s, rules.UseSkill(u.ID, sk.ID, best), ev)
+		}
+	}
 }
 
 // 返回按分数从高到低排好的方案；state 是执行方案之后的副本。
@@ -364,6 +420,17 @@ func (b *Bot) Plans(s *rules.BattleState, u *rules.UnitState) []Plan {
 
 func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) []Plan {
 	uid := u.ID
+	// 召援不是这个人自己的出手（不占行动，另有时机，见 callSupport）：列方案时先拿开。
+	if all := u.Skills; hasSupport(all) {
+		plain := make([]*rules.Skill, 0, len(all))
+		for _, sk := range all {
+			if sk.Support == "" {
+				plain = append(plain, sk)
+			}
+		}
+		u.Skills = plain
+		defer func() { u.Skills = all }()
+	}
 	var enemies []*rules.UnitState
 	for _, e := range s.Units {
 		if e.Alive && e.Team == rules.TeamEnemy && !e.Hidden {
@@ -565,6 +632,9 @@ func (b *Bot) ApplyPlan(s *rules.BattleState, uid string, plan Plan, ev *[]rules
 	}
 	if plan.HasMark {
 		rules.Do(s, rules.Mark(uid, plan.Mark), ev)
+	}
+	if b.live {
+		b.callSupport(s, u, ev)
 	}
 	if rules.Do(s, plan.Main, ev) != "" {
 		rules.Do(s, rules.Wait(uid), ev)

@@ -41,6 +41,8 @@ type Good struct {
 type Recruit struct {
 	ID, Def, Skill, Name string
 	Fee, Opens           int // 雇金；哪一章起来投
+	// Support 是他来支援时的那一手（skills.json 里带 support 字段的招式）。
+	Support string
 }
 
 // Drop 是掉落表里的一行。
@@ -49,8 +51,13 @@ type Drop struct {
 	Chance float64
 }
 
-// Market 读入营地这一侧的数据表。
+// Market 是营地这一侧的数据表。只读一次；返回的表不要改。
 func (d *Data) Market() (*Market, error) {
+	d.marketOnce.Do(func() { d.market, d.marketErr = d.loadMarket() })
+	return d.market, d.marketErr
+}
+
+func (d *Data) loadMarket() (*Market, error) {
 	m := &Market{Goods: map[string]*Good{}, Recruits: map[string]*Recruit{}, Loot: map[string][]Drop{},
 		Pay: map[int]int{}, XP: map[int]int{}, Seats: map[int]int{}, OptionalBattles: map[string]bool{}}
 	goods, err := d.table("goods")
@@ -90,6 +97,10 @@ func (d *Data) Market() (*Market, error) {
 		}
 		r := &Recruit{ID: id, Def: raw.str("def", ""), Skill: raw.str("skill", ""), Name: raw.str("name", ""),
 			Fee: raw.int("fee", 0), Opens: raw.int("opens", 2)}
+		r.Support = raw.str("support", "")
+		if sk := d.Skill(r.Support); sk == nil || sk.Support == "" {
+			return nil, fmt.Errorf("英雄 %s 的 support 要写一个带 support 字段的招式，现在是 %q", id, r.Support)
+		}
 		if d.units[r.Def] == nil {
 			return nil, fmt.Errorf("英雄 %s 用到了不存在的单位 %s", id, r.Def)
 		}

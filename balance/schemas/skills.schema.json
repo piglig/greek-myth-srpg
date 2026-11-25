@@ -90,6 +90,8 @@
       "square": {"type": "boolean"},
       "friendly_fire": {"type": "boolean"},
       "blink": {"type": "integer", "minimum": 1, "maximum": 6},
+      "support": {"enum": ["guard", "shot", "sunder", "aid", "break", "charge"]},
+      "power": {"type": "integer", "minimum": 1, "maximum": 40},
       "area_shield": {"type": "integer", "minimum": 1, "maximum": 20},
       "area_status": {
         "enum": [
@@ -137,7 +139,11 @@
         "required": ["heal", "min_range", "max_range"],
         "not": {"required": ["mult"]}
       },
-      {"required": ["area_shield", "radius"]}
+      {"required": ["area_shield", "radius"]},
+      {
+        "required": ["support", "power", "max_range", "cooldown"],
+        "not": {"required": ["mult"]}
+      }
     ]
   }
 }

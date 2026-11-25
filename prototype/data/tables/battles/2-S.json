@@ -123,17 +123,6 @@
         6
       ],
       "facing": "W"
-    },
-    {
-      "id": "snake_5",
-      "def": "marsh_snake",
-      "team": "enemy",
-      "pos": [
-        11,
-        3
-      ],
-      "facing": "W",
-      "round": 3
     }
   ]
 }

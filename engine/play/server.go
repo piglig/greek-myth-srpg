@@ -109,11 +109,13 @@ type request struct {
 	Reward       rules.ChapterReward `json:"reward"`
 	ChironJoined bool                `json:"chiron_joined"`
 	// Bench 是关卡文件里写了、但这一场留在营地的我方单位。主角不能留守。
-	Bench  []string            `json:"bench"`
-	Op     string              `json:"op"`
-	SID    int                 `json:"sid"`
-	Battle string              `json:"battle"`
-	Picks  map[string][]string `json:"picks"`
+	Bench []string `json:"bench"`
+	// Support 是来支援的英雄（recruits.json 里的名字）；空着就是没带。
+	Support string              `json:"support"`
+	Op      string              `json:"op"`
+	SID     int                 `json:"sid"`
+	Battle  string              `json:"battle"`
+	Picks   map[string][]string `json:"picks"`
 	// Loadout 按单位 id 给出带进战斗的招式（最多 rules.LoadoutSlots 个）。没列出的单位带上全部招式。
 	Loadout map[string][]string `json:"loadout"`
 	// Mods 按单位 id 给出装备带来的属性增减（hp/str/def/wil/div/move/jump）。
@@ -197,7 +199,7 @@ func (s *Server) dispatch(req *request) obj {
 			party = []rules.PartyMember{{ID: "chiron", Def: "chiron"}}
 		}
 		st, err := s.data.Muster(req.Battle, rules.Muster{Party: party, Bench: req.Bench, Picks: req.Picks,
-			Loadout: req.Loadout, Mods: req.Mods, Items: req.Items, Reward: req.Reward})
+			Loadout: req.Loadout, Mods: req.Mods, Items: req.Items, Reward: req.Reward, Support: req.Support})
 		if err != nil {
 			return fail("%v", err)
 		}
@@ -344,7 +346,7 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 	var landings, inRange, valid []rules.Cell
 	sk := u.Skill(pending.Skill)
 	switch {
-	case act.Type == rules.ActSkill && sk != nil && (sk.Blink > 0 || sk.Blast > 0):
+	case act.Type == rules.ActSkill && sk != nil && (sk.Blink > 0 || sk.Blast > 0 || sk.Support == "charge"):
 		// 指定格子的招式：射程底色照常，可选的是每一个校验得过的格子。
 		for y := 0; y < g.Depth; y++ {
 			for x := 0; x < g.Width; x++ {
@@ -353,6 +355,13 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 				reach, near := sk.MaxRange, max(sk.MinRange, 1)
 				if sk.Blink > 0 {
 					reach, near = sk.Blink, 1
+				}
+				if sk.Support == "charge" {
+					// 冲锋选的是方向：主角身边的四格。底色标出整条冲过去的路。
+					reach, near = sk.MaxRange, 1
+					if x != u.Pos.X && y != u.Pos.Y {
+						dist = reach + 1
+					}
 				}
 				if dist >= near && dist <= reach {
 					inRange = append(inRange, c)

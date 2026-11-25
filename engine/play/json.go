@@ -159,6 +159,8 @@ func eventsJSON(events []rules.Event) []obj {
 			m["target"], m["amount"] = e.Target, e.Amount
 		case rules.EvIgnite, rules.EvBurnOut:
 			m["to"] = xy(e.To)
+		case rules.EvSupport:
+			m["unit"], m["skill"], m["to"], m["source"] = e.Unit, e.Skill, xy(e.To), e.Source
 		case rules.EvArea:
 			m["unit"], m["skill"], m["to"] = e.Unit, e.Skill, xy(e.To)
 		case rules.EvAttack:
@@ -249,6 +251,9 @@ func (s *Server) dataJSON() obj {
 		}
 		if sk.Item {
 			m["item"] = true
+		}
+		if sk.Support != "" {
+			m["support"], m["power"] = sk.Support, sk.Power
 		}
 		for k, v := range map[string]int{"heal": sk.Heal, "cleanse": sk.Cleanse} {
 			if v != 0 {

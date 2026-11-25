@@ -25,7 +25,8 @@
 #           （none / materials / all），optional 是打不打可选的战斗。
 #   steps   按关卡先后排的一串事，`at` 是"进入这一关之前"：
 #     joins   剧情里加入的人（喀戎、美狄亚）
-#     hire    招募的英雄（recruits.json 里的名字）
+#     hire    招募的英雄（recruits.json 里的名字）。他们不上场，只来支援
+#     support 这一关起带哪位英雄来支援（要先雇到）；写 none 表示不带
 #     buy / sell   买和卖的东西（goods.json 里的名字）
 #     party   跟主角出战的人，不含关卡里已经摆好的（阿塔兰忒一直是摆好的，占一个名额）
 #     picks   技能树加点，按人，写了就换掉那个人的
@@ -52,11 +53,11 @@ tiers:
         buy: [glove_hide, tunic]
         wear: {hero: [leather, glove_hide], atalanta: [tunic]}
         picks: {hero: [iron_arm, shield_wall], atalanta: [vital_shot, patience]}
-      - at: "2-1"                   # 第二章多一个名额，手里没有第三个人：雇最便宜的那位
+      - at: "2-1"                   # 第二章起可以带一位支援：雇最便宜的那位
         relics: [lion_pelt]
         boon: moon_hunt
         hire: [iphicles]
-        party: [iphicles]
+        support: iphicles
         picks: {hero: [iron_arm, stagger_fist], atalanta: [vital_shot, patience, skirmish]}
       - at: "2-2"
         joins: [medea]
@@ -109,9 +110,11 @@ tiers:
           hero: [iron_arm, stagger_fist]
           atalanta: [vital_shot, patience, skirmish]
           chiron: [purify_arrow, weak_point, mentor_stagger]
-      - at: "2-1"                   # 第二章多一个名额，喀戎上场
+      - at: "2-1"                   # 第二章多一个名额，喀戎上场；雇一位弓手来支援
         relics: [lion_pelt]
         boon: moon_hunt
+        hire: [phalerus]
+        support: phalerus
         buy: [cloak_travel, greaves, owl, item_antidote]
         party: [chiron]
         wear: {chiron: [cloak_travel, greaves, owl]}
@@ -174,6 +177,8 @@ tiers:
       - at: "2-1"
         relics: [lion_pelt]
         boon: moon_hunt
+        hire: [ancaeus, phalerus]
+        support: ancaeus
         buy: [cloak_travel, greaves, owl, item_antidote]
         party: [chiron]
         wear: {chiron: [cloak_travel, greaves, owl]}

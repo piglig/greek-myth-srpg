@@ -188,6 +188,80 @@ A small ruined Greek shrine on a low stone platform of two worn steps: four slim
 
 ---
 
+## 0.4 六位支援英雄的登场动作（2026-11-25）
+
+招募来的英雄不再上场，改成支援：主角一召，他登场、出手一次、离场。所以每人要补一张
+**登场三连**——三列依次是**登场、招牌出手、离场**，仍按 6.1 的六格出（上排正面朝右，下排背面朝左）。
+
+- 文件放在各自的形象目录下，叫 `support.png`，例如 `prototype/art/pixel/merc_sword/support.png`。
+- **把这个人现有的原画当参考图一起给**（下面每条都写了是哪一张），衣服、配色、武器要和原画是同一个人。
+- 现有的待机、行走、攻击、倒地几张图不用重做。它们以后只在营地和招募页里用得上。
+- 在这些图到位之前，游戏里先用一行横幅和一个光效顶替登场。
+- 福洛斯的原画还在返工（见 0.1），他这一张等新原画定了再出。
+
+#### [ ] 伊菲克勒斯「并肩」 `merc_sword/support.png`
+
+冲到同伴身前，举盾护住对方。盾要举在身体前上方，一眼看得出是在挡，不是在砍。参考图：`art/originals/merc_sword.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same ordinary Theban Greek foot soldier, sturdy but unremarkable build, short brown hair, undyed linen tunic, blue scarf and blue headband, small round wooden shield and short iron sword, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns running in at a sprint with the shield arm leading, planted in a low wide stance holding the round shield high and forward to cover someone behind him with the sword held back, stepping back out with the shield lowered and a glance over the shoulder. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 法勒洛斯「远射」 `merc_archer/support.png`
+
+从很远的地方射来的一箭。出手那一格弓要拉满、身体后仰，和阿塔兰忒贴身的短射拉开。参考图：`art/originals/merc_archer.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same slim Athenian Greek archer, pine green hood, tan leather jerkin, a quiver painted with a coiled snake, long recurved bow, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns dropping to one knee and nocking an arrow, at full draw with the bow tilted high for a long shot and the body leaning back, standing and lowering the bow with the string still quivering. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 安开俄斯「劈盾」 `merc_captain/support.png`
+
+一斧从上往下劈开对方的防御。蓄力要大，斧头举过头顶。参考图：`art/originals/merc_captain.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same burly Arcadian Greek axeman, a brown bearskin worn over head and shoulders with the bear's muzzle as a hood, sea green tunic, thick bare arms, double-headed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns striding in with the axe resting on one shoulder, the axe raised high overhead in both hands at the top of a huge downward chop, the axe buried low after the blow with the body bent over it. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 福洛斯「驮行」 `merc_lancer/support.png`
+
+冲进来把一个同伴接上背、带走。第二格背上要留出一个人的位置，同伴由游戏另外叠上去，不要画进图里。参考图：`art/originals/merc_lancer.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same gentle middle-aged centaur, dark bay horse body with black mane and tail, sun-browned lean human torso, short dark brown beard streaked with grey, dark curly hair bound with a vine wreath, a wine-red sash and a wineskin slung at his side, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns galloping in with one arm reaching forward and down to offer a hand, standing braced with the horse back level and empty and the human torso twisted round holding the wineskin out behind him, cantering away with the lance tucked under one arm. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 伊达斯「碎阵」 `idas/support.png`
+
+全身的力气砸下去，要有"地都震了"的感觉。和他平时的劈砍相比，这一下是双脚离地跳起来砸。参考图：`art/originals/idas.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same huge Greek strongman warrior, enormously broad shoulders and thick neck, bronze helmet with a tall black horsehair crest, saffron yellow cloak thrown back, bare chest crossed by a leather strap, heavy two-handed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns charging in with head lowered and the axe trailing behind, leaping with both feet off the ground and the axe swung back over the head at the peak of the jump, landed in a deep crouch with the axe head driven down in front of him and the cloak flaring. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 欧律提翁「冲锋」 `eurytion/support.png`
+
+沿一条直线冲过去。三格都是全速奔跑，矛始终放平指向前方。参考图：`art/originals/eurytion.png`。
+
+```
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same centaur chieftain, glossy black horse body, muscular bearded human torso, wild dark hair, a gold sash across the chest, long bronze-tipped spear, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns rearing up on the hind legs with the spear raised before the charge, at full gallop with all four hooves off the ground and the spear couched level and pointing straight ahead, at full gallop looking back over the shoulder with the spear still level. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+```
+
+#### [ ] 六枚召援图标
+
+按 2.1 的图标模板出。战斗里主角的招式菜单上用。
+
+| 完成 | 名称 | 标识 | {主体} |
+|---|---|---|---|
+| [ ] | 并肩（伊菲克勒斯） | `sup_iphicles` | `a round shield held up in front of a smaller figure's outline` |
+| [ ] | 远射（法勒洛斯） | `sup_phalerus` | `a single arrow in a high arc over a distant hill line` |
+| [ ] | 劈盾（安开俄斯） | `sup_ancaeus` | `a double-headed axe splitting a round shield in two` |
+| [ ] | 驮行（福洛斯） | `sup_pholus` | `a centaur in profile with a small rider on his back` |
+| [ ] | 碎阵（伊达斯） | `sup_idas` | `an axe head struck into cracked ground with three cracks spreading` |
+| [ ] | 冲锋（欧律提翁） | `sup_eurytion` | `a level spear with three speed lines behind it` |
+
+---
+
 ## 1. 第一档：第一章现在就缺
 
 ### 1.1 九个借用形象的人物原画
