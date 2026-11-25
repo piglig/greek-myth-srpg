@@ -218,9 +218,13 @@ func newServer(t *testing.T, sim balance.Simulator) (*Server, *httptest.Server) 
 		os.MkdirAll(filepath.Dir(out), 0o755)
 		return os.WriteFile(out, []byte("PNG"), 0o644)
 	}})
+	return s, newHTTP(t, s)
+}
+
+func newHTTP(t *testing.T, s *Server) *httptest.Server {
 	ts := httptest.NewServer(s.Handler())
 	t.Cleanup(ts.Close)
-	return s, ts
+	return ts
 }
 
 func call(t *testing.T, ts *httptest.Server, method, path, body string, headers ...string) (int, any, string) {

@@ -178,16 +178,6 @@
       "facing": "W"
     },
     {
-      "id": "snake_9",
-      "def": "marsh_snake",
-      "team": "enemy",
-      "pos": [
-        5,
-        5
-      ],
-      "facing": "W"
-    },
-    {
       "id": "snake_10",
       "def": "marsh_snake",
       "team": "enemy",
@@ -198,21 +188,21 @@
       "facing": "W"
     },
     {
-      "id": "snake_11",
+      "id": "snake_9",
       "def": "marsh_snake",
       "team": "enemy",
       "pos": [
-        11,
-        6
+        12,
+        5
       ],
       "facing": "W"
     },
     {
-      "id": "snake_12",
+      "id": "snake_11",
       "def": "marsh_snake",
       "team": "enemy",
       "pos": [
-        5,
+        12,
         3
       ],
       "facing": "W"

@@ -52,25 +52,25 @@ tiers:
         buy: [glove_hide, tunic]
         wear: {hero: [leather, glove_hide], atalanta: [tunic]}
         picks: {hero: [iron_arm, shield_wall], atalanta: [vital_shot, patience]}
-      - at: "2-1"
+      - at: "2-1"                   # 第二章多一个名额，手里没有第三个人：雇最便宜的那位
         relics: [lion_pelt]
         boon: moon_hunt
-        buy: [greaves]
-        wear: {hero: [leather, glove_hide, greaves]}
+        hire: [iphicles]
+        party: [iphicles]
         picks: {hero: [iron_arm, stagger_fist], atalanta: [vital_shot, patience, skirmish]}
       - at: "2-2"
         joins: [medea]
         party: [medea]
-        buy: [necklace]
-        wear: {hero: [leather, glove_hide, greaves, necklace]}
+        buy: [greaves]
+        wear: {hero: [leather, glove_hide, greaves]}
         picks: {hero: [iron_arm, stagger_fist, shield_wall], medea: [frailty, kindling]}
       - at: "2-3"
-        buy: [fist_wrap, item_potion]
-        wear: {atalanta: [tunic, fist_wrap]}
+        buy: [necklace, item_potion]
+        wear: {hero: [leather, glove_hide, greaves, necklace]}
         items: {hero: [item_potion]}
       - at: "2-4"
-        buy: [boots]
-        wear: {atalanta: [tunic, fist_wrap, boots]}
+        buy: [fist_wrap]
+        wear: {atalanta: [tunic, fist_wrap]}
         picks:
           hero: [iron_arm, stagger_fist, heel_strike]
           atalanta: [vital_shot, patience, skirmish, leap_shot]

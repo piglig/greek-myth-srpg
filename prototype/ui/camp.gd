@@ -250,6 +250,17 @@ func _open_for_shot(which: String) -> void:
 			screen = "party"
 			member = "r1"
 			page = "tree"
+		"seat":
+			# Chapter two opens a third seat and nobody is there to take it.
+			entry.id = "2-1"
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.chiron_joined = false
+			entry.roster = []
+			entry.erase("deploy")
+			entry.outcomes = {"1-1":"已通关","1-2":"已通关","1-4":"已通关","1-5":"已通关"}
+			screen = "march"
+			chapter = 1
 		"relics":
 			# Two relics and two slots, at the map: which he takes is his to pick.
 			entry.id = "2-4"
@@ -2217,6 +2228,22 @@ func _march() -> void:
 		Px.text(body,_name(who),Rect2(at.x+40,at.y+3,120,0),Px.BODY,ink if on else ink.darkened(.3))
 		Px.text(body,"这一战必须出战" if must else "出战 · 点一下留守" if on else ("名额已满" if toggle.disabled else "留守 · 点一下出战"),Rect2(at.x+40,at.y+19,160,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
 		toggles.append(toggle)
+	# A seat left empty is a fight made harder for nothing: say so, and say how to fill it.
+	var empty := Save.seats(str(site.id))-going.size()
+	if empty > 0 and state == "可出发":
+		var ny := y+ceili(pool.size()/2.0)*40+(26 if pool.is_empty() else 6)
+		var idle := pool.filter(func(who): return not going.has(who)).size()
+		var hiring := not Save.offers(entry).is_empty()
+		Px.block(body,Rect2(x-10,ny,DETAIL.size.x-20,40),Color(Px.OCHRE,.14))
+		Px.block(body,Rect2(x-10,ny,3,40),Px.OCHRE)
+		Px.picture(body,Px.icon("talk",20),Rect2(x,ny+10,20,20)).modulate = Px.OCHRE
+		var say := "还有 %d 个出战名额空着。" % empty
+		if idle > 0: say += "点一下留守的人就能带上。"
+		elif hiring: say += "达蒙那里可以招募。"
+		else: say += "眼下还没有人可带。"
+		Px.text(body,say,Rect2(x+28,ny+12,DETAIL.size.x-200,0),Px.SMALL,Px.OCHRE)
+		if idle == 0 and hiring:
+			toggles.append(Px.button(body,"去招募",Rect2(DETAIL.end.x-20-96,ny+6,96,28),_go.bind("recruit")))
 	Px.chain(toggles)
 	# Which relics he takes: asked only once he has more than he can carry or a choice.
 	var held: Array = (entry.get("relics",[]) as Array).filter(func(id): return Save.RELICS.has(id) and Save.RELICS[id].has("skill"))

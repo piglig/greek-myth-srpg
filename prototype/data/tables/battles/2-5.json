@@ -109,17 +109,6 @@
       ],
       "facing": "W",
       "round": 3
-    },
-    {
-      "id": "brood_2",
-      "def": "marsh_snake",
-      "team": "enemy",
-      "pos": [
-        11,
-        8
-      ],
-      "facing": "W",
-      "round": 6
     }
   ]
 }

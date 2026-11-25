@@ -67,6 +67,19 @@ export interface Meta {
   terrain: Record<string, string>; bots: Record<string, string>
   metrics: { key: string; label: string; pct: boolean }[]; results: Record<string, string>; baseline: string
 }
+export interface DifficultyCell {
+  battle: string; kind: string; kit: string; bot: string; primary: boolean
+  lo: number; hi: number; runs: number; win: number; rounds: number; hp_left: number; verdict: 'ok' | 'easy' | 'hard'; timeouts: number
+}
+export interface DifficultyRun { running: boolean; variant: string; scope: string; actor: string; done: number; total: number; error: string; cells: DifficultyCell[] }
+export interface DifficultyView {
+  variant: string
+  spec: { runs: number; primary: [string, string]; kinds: Record<string, string[]>; bands: Record<string, Record<string, Record<string, [number, number]>>> }
+  columns: [string, string][]
+  battles: { id: string; title: string; chapter: number; kind: string; primary: [string, string]; hash: string }[]
+  report: { variant: string; finished: string; by: string; cells: DifficultyCell[]; hashes: Record<string, string> } | null
+  run: DifficultyRun
+}
 export interface CompareRow { variant: string; verdicts: Verdict[]; bots: Record<string, { status: string; runs: number }> }
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -112,4 +125,10 @@ export const api = {
     call<Replay>('GET', `/api/replay${q({ battle, variant: vq(variant), bot, seed })}`),
   preview: (battle: string, variant: string) => call<{ url: string }>('POST', `/api/preview${q({ battle, variant: vq(variant) })}`),
   activity: () => call<Activity[]>('GET', '/api/activity'),
+  difficulty: (variant: string) => call<DifficultyView>('GET', `/api/difficulty${q({ variant: vq(variant) })}`),
+  runDifficulty: (variant: string, scope: string, runs = 0) =>
+    call<DifficultyRun>('POST', '/api/difficulty/run', { variant: vq(variant) ?? null, scope, runs }),
+  cancelDifficulty: () => call<DifficultyRun>('POST', '/api/difficulty/cancel', {}),
+  setDifficultyBand: (kind: string, kit: string, bot: string, lo: number, hi: number) =>
+    call('PUT', '/api/difficulty/bands', { kind, kit, bot, lo, hi }),
 }

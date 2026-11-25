@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Battle } from './api'
 
-export type Mode = 'level' | 'tables' | 'sim' | 'replay' | 'compare'
+export type Mode = 'level' | 'tables' | 'sim' | 'replay' | 'compare' | 'difficulty'
 export type Tool = 'select' | 'height' | 'terrain' | 'unit' | 'erase'
 export type HeatLayer = 'none' | 'kills' | 'falls' | 'dmg'
 
@@ -35,7 +35,7 @@ interface State {
 // Deep links: ?mode=sim&variant=x&battle=1-4&heat=kills&bot=novice&seed=3 opens that exact view,
 // so a person or the AI can hand over a link to what they are looking at.
 const url = new URLSearchParams(window.location.search)
-const MODES: Mode[] = ['level', 'tables', 'sim', 'replay', 'compare']
+const MODES: Mode[] = ['level', 'tables', 'sim', 'replay', 'compare', 'difficulty']
 
 export const useStore = create<State>((set, get) => ({
   mode: MODES.includes(url.get('mode') as Mode) ? (url.get('mode') as Mode) : 'level',

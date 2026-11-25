@@ -5,7 +5,11 @@
 #
 # 2026-11-25 用户定：主要验收格普通关 70%–80%，首领关 55%–65%；其余各格按同样的幅度
 # 跟着下调。主要验收对象是"一般配置的普通玩家"，
-# 其余几格用来看两头——新手会不会被卡死，熟练的会不会毫无压力，不花钱的玩家还能不能走。
+# 其余几格用来看两头——熟练的会不会毫无压力，不花钱的玩家还能不能走。
+#
+# 2026-11-25 用户定：不看"新手"机器人。它是带着同样的队伍几乎随机地走，胜率比普通机器人
+# 低五六十个点，不代表哪一类真实玩家，拿它当目标只会把关卡往简单里拉。机器人本身还在
+# （srpg sim --bot novice），只是不再进这张表。
 #
 # 各类关卡：
 #   teaching  教学关（1-1）：不该输。
@@ -32,19 +36,19 @@ kinds:
 
 bands:
   teaching:
-    typical: {casual: [0.95, 1.00], novice: [0.85, 1.00], skilled: [0.98, 1.00]}
+    typical: {casual: [0.95, 1.00], skilled: [0.98, 1.00]}
     frugal:  {casual: [0.95, 1.00]}
   intro:
-    typical: {casual: [0.78, 0.88], novice: [0.45, 0.70], skilled: [0.92, 1.00]}
+    typical: {casual: [0.78, 0.88], skilled: [0.92, 1.00]}
     frugal:  {casual: [0.55, 0.80]}
   normal:
-    typical: {casual: [0.70, 0.80], novice: [0.35, 0.60], skilled: [0.88, 1.00]}
+    typical: {casual: [0.70, 0.80], skilled: [0.88, 1.00]}
     frugal:  {casual: [0.45, 0.70]}
   boss:
-    typical: {casual: [0.55, 0.65], novice: [0.15, 0.35], skilled: [0.78, 0.92]}
+    typical: {casual: [0.55, 0.65], skilled: [0.78, 0.92]}
     frugal:  {casual: [0.30, 0.55]}
   side:
-    typical: {casual: [0.75, 0.88], novice: [0.40, 0.68], skilled: [0.90, 1.00]}
+    typical: {casual: [0.75, 0.88], skilled: [0.90, 1.00]}
     frugal:  {casual: [0.50, 0.78]}
   late_side:
-    frugal:  {casual: [0.75, 0.88], novice: [0.40, 0.68], skilled: [0.90, 1.00]}
+    frugal:  {casual: [0.75, 0.88]}

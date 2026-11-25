@@ -255,3 +255,40 @@ input, textarea, .selectable { user-select: text; }
   .hud-title h1 { font-size: 19px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---- difficulty table: every battle against every kind of player ---- */
+.dhead { display: flex; align-items: flex-start; gap: 24px; }
+.dhead > div:first-child { flex: 1; min-width: 0; }
+.dactions { display: flex; gap: 8px; flex: none; padding-top: 4px; }
+.dsummary { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-height: 44px; margin: -6px 0 18px; padding: 8px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; font-size: 13px; color: var(--text-2); }
+.dsummary b.serif { font-size: 22px; letter-spacing: 0.02em; }
+.dtable { width: 100%; min-width: 900px; table-layout: fixed; }
+.dtable th { text-align: left !important; padding: 10px 12px; color: var(--text); font-size: 12.5px; }
+.dtable th small { display: block; font: 400 11px var(--sans); color: var(--muted); margin-top: 2px; }
+.dtable th:first-child { width: 190px; }
+.dtable th:last-child { width: 44px; }
+.dtable th.primary { box-shadow: inset 0 3px 0 var(--gold); }
+.dtable td { padding: 6px 8px; vertical-align: top; }
+.dtable td.name { padding: 10px 16px; }
+.dtable tr.group td { background: var(--raised); font: 600 11px var(--sans); letter-spacing: 0.1em; color: var(--muted); padding: 7px 16px; }
+.dtable tr.current td.name { box-shadow: inset 3px 0 0 var(--gold); }
+.dcell { padding: 7px 10px 6px; border-radius: 8px; border: 1px solid transparent; min-height: 52px; }
+.dcell.primary { border-color: rgba(232, 185, 90, 0.45); background: rgba(232, 185, 90, 0.05); }
+.dcell.stale { opacity: 0.5; }
+.dcell.live { animation: dcell-in 0.5s ease-out; }
+@keyframes dcell-in { from { background: var(--gold-dim); } }
+@media (prefers-reduced-motion: reduce) { .dcell.live { animation: none; } }
+.dcell .dnum { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+.dcell .dnum b { font: 500 15px var(--mono); font-variant-numeric: tabular-nums; color: var(--text-2); }
+.dcell.primary .dnum b { font-size: 17px; }
+.dcell .dnum span { font-size: 11.5px; white-space: nowrap; }
+.dcell .dsub { margin-top: 3px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.dcell.empty-cell, .dcell.none { display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+.dcell.none { color: var(--line-strong); }
+.linklike { border: 0; background: none; padding: 0; color: var(--text); font: 500 13.5px var(--sans); cursor: pointer; text-align: left; }
+.linklike:hover { color: var(--gold); }
+.iconbtn { width: 30px; height: 30px; margin-top: 10px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.iconbtn:hover:not(:disabled) { background: var(--hover); color: var(--text); }
+.iconbtn:disabled { opacity: 0.3; cursor: not-allowed; }
+.band-btn { border: 1px solid var(--line-strong); background: var(--raised); color: var(--text); border-radius: 6px; padding: 4px 9px; font-size: 12.5px; cursor: pointer; }
+.band-btn:hover { border-color: var(--gold); color: var(--gold); }

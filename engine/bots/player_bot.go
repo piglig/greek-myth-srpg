@@ -21,6 +21,7 @@ type Profile struct {
 	PerUnit     int     // 每个单位精确评估的方案数
 	Noise       float64 // beam：分数噪声幅度
 	UseMark     bool
+	Foresee     bool // beam：最后几种走法各推演一遍对面的回合再选
 	Weights     Weights
 }
 
@@ -37,7 +38,7 @@ func ProfileByName(name string) (Profile, error) {
 	case "casual":
 		return Profile{Name: name, Search: "greedy", Temperature: 0.8, PerUnit: 6, UseMark: true, Weights: w}, nil
 	case "skilled":
-		return Profile{Name: name, Search: "beam", Beam: 6, PerUnit: 8, Noise: 0.3, UseMark: true,
+		return Profile{Name: name, Search: "beam", Beam: 6, PerUnit: 8, Noise: 0.3, UseMark: true, Foresee: true,
 			Weights: w}, nil
 	}
 	return Profile{}, fmt.Errorf("没有这个机器人: %s（可选 %v）", name, ProfileNames())
@@ -208,8 +209,23 @@ func (b *Bot) playBeam(s *rules.BattleState, rng *rules.RNG) []Step {
 		spare = append(spare[:0], children[:min(width, len(children))]...)
 		beams, spare = spare, beams
 	}
+	// 留到最后的几种走法，各自让对面走完它的回合再比：人在落子前会想一步"我这样走完，
+	// 它们会怎么打"——谁会被围、要保护的人撑不撑得住、是不是该先杀掉那个够得着的。
+	best := 0
+	if b.Prof.Foresee && len(beams) > 1 {
+		top := math.Inf(-1)
+		for i := range beams {
+			if beams[i].state == nil {
+				continue
+			}
+			after := b.afterReply(beams[i].state)
+			if after > top {
+				top, best = after, i
+			}
+		}
+	}
 	var steps []*planStep
-	for st := beams[0].last; st != nil; st = st.prev {
+	for st := beams[best].last; st != nil; st = st.prev {
 		steps = append(steps, st)
 	}
 	played := []Step{}
@@ -220,6 +236,34 @@ func (b *Bot) playBeam(s *rules.BattleState, rng *rules.RNG) []Step {
 		played = append(played, step)
 	}
 	return played
+}
+
+// afterReply 是对面按它的规则走完一个回合之后的局面分数。不改 s。
+func (b *Bot) afterReply(s *rules.BattleState) float64 {
+	c := b.copyState(s)
+	defer func() { b.pool = append(b.pool, c) }()
+	if c.Outcome() != "" {
+		return b.Eval.Score(c)
+	}
+	rules.EndPhase(c)
+	for _, e := range c.Living(rules.TeamEnemy) {
+		for guard := 0; e.Alive && !e.HasActed && guard < 4; guard++ {
+			p := rules.PlanFor(c, e)
+			if p.HasMove {
+				rules.Perform(c, rules.Move(e.ID, p.MoveTo))
+			}
+			if o := rules.Perform(c, p.Action); !o.OK {
+				rules.Perform(c, rules.Wait(e.ID))
+			}
+			if !rules.FinishActivation(c, e) {
+				break
+			}
+		}
+		if c.Outcome() != "" {
+			break
+		}
+	}
+	return b.Eval.Material(c)
 }
 
 // 返回按分数从高到低排好的方案；state 是执行方案之后的副本。
