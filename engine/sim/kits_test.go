@@ -1,13 +1,15 @@
 package sim
 
 import (
+	"strings"
 	"testing"
 
 	"srpg/rules"
 )
 
-// 三档配置在每一关都摆得出来，加点花得起，带的人不超过三个。
-func TestKitsMuster(t *testing.T) {
+// 三档配置在战役的每一关都合时宜：东西买得到、钱够、等级够、人数不超、圣物不早到，
+// 并且真的摆得出来。
+func TestKitsFitTheirMoment(t *testing.T) {
 	data, err := rules.LoadData(rules.DataOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -16,57 +18,72 @@ func TestKitsMuster(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	free := map[string]bool{"atalanta": true, "chiron": true, "medea": true}
+	order, err := campaignOrder(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(order) < 10 {
+		t.Fatalf("the campaign should have at least ten battles: %v", order)
+	}
 	for _, tier := range kits.Names() {
-		for _, battle := range []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "2-4"} {
-			m, err := kits.Muster(data, tier, battle)
+		for _, battle := range order {
+			m, ledger, problems, err := kits.Resolve(data, tier, battle)
 			if err != nil {
 				t.Fatalf("%s %s: %v", tier, battle, err)
+			}
+			for _, p := range problems {
+				t.Errorf("%s: %s", tier, p)
+			}
+			if len(problems) > 0 {
+				continue
 			}
 			st, err := data.Muster(battle, *m)
 			if err != nil {
-				t.Fatalf("%s %s: %v", tier, battle, err)
+				t.Errorf("%s %s cannot be mustered: %v", tier, battle, err)
+				continue
 			}
-			level, _ := kits.Level(data, tier, battle)
-			trees := map[string]string{}
 			for _, who := range m.Party {
-				trees[who.ID] = who.Tree
 				if st.Unit(who.ID) == nil {
 					t.Errorf("%s %s: %s is not on the field", tier, battle, who.ID)
 				}
 			}
-			for who, nodes := range m.Picks {
-				tree := trees[who]
-				if tree == "" {
-					tree = who
-				}
-				points := level - 1
-				if free[who] {
-					points++
-				}
-				if cost := data.PicksCost(tree, nodes); cost > points {
-					t.Errorf("%s %s: %s spends %d points and has %d at level %d", tier, battle, who, cost, points, level)
-				}
-				if msg := data.ValidateTraining(tree, nodes, 99); msg != "" {
-					t.Errorf("%s %s: %s: %s", tier, battle, who, msg)
-				}
-			}
-			// 主角之外最多三人：玩家带的，加上一直摆在关卡里的阿塔兰忒。剧情里临时出现的
-			// 人（赫拉克勒斯、2-1 的美狄亚）不占名额。
-			beside := len(m.Party)
-			if st.Unit("atalanta") != nil {
-				beside++
-			}
-			seats := 3 // 连主角：第一章 2 人，第二章 3 人，之后 4 人（campaign_checkpoint.gd 的 seats）
-			switch battle[0] {
-			case '1':
-				seats = 1
-			case '2':
-				seats = 2
-			}
-			if beside > seats {
-				t.Errorf("%s %s: %d march beside the protagonist; %d is the most in this chapter", tier, battle, beside, seats)
-			}
+			t.Logf("%-8s %-4s level %d  earned %4d  spent %4d", tier, battle, ledger.Level, ledger.Earned, ledger.Spent)
+		}
+	}
+}
+
+// 不合时宜的配置会被逐条指出来，而不是悄悄跑出一个不可信的数字。
+func TestKitsRefuseWhatCouldNotBe(t *testing.T) {
+	data, err := rules.LoadData(rules.DataOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	picks := map[string][]string{"hero": {}, "atalanta": {"vital_shot"}}
+	cases := []struct {
+		name string
+		step KitStep
+		want string
+	}{
+		{"gear from a later chapter", KitStep{At: "1-1", Buy: []string{"cuirass"}, Picks: picks}, "行商这时不卖 cuirass"},
+		{"more than the purse holds", KitStep{At: "1-1", Buy: []string{"scale", "scale"}, Picks: picks}, "只挣到"},
+		{"a hero who has not come yet", KitStep{At: "1-1", Hire: []string{"iphicles"}, Picks: picks}, "才来投"},
+		{"wearing what was never bought", KitStep{At: "1-1", Wear: map[string][]string{"hero": {"leather"}}, Picks: picks}, "手里只有 0 件"},
+		{"two things in one place", KitStep{At: "1-1", Buy: []string{"tunic"}, Wear: map[string][]string{"hero": {"tunic", "tunic"}}, Picks: picks}, "同一个部位"},
+		{"techniques beyond the level", KitStep{At: "1-1", Picks: map[string][]string{"hero": {"iron_arm", "stagger_fist"}, "atalanta": {"vital_shot"}}}, "只有 0 点"},
+		{"a relic before its chapter is won", KitStep{At: "1-1", Relics: []string{"lion_pelt"}, Picks: picks}, "件圣物"},
+		{"selling what is not owned", KitStep{At: "1-1", Sell: []string{"tunic"}, Picks: picks}, "卖了没有的东西"},
+	}
+	for _, c := range cases {
+		kits := &Kits{Tiers: map[string]*Tier{"x": {Earns: Earns{Spoils: "none"}, Steps: []KitStep{c.step}}}}
+		_, _, problems, err := kits.Resolve(data, "x", "1-1")
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		if !strings.Contains(strings.Join(problems, "\n"), c.want) {
+			t.Errorf("%s: expected a problem mentioning %q, got %v", c.name, c.want, problems)
+		}
+		if _, err := kits.Muster(data, "x", "1-1"); err == nil {
+			t.Errorf("%s: a kit with problems must not be mustered", c.name)
 		}
 	}
 }
@@ -89,66 +106,5 @@ func TestKitChangesTheBattle(t *testing.T) {
 	}
 	if kitted[0].Units["hero"].MaxHP <= bare[0].Units["hero"].MaxHP {
 		t.Errorf("his gear should show: %d against %d", kitted[0].Units["hero"].MaxHP, bare[0].Units["hero"].MaxHP)
-	}
-}
-
-// 每一关都要用"那时玩家能有的东西"来模拟：等级跟得上经验，点数基本花掉，圣物不早到。
-// 经验规则抄自 prototype/core/campaign_checkpoint.gd（xp_for、xp_need），那边改了这里跟着改。
-func TestKitsFitTheirMoment(t *testing.T) {
-	data, err := rules.LoadData(rules.DataOptions{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	kits, err := LoadKits("../../balance/kits.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-	battles := []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "2-4"}
-	optional := map[string]bool{"1-3": true}
-	levelAt := func(xp int) int {
-		level := 1
-		for xp >= 100+20*(level-1) {
-			xp -= 100 + 20*(level-1)
-			level++
-		}
-		return level
-	}
-	free := map[string]bool{"atalanta": true}
-	for _, tier := range kits.Names() {
-		most, least := 0, 0 // 进入这一关之前攒下的经验：每关都打 / 不打可选关
-		for _, battle := range battles {
-			level, _ := kits.Level(data, tier, battle)
-			if hi, lo := levelAt(most), levelAt(least); level > hi || level < lo {
-				t.Errorf("%s %s: level %d, but by then it is %d to %d", tier, battle, level, lo, hi)
-			}
-			m, err := kits.Muster(data, tier, battle)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, who := range []string{"hero", "atalanta"} {
-				points := level - 1
-				if free[who] {
-					points++
-				}
-				if spent := data.PicksCost(who, m.Picks[who]); spent < points-1 {
-					t.Errorf("%s %s: %s has %d points and has spent only %d; the kit is behind its moment", tier, battle, who, points, spent)
-				}
-			}
-			chapter := int(battle[0] - '0')
-			if n := m.Reward.Divinity; n > chapter-1 {
-				t.Errorf("%s %s: %d relics in chapter %d; the n-th is only won at the end of chapter n", tier, battle, n, chapter)
-			}
-			if chapter >= 2 && m.Reward.Divinity == 0 {
-				t.Errorf("%s %s: no relic in chapter %d; the lion's pelt is always taken", tier, battle, chapter)
-			}
-			gain := 100
-			if chapter >= 2 {
-				gain = 140
-			}
-			most += gain
-			if !optional[battle] {
-				least += gain
-			}
-		}
 	}
 }

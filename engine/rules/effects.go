@@ -40,6 +40,7 @@ func KnockOut(s *BattleState, u *UnitState, ev *[]Event) {
 	u.Alive = false
 	s.removeMark(u.ID)
 	emit(ev, Event{Type: EvKO, Target: u.ID})
+	behead(s, u, ev)
 }
 
 // AddStatus 施加状态。首领无视控制状态，除非 bypassArmor 为真或正处于破势。
@@ -82,7 +83,7 @@ func AddStagger(u *UnitState, amount int, ev *[]Event) {
 
 // Knockback 把 target 沿 dir 推 steps 格（07-combat-rules §5.1）。
 func Knockback(s *BattleState, target *UnitState, dir Cell, steps int, source string, ev *[]Event) {
-	if !target.Alive || steps <= 0 {
+	if !target.Alive || steps <= 0 || target.Traits.Anchored {
 		return
 	}
 	start := target.Pos

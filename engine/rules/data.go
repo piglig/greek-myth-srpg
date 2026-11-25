@@ -129,6 +129,7 @@ type BattleDef struct {
 	Heights     []string
 	Terrain     []string
 	EscortExits []Cell
+	Escort      string
 	ReachExits  []Cell
 	Targets     []string
 	RescueExits []Cell
@@ -767,6 +768,7 @@ func (d *Data) Battle(id string) (*BattleDef, error) {
 			b.EscortExits = append(b.EscortExits, cell)
 		}
 	}
+	b.Escort = tbl.str("escort", "")
 	for _, id := range stringsOf(tbl.m["targets"]) {
 		found := false
 		for _, bu := range b.Units {
@@ -938,6 +940,7 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 	s.Village = b.Village
 	s.RescueExits = b.RescueExits
 	s.EscortExits = b.EscortExits
+	s.Escort = b.Escort
 	s.ReachExits = b.ReachExits
 	s.Targets = b.Targets
 	for _, e := range b.Units {

@@ -104,6 +104,14 @@ func (s *BattleState) atVillageGate() bool {
 	return true
 }
 
+// EscortID 是护送关里被护送的人。
+func (s *BattleState) EscortID() string {
+	if s.Escort != "" {
+		return s.Escort
+	}
+	return "medea"
+}
+
 // atFarBank 表示我方活着的人全部站在对岸。
 func (s *BattleState) atFarBank() bool {
 	if len(s.ReachExits) == 0 {
@@ -137,7 +145,7 @@ func (s *BattleState) Outcome() string {
 		return "win"
 	}
 	if len(s.EscortExits) > 0 {
-		ally := s.Unit("medea")
+		ally := s.Unit(s.EscortID())
 		if ally == nil || !ally.Alive {
 			return "loss_escort"
 		}
@@ -156,6 +164,8 @@ func (s *BattleState) Outcome() string {
 		if u.Alive {
 			players = players || u.Team == TeamPlayer
 			enemies = enemies || u.Team == TeamEnemy
+		} else if u.Team == TeamEnemy && u.Traits.Regrows && !u.Sealed && u.Regrow > 0 {
+			enemies = true // 没封住的断颈还会长回来
 		}
 	}
 	if !players {

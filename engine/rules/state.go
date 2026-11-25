@@ -66,6 +66,7 @@ type BattleState struct {
 	PreviousMark string
 	Reward       ChapterReward
 	EscortExits  []Cell
+	Escort       string   // 被护送的人的单位 id（不写就是美狄亚）
 	ReachExits   []Cell   // 对岸：我方活着的人全部站上去就赢。
 	SwampRests   int      // 我方有多少人次在沼泽里过了回合结算（可选目标用）。
 	Drowned      int      // 有多少敌人被推进深水淹没（可选目标用）。
@@ -293,6 +294,9 @@ func (s *BattleState) AppendSignature(buf []byte) []byte {
 		buf = binary.AppendVarint(buf, int64(u.PostMove))
 		buf = appendKVs(buf, u.Statuses)
 		buf = appendKVs(buf, u.Cooldowns)
+		if u.Traits.Regrows {
+			buf = append(buf, byte(u.Regrow), byte(u.Regrown), flags(u.Sealed))
+		}
 	}
 	if c := s.Cave; c != nil {
 		buf = appendStr(buf, c.Last)
@@ -347,7 +351,7 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 	dst.Reward, dst.PreviousMark = s.Reward, s.PreviousMark
 	dst.Village = s.Village
 	dst.RescueExits = s.RescueExits
-	dst.EscortExits = s.EscortExits
+	dst.EscortExits, dst.Escort = s.EscortExits, s.Escort
 	dst.ReachExits, dst.SwampRests, dst.Drowned = s.ReachExits, s.SwampRests, s.Drowned
 	dst.Fires, dst.FireEver, dst.Targets = append(dst.Fires[:0], s.Fires...), s.FireEver, s.Targets
 	dst.Grid, dst.Round, dst.Phase, dst.MarkedID, dst.mc = s.Grid, s.Round, s.Phase, s.MarkedID, s.mc

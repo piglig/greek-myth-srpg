@@ -37,6 +37,10 @@ var targets: Array = []
 var targets_left := 0
 var targets_scorched := 0
 var target_result := ""
+## What the engine says of the battle ("" while it goes on), and how often the head that
+## grew back most has grown back (the hydra).
+var outcome := ""
+var most_regrown := 0
 var record_orders := false
 var orders: Array = []
 var rescue_result := ""
@@ -58,6 +62,8 @@ func apply(d: Dictionary) -> void:
 		reach_result = d.reach_result
 		swamp_rests = int(d.get("swamp_rests",0))
 	drowned = int(d.get("drowned",drowned))
+	outcome = str(d.get("outcome",outcome))
+	most_regrown = int(d.get("most_regrown",most_regrown))
 	if d.has("fires"):
 		fires = d.fires
 		fire_next = GoEngine.cells(d.fire_next)

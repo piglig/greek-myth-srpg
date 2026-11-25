@@ -48,6 +48,11 @@ var post_move := 0
 
 var alive := true
 var hidden := false
+## A hydra's head: rounds until its stump grows a head again (0: not a stump), how often
+## it has, and whether fire has sealed it.
+var regrow := 0
+var regrown := 0
+var sealed := false
 
 
 ## 用引擎发来的数据刷新。
@@ -88,6 +93,9 @@ func apply(d: Dictionary) -> void:
 	post_move = d["post_move"]
 	alive = d["alive"]
 	hidden = d["hidden"]
+	regrow = int(d.get("regrow",0))
+	regrown = int(d.get("regrown",0))
+	sealed = bool(d.get("sealed",false))
 
 
 ## The folder of sprite sheets this unit is drawn from.

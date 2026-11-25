@@ -567,6 +567,10 @@ func _status(at: int, site: Dictionary) -> String:
 	var outcomes: Dictionary = entry.get("outcomes",{})
 	if at == 1 and str(entry.get("id","")).begins_with("2-"):
 		if outcomes.has(site.id): return str(outcomes[site.id])
+		if site.id == "2-S":
+			# The side road is for those who did not win the feast: Chiron lies wounded here.
+			if entry.get("chiron_joined",false): return "无需前往"
+			return "可出发" if outcomes.has("2-1") else "尚未抵达"
 		if site.id == entry.id: return "可出发"
 		return "尚未抵达" if Save.BATTLES.has(site.id) else "尚未开放"
 	if at != 0: return "尚未开放"
@@ -596,8 +600,10 @@ func _story(who: String) -> String:
 	if entry.get("id") == "2-3":
 		return "巨蟹的壳正面砍不动。绕到它背后，或者干脆把它顶进深水里，它自己爬不上来。"
 	if entry.get("id") == "2-4":
-		if entry.get("outcomes",{}).has("2-4"): return "祭坛的火灭了。再往里就是许德拉的巢，路我还在探，今晚先歇着。"
 		return "祭坛在一片林子里，女祭司躲在树后给别人治伤。林子怕火，美狄亚的巫火一点就着。"
+	if entry.get("id") == "2-5":
+		if entry.get("outcomes",{}).has("2-5"): return "沼泽静下来了。往北是斯廷法利斯湖，路我还在探，今晚好好歇一夜。"
+		return "它的头砍了会再长。砍下来就让美狄亚往断口上烧，或者先点着再砍。一个一个来，别同时惹五个。"
 	return "我已把下一处落脚点圈在图上。先看路口，再看敌人能从哪边绕到你背后。"
 
 # --- Drawing ------------------------------------------------------------------------
@@ -2085,7 +2091,8 @@ func _recruit() -> void:
 	var x := DETAIL.position.x+20
 	if picked.recruit == "":
 		_title("眼下没有人可招","招募")
-		Px.text(body,"往前走，会有别的英雄听说你们。",Rect2(x,DETAIL.position.y+90,MEASURE,0),Px.BODY,Px.MUTED)
+		var early := int(str(entry.get("id","1-1")).get_slice("-",0)) < Save.HIRING_OPENS
+		Px.text(body,"这一路只容得下两个人并肩。过了涅墨亚，队伍能多带一个人，那时会有英雄来投。" if early else "往前走，会有别的英雄听说你们。",Rect2(x,DETAIL.position.y+90,MEASURE,0),Px.BODY,Px.MUTED)
 		return
 	var offer: Dictionary = offers.filter(func(candidate): return candidate.id == picked.recruit)[0]
 	var kind: Dictionary = Save.RECRUITS[offer.kind]
@@ -2156,7 +2163,10 @@ func _march() -> void:
 	if picked.march < 0 or picked.march >= sites.size():
 		picked.march = 0
 		for i in sites.size():
-			if _status(chapter,sites[i]) == "可出发": picked.march = i
+			# The main road first; a side road only if nothing else is open.
+			if _status(chapter,sites[i]) == "可出发" and (not sites[i].optional or picked.march == 0): picked.march = i
+		for i in sites.size():
+			if _status(chapter,sites[i]) == "可出发" and not sites[i].optional: picked.march = i
 	var rows_data := []
 	for i in sites.size():
 		var state := _status(chapter,sites[i])
@@ -2231,7 +2241,7 @@ func _march() -> void:
 	if state == "可出发":
 		go = Px.primary(body,"出征",Rect2(DETAIL.end.x-20-160,DETAIL.end.y-42,160,30),_depart.bind(site))
 	else:
-		var why: String = {"尚未开放":"这一章还没有开放。","尚未抵达":"先打完前面的战斗。","支线待解锁":"在林道救出至少两名村民，这条路才会打开。","未到访":"这一趟已经错过了。","已通关":"这里已经打完了。"}.get(state,state)
+		var why: String = {"尚未开放":"这一章还没有开放。","尚未抵达":"先打完前面的战斗。","支线待解锁":"在林道救出至少两名村民，这条路才会打开。","未到访":"这一趟已经错过了。","无需前往":"喀戎已经在队里了，这条路不用走。","已通关":"这里已经打完了。"}.get(state,state)
 		Px.text(body,why,Rect2(x,DETAIL.end.y-34,MEASURE,0),Px.SMALL,Px.MUTED)
 	if not toggles.is_empty():
 		for row in rows: row.focus_neighbor_right = row.get_path_to(toggles[0])
@@ -2268,6 +2278,9 @@ func _turn_chapter(step: int) -> void:
 
 func _depart(site: Dictionary) -> void:
 	var next: Dictionary = entry.duplicate(true)
+	# A side road leaves the journey where it stands: the battle is told where to come back to.
+	if site.optional and str(site.id) != str(entry.get("id","")): next.resume = str(entry.get("id",""))
+	else: next.erase("resume")
 	next.id = site.id
 	next.choose_route = false
 	next.campaign = persistent

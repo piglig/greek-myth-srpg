@@ -372,6 +372,11 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 	}
 	var tinder []rules.Cell
 	if len(kindlers) > 0 {
+		for _, o := range s.Units {
+			if s.StumpAt(o.Pos) == o {
+				tinder = append(tinder, o.Pos)
+			}
+		}
 		seen := map[rules.Cell]bool{}
 		for _, e := range enemies {
 			if s.Grid.TerrainAt(e.Pos) != rules.Forest {

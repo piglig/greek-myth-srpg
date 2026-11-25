@@ -87,6 +87,10 @@ func describeOne(s *BattleState, e *Event) string {
 		return s.Unit(e.Unit).Name + " 撤出了宴地"
 	case EvRescued:
 		return "村民已从西侧山道撤离"
+	case EvCauterize:
+		return fmt.Sprintf("  %s 的断颈被火封住了", nameOf(s, e.Target))
+	case EvRegrow:
+		return fmt.Sprintf("  %s 的断颈又长出了头", nameOf(s, e.Target))
 	case EvIgnite:
 		return fmt.Sprintf("  %s 的林地烧起来了", cellText(e.To))
 	case EvBurnOut:

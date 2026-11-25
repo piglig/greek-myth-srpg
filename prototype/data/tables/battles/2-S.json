@@ -1,0 +1,138 @@
+{
+  "id": "2-S",
+  "title": "2-S 负伤的半人马",
+  "order": 7,
+  "escort": "chiron",
+  "escort_exits": [
+    [
+      12,
+      3
+    ],
+    [
+      12,
+      4
+    ],
+    [
+      12,
+      5
+    ],
+    [
+      11,
+      4
+    ]
+  ],
+  "heights": [
+    "1100000000111",
+    "1110100101111",
+    "1110110110111",
+    "1111100101111",
+    "1101110111111",
+    "1110100101111",
+    "1111000011111",
+    "1110000001111",
+    "1100000000111"
+  ],
+  "terrain": [
+    "ffsswwwwssfff",
+    "f..s.ww.s...f",
+    "...s..w..s...",
+    ".....sw.s....",
+    "..s...s......",
+    "...s.ww.s....",
+    "....swws.....",
+    "f..sswwss...f",
+    "ffsswwwwssfff"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        0,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "chiron",
+      "def": "chiron",
+      "team": "player",
+      "pos": [
+        0,
+        3
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "snake_1",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        4,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_2",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_3",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        8,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_1",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        7,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_2",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        9,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_4",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        10,
+        6
+      ],
+      "facing": "W"
+    }
+  ]
+}

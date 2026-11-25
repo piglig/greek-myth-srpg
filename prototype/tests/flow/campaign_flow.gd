@@ -115,6 +115,7 @@ func _run() -> void:
 		await _new_game()
 	if failures.is_empty() or _scene().scene_file_path.ends_with("camp.tscn"):
 		await _old_save()
+		await _side_road()
 		await _verdicts()
 	_finish()
 
@@ -135,8 +136,8 @@ func _new_game() -> void:
 	_check("purse starts with the opening coins",_coins() == Save.STARTING_COINS,_coins())
 	_check("hero has learnt nothing yet",saved.picks.get("hero",[]).is_empty(),saved.picks.get("hero"))
 	_check("atalanta holds her starting technique",saved.picks.get("atalanta",[]) == [Save.STARTERS.atalanta],saved.picks.get("atalanta"))
-	# Each hero is one person, and only Iphicles has come this far at the start.
-	_check("the drillmaster has someone on offer",Save.offers(saved).size() == 1 and Save.offers(saved)[0].kind == "iphicles",Save.offers(saved))
+	# Heroes come with the seats for them: the first chapter has one seat, and nobody to hire.
+	_check("nobody is for hire in the first chapter",Save.offers(saved).is_empty(),Save.offers(saved))
 	_check("nobody is asking anything at the start",camp.asking == "",camp.asking)
 	_check("everyone starts at level 1",_level("hero") == 1 and _level("atalanta") == 1)
 
@@ -147,7 +148,6 @@ func _new_game() -> void:
 	if not await _end_battle(true): return
 	await _first_report()
 	await _sell_spoils()
-	await _hire()
 	await _swap_carried()
 	if not await _lose_a_battle(): return
 	await _to_the_second_chapter()
@@ -211,6 +211,9 @@ func _cannot_hire_when_poor() -> void:
 	var camp := _scene()
 	camp._go("recruit")
 	await _frames()
+	if Save.offers(camp.entry).is_empty():
+		_check("with nobody to hire there is nothing to press",_button("招募") == null and _button("还差") == null)
+		return
 	var cheapest := 9999
 	for offer: Dictionary in Save.offers(camp.entry): cheapest = mini(cheapest,int(offer.fee))
 	if _coins() < cheapest:
@@ -270,6 +273,7 @@ func _end_battle(won: bool) -> bool:
 		if not field.state.escort_exits.is_empty(): field.state.escort_result = "win"
 		if not field.state.reach_exits.is_empty(): field.state.reach_result = "win"
 		if not field.state.targets.is_empty(): field.state.target_result = "win"
+		if which == "2-5": field.state.outcome = "win"
 	else:
 		field.state.unit("hero").alive = false
 	field._check_end()
@@ -299,7 +303,7 @@ func _first_report() -> void:
 	_check("the beaten left materials in the bag",spoils > 0,_bag())
 	_check("the tunic is still on",saved.purse.worn.get("hero",{}).get("body","") == "tunic")
 	var open: Array = Save.offers(saved).map(func(offer): return offer.kind)
-	_check("clearing 1-1 brought two more heroes to the camp",open == ["iphicles","phalerus","ancaeus"],open)
+	_check("clearing 1-1 brings nobody yet: heroes come with the second chapter",open.is_empty(),open)
 	if not await _press("去分配技能点"): return
 	_check("the report is gone",camp.asking == "",camp.asking)
 	_check("it opened the technique tree",camp.screen == "party" and camp.page == "tree","%s / %s" % [camp.screen,camp.page])
@@ -353,8 +357,8 @@ func _hire() -> void:
 	_check("the hire is on the roster",saved.roster.size() == 1 and saved.roster[0].name == pick.name,saved.get("roster"))
 	_check("the hire left the list",Save.offers(saved).size() == listed.size()-1 and not Save.offers(saved).any(func(offer): return offer.kind == pick.kind),Save.offers(saved))
 	var who: String = saved.roster[0].id
-	# The first chapter has one seat beside the protagonist, and Atalanta is in it.
-	_check("the hire waits in camp while the one seat is taken",not saved.deploy.has(who) and saved.deploy == ["atalanta"],saved.get("deploy"))
+	# A new hand marches at once if there is a seat free, and the second chapter has just opened one.
+	_check("the hire takes the new seat at once",saved.deploy.has(who) and saved.deploy.size() <= Save.seats(str(saved.id)),saved.get("deploy"))
 	_check("the hire starts with half the hero's experience",int(saved.xp.get(who,-1)) == int(saved.xp.hero)/2,saved.xp)
 	_check("the hire has a plain attack",camp._basic(who) != "",camp._basic(who))
 	_check("and one technique besides",camp._known(who).size() == 1,camp._known(who))
@@ -448,7 +452,7 @@ func _lose_a_battle() -> bool:
 	_check("a lost battle pays nothing",int(saved.purse.coins) == int(before.purse.coins),"%s -> %s" % [before.purse.coins,saved.purse.coins])
 	_check("a lost battle teaches nothing",saved.xp == before.xp,saved.xp)
 	_check("a lost battle leaves no spoils",saved.purse.bag == before.purse.bag,saved.purse.bag)
-	_check("the roster is kept",saved.roster.size() == before.roster.size())
+	_check("the roster is kept",saved.get("roster",[]).size() == before.get("roster",[]).size())
 	await _press("回营整备")
 	return true
 
@@ -456,7 +460,7 @@ func _lose_a_battle() -> bool:
 ## Wins every battle from here until the second chapter's second battle is cleared.
 func _to_the_second_chapter() -> void:
 	var seen := {}
-	for round in 11:
+	for round in 12:
 		var camp := _scene()
 		var saved := _disk()
 		if camp.asking == "cheer":
@@ -472,9 +476,14 @@ func _to_the_second_chapter() -> void:
 			camp._go("trader")
 			await _frames()
 			_check("the second chapter's goods are on the shelf",_button("青铜胸甲") != null)
+			# With the second seat come the first heroes for hire: the common and the rare.
+			var kinds := Save.offers(_disk()).map(func(offer): return offer.kind)
+			_check("four heroes have come, the two great ones not yet",kinds.size() == 4 and not kinds.has("idas") and not kinds.has("eurytion"),kinds)
+			await _hire()
+			camp = _scene()
 		saved = _disk()
 		var target: String = saved.id
-		if saved.outcomes.get("2-4","") == "已通关": break
+		if saved.outcomes.get("2-5","") == "已通关": break
 		var before := saved.duplicate(true)
 		camp._go("march")
 		await _frames()
@@ -538,7 +547,12 @@ func _to_the_second_chapter() -> void:
 	_check("2-2 is cleared",last.outcomes.get("2-2","") == "已通关",last.outcomes)
 	_check("2-3 is cleared",last.outcomes.get("2-3","") == "已通关",last.outcomes)
 	_check("2-4 is cleared",last.outcomes.get("2-4","") == "已通关",last.outcomes)
-	_check("the save rests at the altar",last.id == "2-4",last.id)
+	_check("2-5 is cleared",last.outcomes.get("2-5","") == "已通关",last.outcomes)
+	_check("the save rests at the hydra's lair",last.id == "2-5",last.id)
+	_check("the hydra is to be judged",int(last.get("verdict",0)) == 2,last.get("verdict"))
+	var roads: Array = _scene().Routes.data[1].sites
+	for site: Dictionary in roads:
+		if site.id == "2-S": _check("with Chiron already won at the feast, the side road is not needed",_scene()._status(1,site) == "无需前往",_scene()._status(1,site))
 	_check("chiron is with the party",last.get("chiron_joined",false))
 	_check("medea is with the party",last.get("medea_joined",false))
 	var camp := _scene()
@@ -608,6 +622,46 @@ func _lean(way: String) -> bool:
 			await _frames(3)
 			return true
 	return _check("the road「%s」is there" % way,false)
+
+
+## The second chapter for someone who did not win the feast: Chiron lies wounded off the
+## road, and bringing him to the spring is how he joins.
+func _side_road() -> void:
+	_begin("the wounded centaur")
+	var at := {"id":"2-2","stage":"camp","picks":{"hero":["iron_arm"],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":false,
+		"medea_joined":true,"outcomes":{"1-1":"已通关","1-2":"已通关","1-4":"已通关","2-1":"已通关"},"choose_route":false,
+		"equipped_relic":"lion_pelt","relics":["lion_pelt"],"divinity":1,"powers":[],"boon":"moon_hunt",
+		"purse":{"coins":300,"paid":["1-1","1-2","1-4","1-5","2-1"]}}
+	_check("the save can be written",Save.write_entry(at) == OK)
+	get_tree().change_scene_to_file("res://camp.tscn")
+	await _frames(4)
+	if not await _arrive("camp.tscn"): return
+	var camp := _scene()
+	camp._go("march")
+	await _frames()
+	var sites: Array = camp.Routes.data[1].sites
+	var side := -1
+	for i in sites.size():
+		if sites[i].id == "2-S": side = i
+	_check("the side road is open",side >= 0 and camp._status(1,sites[side]) == "可出发",camp._status(1,sites[side]) if side >= 0 else "missing")
+	_check("the map still opens on the main road",sites[camp.picked.march].id == "2-2",sites[camp.picked.march].id)
+	camp._pick(side,"march")
+	await _frames()
+	if not await _press("出征"): return
+	if not await _battle_ready(): return
+	var field := _scene()
+	_check("the battle is the side road",field._battle_id == "2-S",field._battle_id)
+	_check("Chiron is there to be led",field.state.unit("chiron") != null and field.state.unit("chiron").team == Defs.Team.PLAYER)
+	_check("the spring is marked",not field.state.escort_exits.is_empty())
+	_check("the engine is still fighting",field.state.escort_result == "",field.state.escort_result)
+	if not await _end_battle(true): return
+	var saved := _disk()
+	_check("the journey is back where it stood",saved.id == "2-2",saved.id)
+	_check("the side road is done",saved.outcomes.get("2-S","") == "已通关",saved.outcomes)
+	_check("Chiron has joined",saved.get("chiron_joined",false))
+	_check("the main road was not touched",not saved.outcomes.has("2-2"),saved.outcomes)
+	camp = _scene()
+	_check("he is in camp to be chosen",camp._reserves().has("chiron"),camp._reserves())
 
 
 ## A save written before hires had names, things had counts and members had experience.

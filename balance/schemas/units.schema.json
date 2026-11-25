@@ -104,6 +104,8 @@
             "const": true
           },
           "turn_on_guard": {"const": true},
+          "anchored": {"const": true, "description": "cannot be pushed, thrown or moved"},
+          "regrows": {"const": true, "description": "falls to a stump that grows a head again unless fire seals it"},
           "marsh_stride": {"const": true, "description": "swamp and shallows cost 1 to cross; resting in swamp does not poison"},
           "guest": {
             "const": true

@@ -102,7 +102,11 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 			}
 			v += w.EnemyHP * toughness * float64(u.MaxHP-max(u.HP, 0)) / float64(u.MaxHP)
 			if !u.Alive {
-				v += float64(w.EnemyKO * toughness)
+				if u.Traits.Regrows && !u.Sealed && u.Regrow > 0 {
+					v += float64(w.EnemyKO * toughness * 0.35) // 会长回来的头只算打倒了一小半
+				} else {
+					v += float64(w.EnemyKO * toughness)
+				}
 				continue
 			}
 			// 还没结算的伤害：身上的灼烧和中毒，脚下的火。
@@ -130,7 +134,7 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 			}
 		case rules.TeamPlayer:
 			// 倒下就输的人：主角，1-3 里负伤的喀戎，护送关里的美狄亚。人会一直护着他们。
-			vital := u.ID == "hero" || u.ID == "wounded_chiron" || (len(s.EscortExits) > 0 && u.ID == "medea")
+			vital := u.ID == "hero" || u.ID == "wounded_chiron" || (len(s.EscortExits) > 0 && u.ID == s.EscortID())
 			if !u.Alive {
 				if vital {
 					v -= w.HeroKO
@@ -223,7 +227,7 @@ func (ev *Evaluator) Positional(s *rules.BattleState) float64 {
 		return float64(best)
 	}
 	for _, p := range players {
-		if len(s.EscortExits) > 0 && p.ID == "medea" {
+		if len(s.EscortExits) > 0 && p.ID == s.EscortID() {
 			goal -= ev.W.Goal * nearest(p, s.EscortExits)
 		}
 		if len(s.ReachExits) > 0 {

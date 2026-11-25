@@ -197,6 +197,7 @@
       }
     },
     "targets": {"type": "array", "minItems": 1, "uniqueItems": true, "description": "ids of the enemies to be killed: when all are down the battle is won", "items": {"type": "string"}},
+    "escort": {"type": "string", "description": "id of the unit to be brought to an escort exit (Medea if not given)"},
     "reach_exits": {"type": "array", "minItems": 1, "uniqueItems": true, "description": "the far bank: every living player unit standing here wins", "items": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2, "maxItems": 2}},
     "escort_exits": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2, "maxItems": 2}},
     "rescue_exits": {

@@ -8,10 +8,10 @@ type ChapterReward struct {
 	Charms        map[string]string `json:"charms,omitempty"`
 	EquippedRelic string            `json:"equipped_relic"`
 	// Worn 是这一场带上的圣物，不超过 RelicSlots(Divinity) 件。没给时按老办法只看 EquippedRelic。
-	Worn []string `json:"relics_worn,omitempty"`
-	Boon          string            `json:"boon"`
-	Divinity      int               `json:"divinity"`
-	Powers        []string          `json:"powers,omitempty"`
+	Worn     []string `json:"relics_worn,omitempty"`
+	Boon     string   `json:"boon"`
+	Divinity int      `json:"divinity"`
+	Powers   []string `json:"powers,omitempty"`
 }
 
 // RelicSlots 是拿到 relics 件圣物时的圣物栏数：1 栏起，第 2、4、6 件各加 1 栏。

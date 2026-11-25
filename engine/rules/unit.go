@@ -12,6 +12,7 @@ type KV struct {
 type Traits struct {
 	PhysicalImmune, Block, ForestStride, Flying, CannotAttackAdjacent, HunterMark bool
 	IronArm, ShieldWall, Intercept, Patience, Skirmish, Undead, MarshStride       bool
+	Anchored, Regrows                                                             bool     // 许德拉的头：推不动、摔不动；倒下会再生
 	Other                                                                         []string // 规则不关心的特性（guest、anti_air……）
 }
 
@@ -25,6 +26,10 @@ func (t *Traits) flag(key string) *bool {
 		return &t.ForestStride
 	case "marsh_stride":
 		return &t.MarshStride
+	case "anchored":
+		return &t.Anchored
+	case "regrows":
+		return &t.Regrows
 	case "flying":
 		return &t.Flying
 	case "cannot_attack_adjacent":
@@ -110,6 +115,9 @@ type UnitState struct {
 	// 移动撤销用的快照
 	undoOK              bool
 	Scorched            bool // 被地上的火烧到过
+	Regrow              int  // 断颈还要几次回合结算长回来（0 = 不是断颈）
+	Regrown             int  // 已经长回来过几次
+	Sealed              bool // 断颈被火封住了
 	undoPos, undoFacing Cell
 
 	index int // 在 BattleState.Units 里的下标
@@ -337,7 +345,7 @@ func (u *UnitState) Index() int { return u.index }
 func (t *Traits) Names() []string {
 	var out []string
 	for _, k := range [...]string{"physical_immune", "block", "forest_stride", "flying", "cannot_attack_adjacent",
-		"hunter_mark", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "undead", "marsh_stride"} {
+		"hunter_mark", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "undead", "marsh_stride", "anchored", "regrows"} {
 		if t.Has(k) {
 			out = append(out, k)
 		}

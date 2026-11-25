@@ -1,0 +1,12 @@
+{
+  "wolf": [["wolf_hide", 0.6], ["wolf_fang", 0.5], ["bone", 0.3], ["fang_charm", 0.06], ["wolf_cape", 0.03]],
+  "bandit": [["broken_shield", 0.4], ["coin_pouch", 0.35], ["rope", 0.3], ["fist_wrap", 0.05], ["leather", 0.04], ["item_stone", 0.15]],
+  "bandit_archer": [["arrows", 0.6], ["rope", 0.3], ["coin_pouch", 0.25], ["feather", 0.06], ["item_javelin", 0.12]],
+  "bandit_chief": [["coin_pouch", 1.0], ["bronze_scrap", 0.6], ["belt_wide", 0.15], ["gauntlet", 0.12], ["item_potion", 0.3]],
+  "boar": [["boar_hide", 0.7], ["boar_tusk", 0.7], ["bone", 0.4]],
+  "centaur": [["horsehair", 0.6], ["wine_skin", 0.5], ["bronze_scrap", 0.3], ["trail_wraps", 0.06], ["item_potion", 0.1]],
+  "lion": [["lion_mane", 1.0], ["claw", 1.0]],
+  "marsh_snake": [["snake_skin", 0.7], ["venom_sac", 0.08], ["item_antidote", 0.2]],
+  "hera_priestess": [["sacred_ribbon", 0.7], ["incense", 0.1], ["item_potion", 0.35], ["cup", 0.05]],
+  "giant_crab": [["crab_shell", 0.7], ["crab_claw", 0.1], ["item_potion", 0.1]]
+}

@@ -1,0 +1,40 @@
+{
+  "starting_coins": 60,
+  "pay": {
+    "1": 60,
+    "2": 80
+  },
+  "aside_pays": 2,
+  "sell_for": 0.5,
+  "xp": {
+    "1": 100,
+    "2": 140
+  },
+  "xp_need": {
+    "first": 100,
+    "more_each_level": 20
+  },
+  "seats": {
+    "1": 1,
+    "2": 2,
+    "3": 3
+  },
+  "kit_slots": 2,
+  "relic_slots": {
+    "first": 1,
+    "one_more_every": 2,
+    "most": 4
+  },
+  "optional_battles": [
+    "1-3",
+    "2-S"
+  ],
+  "only_if_skipped": {
+    "2-S": "1-3"
+  },
+  "free_first_technique": {
+    "atalanta": "vital_shot",
+    "chiron": "purify_arrow",
+    "medea": "frailty"
+  }
+}

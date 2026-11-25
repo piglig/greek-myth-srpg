@@ -1,4 +1,6 @@
 {
+  "hydra_bite": {"name": "噬咬", "mult": 1.2, "type": "physical", "min_range": 1, "max_range": 2},
+  "hydra_spit": {"name": "毒涎", "mult": 0.8, "type": "divine", "min_range": 2, "max_range": 5, "ranged": true, "status": "poisoned", "rounds": 2, "cooldown": 1},
   "hydra_venom": {"name": "剧毒", "mult": 0, "type": "divine", "min_range": 1, "max_range": 3, "ranged": true, "status": "poisoned", "rounds": 3, "cooldown": 3, "relic": true},
   "sacred_staff": {"name": "石榴杖", "mult": 0.8, "type": "divine", "min_range": 1, "max_range": 2},
   "hera_blessing": {"name": "天后的赐福", "heal": 8, "min_range": 1, "max_range": 3},

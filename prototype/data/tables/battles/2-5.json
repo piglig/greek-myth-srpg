@@ -1,0 +1,103 @@
+{
+  "id": "2-5",
+  "title": "2-5 许德拉",
+  "order": 11,
+  "heights": [
+    "000000000000000",
+    "000011111110000",
+    "001111111111100",
+    "011111111111110",
+    "111111444111110",
+    "111111444111111",
+    "111111444111110",
+    "011111111111110",
+    "001111111111100",
+    "000011111110000",
+    "000000000000000"
+  ],
+  "terrain": [
+    "wwwwsssssswwwww",
+    "wwss.......ssww",
+    "ws...........sw",
+    "s.............s",
+    "..............s",
+    "...............",
+    "..............s",
+    "s.............s",
+    "ws...........sw",
+    "wwss.......ssww",
+    "wwwwsssssswwwww"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        0,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "head_1",
+      "def": "hydra_head",
+      "team": "enemy",
+      "pos": [
+        5,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "head_2",
+      "def": "hydra_head",
+      "team": "enemy",
+      "pos": [
+        5,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "head_3",
+      "def": "hydra_head",
+      "team": "enemy",
+      "pos": [
+        7,
+        3
+      ],
+      "facing": "N"
+    },
+    {
+      "id": "head_4",
+      "def": "hydra_head",
+      "team": "enemy",
+      "pos": [
+        7,
+        7
+      ],
+      "facing": "S"
+    },
+    {
+      "id": "head_5",
+      "def": "hydra_head",
+      "team": "enemy",
+      "pos": [
+        9,
+        5
+      ],
+      "facing": "E"
+    }
+  ]
+}

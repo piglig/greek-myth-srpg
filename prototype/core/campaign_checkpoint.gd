@@ -2,9 +2,39 @@ extends RefCounted
 ## The Corinth checkpoint also carries the resolved orders up to the last player decision.
 ## Where the save lives. A variable so the flow test can use a file of its own.
 static var PATH := "user://chapter-one.cfg"
-const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4"]
+const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5"]
 
-const STARTING_COINS := 60
+## The numbers the campaign runs on, and the tables of things, spoils and heroes, are
+## data/tables/*.json: the rules engine reads the same files, so that what a simulated
+## player owns at each battle can be checked against what could be bought by then.
+static var RULES: Dictionary = _table("campaign")
+static var STARTING_COINS: int = int(RULES.starting_coins)
+
+static func _table(name: String) -> Dictionary:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tables/%s.json" % name))
+	if not parsed is Dictionary:
+		push_error("data/tables/%s.json is missing or is not a table" % name)
+		return {}
+	return _whole(parsed)
+
+## JSON has one kind of number; a price of 55 comes back as 55.0. Whole numbers are made
+## whole again, all the way down.
+static func _whole(value: Variant) -> Variant:
+	if value is float and value == floorf(value): return int(value)
+	if value is Dictionary:
+		for key: Variant in value: value[key] = _whole(value[key])
+	elif value is Array:
+		for i in value.size(): value[i] = _whole(value[i])
+	return value
+
+## What a chapter's table says for a battle of that chapter; chapters past the last one
+## written take the last.
+static func _by_chapter(table: Dictionary, battle: String) -> int:
+	var chapter := int(battle.get_slice("-",0))
+	var best := 0
+	for key: String in table:
+		if int(key) <= chapter: best = int(table[key])
+	return best
 ## Where things are worn. A member wears one thing per place; every charm names its place.
 const SLOTS := [["hand","手部"],["body","身体"],["foot","足部"],["trinket","饰物"]]
 
@@ -25,84 +55,16 @@ static func slot_name(key: String) -> String:
 ## 生命 9, 力量 38, 防御 36, 意志 24, 神性 34, 移动 85, 跳跃 48; a point taken away gives back
 ## half its worth; 稀有 ×1.08 and 史诗 ×1.18; rounded to 5. Change a `mods` and the price
 ## should move with it.
-const GOODS := {
-	"olive": {"unique":true,"rarity":"common","slot":"hand","name":"橄榄枝","price":120,"group":"守御","effect":"防御时回复 4 点生命。","lore":"山麓的野橄榄枝，用一小段红线系在盾带上。","icon":0},
-	"wrist": {"unique":true,"rarity":"rare","mods":{"move":-1},"slot":"hand","name":"牛皮腕带","price":120,"group":"攻势","effect":"击退距离 +1，移动 −1。","lore":"赶车人缝的双层牛皮。收紧铜扣，手腕就能稳稳抵住盾缘。","icon":1},
-	"brooch": {"unique":true,"rarity":"rare","mods":{"wil":2,"move":-1},"slot":"body","name":"戈耳戈肩扣","price":90,"group":"守御","effect":"意志 +2，移动 −1。","lore":"守夜的士兵把这张青铜鬼面朝外别在披风上。","icon":3},
-	"anklet": {"unique":true,"rarity":"common","mods":{"jump":1,"str":-2},"slot":"foot","name":"斥候踝带","price":80,"group":"行军","effect":"跳跃 +1，力量 −2。","lore":"山道信使缠在脚踝上的细带，银翼磨得只剩浅浅的羽纹。","icon":4},
-	"stone": {"unique":true,"rarity":"rare","mods":{"move":1,"def":-2},"slot":"trinket","name":"路标石","price":150,"group":"行军","effect":"移动 +1，防御 −2。","lore":"石上的回纹被指尖磨平，仍能辨出通往科林斯的方向。","icon":2,"chapter":2},
-	"glove_hide": {"slot":"hand","name":"皮手套","rarity":"common","price":55,"mods":{"def":1},"lore":"牧人冬天戴的羊皮手套，掌心磨得发亮。"},
-	"fist_wrap": {"slot":"hand","name":"拳带","rarity":"common","price":55,"mods":{"str":1},"lore":"角力场上缠手用的牛皮条。"},
-	"bracer_bronze": {"slot":"hand","name":"青铜护腕","rarity":"common","price":65,"mods":{"def":2,"jump":-1},"lore":"一对沉手的青铜护腕，挡得住刀，也拖得慢人。"},
-	"ring_oath": {"slot":"hand","name":"誓约指环","rarity":"rare","price":95,"mods":{"wil":3},"lore":"内圈刻着一句誓词，字迹已经磨平了一半。"},
-	"gauntlet": {"slot":"hand","name":"铁臂甲","rarity":"rare","price":115,"mods":{"str":2,"def":1,"jump":-1},"lore":"头目们才用得起的整片臂甲。"},
-	"red_thread": {"slot":"hand","name":"红线团","rarity":"epic","price":180,"mods":{"wil":2,"move":1},"lore":"克里特来的红线。握着它的人，据说不会迷路。","chapter":2},
-	"tunic": {"slot":"body","name":"亚麻短衣","rarity":"common","price":45,"mods":{"hp":3},"lore":"洗得发白的短衣，胜在合身。"},
-	"belt_wide": {"slot":"body","name":"宽皮带","rarity":"common","price":75,"mods":{"hp":2,"str":1},"lore":"勒紧腰腹，发力时不泄气。"},
-	"leather": {"slot":"body","name":"皮甲","rarity":"common","price":90,"mods":{"def":2},"lore":"几层硬牛皮缝成的胸甲。"},
-	"cloak_travel": {"slot":"body","name":"旅人斗篷","rarity":"rare","price":100,"mods":{"wil":2,"hp":3},"lore":"走过远路的人才有的厚斗篷，风雨都认得它。"},
-	"scale": {"slot":"body","name":"鳞甲","rarity":"rare","price":130,"mods":{"def":4,"move":-1},"lore":"铜片一片压一片，走起来哗哗作响。"},
-	"cuirass": {"slot":"body","name":"青铜胸甲","rarity":"epic","price":225,"mods":{"def":5,"hp":4,"move":-1},"lore":"整块青铜敲成的胸甲，照得出人影。","chapter":2},
-	"wolf_cape": {"slot":"body","name":"狼皮披肩","rarity":"rare","price":100,"mods":{"hp":4,"str":1},"lore":"整张狼皮连着头，披在肩上还带着林子的气味。","loot":true},
-	"sandal": {"slot":"foot","name":"草鞋","rarity":"common","price":85,"mods":{"move":1,"def":-1},"lore":"轻，快，不经踩。"},
-	"boots": {"slot":"foot","name":"牧人皮靴","rarity":"common","price":65,"mods":{"jump":1},"lore":"山上放羊的人穿的高帮靴。"},
-	"greaves": {"slot":"foot","name":"胫甲","rarity":"rare","price":95,"mods":{"def":2},"lore":"扣在小腿上的青铜片，方阵里人人都有一对。"},
-	"trail_wraps": {"slot":"foot","name":"山行绑腿","rarity":"rare","price":105,"mods":{"jump":2,"str":-1},"lore":"半人马的同伴们用的绑腿，翻山不费力。"},
-	"wingfoot": {"slot":"foot","name":"飞翼凉鞋","rarity":"epic","price":180,"mods":{"move":1,"jump":1},"lore":"鞋跟上钉着一对小翅膀。没人说得清它是真的还是仿的。","chapter":2},
-	"feather": {"slot":"trinket","name":"鹰羽","rarity":"common","price":65,"mods":{"jump":1},"lore":"山鹰落下的一根长羽，别在发间。"},
-	"fang_charm": {"slot":"trinket","name":"狼牙坠","rarity":"common","price":55,"mods":{"str":1},"lore":"头狼的牙，穿了孔挂在颈上。"},
-	"cup": {"slot":"trinket","name":"祭酒杯","rarity":"rare","price":75,"mods":{"hp":3,"wil":1},"lore":"祭酒用的小杯。出发前斟满，洒一半给大地。"},
-	"necklace": {"slot":"trinket","name":"琥珀项链","rarity":"rare","price":70,"mods":{"hp":5},"lore":"北方来的琥珀，握久了是温的。"},
-	"pendant": {"slot":"trinket","name":"青金坠","rarity":"rare","price":95,"mods":{"div":2},"lore":"一小块青金石，颜色像黄昏以后的天。"},
-	"owl": {"slot":"trinket","name":"猫头鹰小像","rarity":"rare","price":110,"mods":{"wil":2,"div":1},"lore":"雅典娜的鸟。夜里守营的人喜欢带着它。"},
-	"amulet": {"slot":"trinket","name":"祭司护符","rarity":"epic","price":200,"mods":{"div":3,"wil":2},"lore":"神庙里流出来的东西，阿齐尔不肯说是怎么到手的。","chapter":2},
-	"item_potion": {"slot":"item","name":"回复药","rarity":"common","price":40,"effect":"回复 12 点生命。给自己或身边的同伴。","lore":"蜂蜜、酒和几味草药熬成的浓浆，装在小陶瓶里。"},
-	"item_antidote": {"slot":"item","name":"解毒药","rarity":"common","price":50,"effect":"解除灼烧、中毒、束缚中的两种，回复 4 点生命。","lore":"喀戎的方子，苦得让人忘了自己在怕什么。"},
-	"item_stone": {"slot":"item","name":"投石","rarity":"common","price":20,"effect":"射程 2–3。0.6 倍物理伤害，额外破势 15。","lore":"河滩上捡的卵石，一袋三枚，这里按一枚算。"},
-	"item_javelin": {"slot":"item","name":"标枪","rarity":"common","price":45,"effect":"射程 2–4。1.2 倍物理伤害。","lore":"轻木杆，铁尖头，扔出去就别指望捡回来。"},
-	"item_firepot": {"slot":"item","name":"火油罐","rarity":"rare","price":90,"effect":"射程 2–3。0.7 倍神性伤害，点燃目标 2 回合。","lore":"封着松脂和橄榄油的陶罐，罐口塞着浸过油的麻布。"},
-	"item_net": {"slot":"item","name":"捕网","rarity":"rare","price":80,"effect":"射程 1–3。0.3 倍物理伤害，目标 1 回合无法移动。","lore":"渔夫的手抛网，四角坠着铅块。"},
-	"wolf_hide": {"slot":"material","name":"狼皮","rarity":"common","price":30,"lore":"剥得不算整齐，皮匠照样收。"},
-	"wolf_fang": {"slot":"material","name":"狼牙","rarity":"common","price":20,"lore":"磨一磨能做箭头，也有人拿去当护身符。"},
-	"bone": {"slot":"material","name":"兽骨","rarity":"common","price":12,"lore":"熬汤、做针、刻骰子，总有人要。"},
-	"claw": {"slot":"material","name":"兽爪","rarity":"rare","price":60,"lore":"涅墨亚狮子的爪，割得开青铜。"},
-	"boar_tusk": {"slot":"material","name":"野猪獠牙","rarity":"rare","price":50,"lore":"弯得像新月，猎人把它钉在门楣上。"},
-	"boar_hide": {"slot":"material","name":"野猪皮","rarity":"common","price":44,"lore":"又厚又硬，做盾面正合适。"},
-	"coin_pouch": {"slot":"material","name":"钱袋","rarity":"common","price":60,"lore":"强盗腰上解下来的，里面是别人的钱。"},
-	"bronze_scrap": {"slot":"material","name":"青铜碎片","rarity":"common","price":36,"lore":"不知从哪副甲上掉下来的，回炉就是新的。"},
-	"broken_shield": {"slot":"material","name":"破盾","rarity":"common","price":24,"lore":"盾面裂了，铜箍还是好的。"},
-	"arrows": {"slot":"material","name":"箭束","rarity":"common","price":20,"lore":"箭羽参差不齐，胜在数量。"},
-	"rope": {"slot":"material","name":"麻绳","rarity":"common","price":14,"lore":"三股麻拧成，够结实。"},
-	"wine_skin": {"slot":"material","name":"酒囊","rarity":"common","price":30,"lore":"还剩小半袋没掺水的酒。"},
-	"horsehair": {"slot":"material","name":"马鬃","rarity":"common","price":28,"lore":"半人马的尾鬃，做弓弦比牛筋还韧。"},
-	"lion_mane": {"slot":"material","name":"狮鬃","rarity":"epic","price":200,"lore":"涅墨亚狮子的鬃毛，刀割不断。"},
-	"snake_skin": {"slot":"material","name":"蛇皮","rarity":"common","price":24,"art":"scale","lore":"整条褪下来的，花纹还在。做刀鞘的人收。"},
-	"venom_sac": {"slot":"material","name":"毒囊","rarity":"rare","price":70,"art":"st_poison","lore":"小心别捏破。药师出的价比猎人高。"},
-	"crab_shell": {"slot":"material","name":"蟹壳","rarity":"common","price":40,"art":"broken_shield","lore":"比盾还硬的一整片背甲。"},
-	"crab_claw": {"slot":"material","name":"蟹钳","rarity":"rare","price":80,"art":"claw","lore":"钳口还合得上。有人拿它当门环。"},
-	"sacred_ribbon": {"slot":"material","name":"祭带","rarity":"common","price":36,"art":"red_thread","lore":"女祭司束发的带子，绣着孔雀翎。"},
-	"incense": {"slot":"material","name":"乳香","rarity":"rare","price":70,"art":"kindling","lore":"祭坛上烧的香。在集市上按粒卖。"},
-}
+static var GOODS: Dictionary = _table("goods")
 ## Shown for a rarity where no hired fighter is involved.
 const STAT_NAMES := {"hp":"生命","str":"力量","def":"防御","wil":"意志","div":"神性","move":"移动","jump":"跳跃"}
 ## What each kind of enemy leaves behind: [thing, chance]. A beaten enemy always leaves at
 ## least one material (the first listed, if the dice give none).
-const LOOT := {
-	"wolf": [["wolf_hide",0.6],["wolf_fang",0.5],["bone",0.3],["fang_charm",0.06],["wolf_cape",0.03]],
-	"bandit": [["broken_shield",0.4],["coin_pouch",0.35],["rope",0.3],["fist_wrap",0.05],["leather",0.04],["item_stone",0.15]],
-	"bandit_archer": [["arrows",0.6],["rope",0.3],["coin_pouch",0.25],["feather",0.06],["item_javelin",0.12]],
-	"bandit_chief": [["coin_pouch",1.0],["bronze_scrap",0.6],["belt_wide",0.15],["gauntlet",0.12],["item_potion",0.3]],
-	"boar": [["boar_hide",0.7],["boar_tusk",0.7],["bone",0.4]],
-	"centaur": [["horsehair",0.6],["wine_skin",0.5],["bronze_scrap",0.3],["trail_wraps",0.06],["item_potion",0.1]],
-	"lion": [["lion_mane",1.0],["claw",1.0]],
-	"marsh_snake": [["snake_skin",0.7],["venom_sac",0.08],["item_antidote",0.2]],
-	"hera_priestess": [["sacred_ribbon",0.7],["incense",0.1],["item_potion",0.35],["cup",0.05]],
-	"giant_crab": [["crab_shell",0.7],["crab_claw",0.1],["item_potion",0.1]],
-}
+static var LOOT: Dictionary = _table("loot")
 
 ## How many things one member may carry into battle. The engine holds the same number
 ## (rules.KitSlots).
-const KIT_SLOTS := 2
+static var KIT_SLOTS: int = int(RULES.kit_slots)
 
 ## The drawing for a thing.
 static func art(id: String) -> String:
@@ -121,7 +83,7 @@ static func effect_of(id: String) -> String:
 	return "，".join(parts)+"。"
 
 static func sell_price(id: String) -> int:
-	return int(GOODS[id].price)/2
+	return int(int(GOODS[id].price)*float(RULES.sell_for))
 
 ## A purse holds coins, `bag` ({thing: how many are owned, worn or not}), `worn`
 ## ({who: {place: thing}}) and `kit` ({who: [things carried into battle, one entry each]}). Older saves listed one of each thing and one wearer per thing.
@@ -214,34 +176,35 @@ const RARITY := {
 ## technique they come with, `fee` what they ask, and `after` the battle that must be
 ## cleared before they turn up. Each has a technique tree of their own under their key in skill_tree.json: a small
 ## one for the common, a middling one for the rare, a full one for the epic.
-const RECRUITS := {
-	"iphicles": {"fee":60,"look":"merc_sword","skill":"heavy_cut","def":"bandit","title":"忒拜的凡人","name":"伊菲克勒斯","rarity":"common","after":"","lore":"赫拉克勒斯的孪生兄弟。同一个母亲，同一夜出生，他身上却没有一滴神的血。"},
-	"phalerus": {"fee":80,"look":"merc_archer","skill":"aimed_shot","def":"bandit_archer","title":"雅典的弓手","name":"法勒洛斯","rarity":"common","after":"1-1","lore":"小时候被蛇缠住，父亲一箭射死了蛇，没伤到他。从那天起他就没放下过弓。"},
-	"ancaeus": {"fee":150,"look":"merc_captain","skill":"heavy_cut","def":"bandit_chief","title":"阿卡迪亚的斧手","name":"安开俄斯","rarity":"rare","after":"1-1","lore":"披熊皮，使双刃斧。有人预言他喝不到自己葡萄园的酒，他从来不信。"},
-	"pholus": {"fee":160,"look":"merc_lancer","skill":"trample","def":"centaur","title":"福洛厄山的主人","name":"福洛斯","rarity":"rare","after":"1-3","lore":"酒宴就是在他的洞里办的。那坛酒是他开的，他想把这笔账算清。"},
-	"idas": {"fee":240,"look":"idas","skill":"heavy_cut","def":"bandit_chief","title":"墨塞涅的力士","name":"伊达斯","rarity":"epic","after":"1-2","lore":"墨塞涅的伊达斯，自称世上最强壮的凡人。他在林道上劫过别人，也被别人劫过。"},
-	"eurytion": {"fee":260,"look":"eurytion","skill":"trample","def":"centaur","title":"半人马首领","name":"欧律提翁","rarity":"epic","after":"1-3","lore":"酒宴上带头闹事的那个。酒醒之后，他想还清这笔账。"},
-}
+static var RECRUITS: Dictionary = _table("recruits")
 ## Everyone starts with one plain attack and one technique. A hired hand's technique is the
 ## `skill` of their kind. A story companion's is the first node of their tree, held from the
 ## start at no cost; the hero's (盾击) is already part of the unit.
-const STARTERS := {"atalanta":"vital_shot","chiron":"purify_arrow","medea":"frailty"}
+static var STARTERS: Dictionary = RULES.free_first_technique
 ## How many heroes march beside the protagonist, who always goes. The player picks them all.
 ## One in the first chapter, two in the second, three from the third: with him that is a
 ## party of two, then three, then four, and each chapter's battles are set out for a party
 ## of that size (2026-11-25).
+## The wounded centaur of the side road takes no seat: he is who the battle is about.
 static func seats(battle: String) -> int:
-	return clampi(int(battle.get_slice("-",0)),1,3)
+	return _by_chapter(RULES.seats,battle)
 ## Battles whose story needs someone there: they march whatever the player picked.
 const REQUIRED := {"1-1":["atalanta"],"1-2":["atalanta"],"1-5":["atalanta"]}
 ## Heroes a battle's own file places on the field. Left behind, they are benched; taken
 ## along, they are not sent as extra party members.
 const PLACED := ["atalanta"]
 
+## Heroes turn up as there come to be seats for them (2026-11-25): nobody in the first
+## chapter, where the one seat beside the protagonist is nearly always Atalanta's; the
+## common and the rare with the second chapter and its second seat; the epic with the
+## third. `opens` is that chapter. `after`, the battle each was first heard of in, is kept
+## for the telling and no longer gates anything.
 static func for_hire(kind: String, entry: Dictionary) -> bool:
 	if not RECRUITS.has(kind): return false
-	var gate: String = RECRUITS[kind].after
-	return gate == "" or entry.get("outcomes",{}).get(gate,"") == "已通关" or entry.has("equipped_relic")
+	return int(str(entry.get("id","1-1")).get_slice("-",0)) >= int(RECRUITS[kind].get("opens",2))
+
+## The chapter in which the first heroes can be hired.
+const HIRING_OPENS := 2
 
 ## Who the drillmaster has to offer: every hero open at this point of the journey and not
 ## yet hired, each as {id, kind, name, fee}. Nothing is drawn by chance.
@@ -263,11 +226,11 @@ static func stocked(id: String, entry: Dictionary) -> bool:
 ## for the first time pays `xp_for` to everyone who marched and half of it to those who
 ## stayed in camp. A level is worth one technique point.
 static func xp_for(battle: String) -> int:
-	return 140 if battle.begins_with("2-") else 100
+	return _by_chapter(RULES.xp,battle)
 
 ## Experience needed to go from `level` to the next.
 static func xp_need(level: int) -> int:
-	return 100+20*(level-1)
+	return int(RULES.xp_need.first)+int(RULES.xp_need.more_each_level)*(level-1)
 
 ## Total experience at which `level` is reached.
 static func xp_total(level: int) -> int:
@@ -292,8 +255,8 @@ static func award(purse: Dictionary, battle: String, aside := false) -> void:
 	purse.coins=int(purse.get("coins",STARTING_COINS))+pay_for(battle,aside)
 
 static func pay_for(battle: String, aside := false) -> int:
-	var pay := 80 if battle.begins_with("2-") else 60
-	return pay*2 if aside else pay
+	var pay := _by_chapter(RULES.pay,battle)
+	return pay*int(RULES.aside_pays) if aside else pay
 
 const BOONS := {
 	"moon_hunt": ["阿耳忒弥斯", "月下狩猎", "追猎标记可同时保留两个目标。"],
@@ -337,7 +300,7 @@ const RELICS := {
 ## and gain a hero. The lion of the first chapter is not here; its pelt is simply taken.
 ## `spared` is who joins: empty where that person is not yet designed.
 const VERDICTS := {
-	2: {"boss":"许德拉","icon":"boss_hydra","pronoun":"它","relic":"hydra_blood","spared":{}},
+	2: {"boss":"许德拉","icon":"boss_hydra","pronoun":"它","relic":"hydra_blood","spared":{"name":"伊俄拉俄斯","title":"举火的人","words":"带着火把的辅助：让身边人的攻击带火，能烧封伤口。（人已定，招式和数值还没做，现在选了只会记下来。）"}},
 	3: {"boss":"铜羽鸟","icon":"boss_bird","pronoun":"它","relic":"bronze_feather","spared":{}},
 	4: {"boss":"米诺陶洛斯","icon":"boss_minotaur","pronoun":"他","relic":"ariadne_thread","spared":{"name":"阿斯忒里俄斯","title":"迷宫里的人","words":"2×2 的前排，生命 86、力量 19。能撞开挡路的东西；走不了窄路，意志低。"}},
 	5: {"boss":"美杜莎","icon":"brooch","pronoun":"她","relic":"gorgon_head","spared":{"name":"美杜莎","title":"戈尔贡","words":"完整的凝视：把人变成石像，不分敌我。神性 16，走得慢。"}},
@@ -373,7 +336,7 @@ static func power_words(id: String) -> String:
 ## How many relics he may take into a battle: one to begin with, and one more with the
 ## second, fourth and sixth relic taken. The engine holds the same rule (rules.RelicSlots).
 static func relic_slots(entry: Dictionary) -> int:
-	return mini(4,1+(entry.get("relics",[]) as Array).size()/2)
+	return mini(int(RULES.relic_slots.most),int(RULES.relic_slots.first)+(entry.get("relics",[]) as Array).size()/int(RULES.relic_slots.one_more_every))
 
 ## The relics he takes into battle: those picked, or failing that the first he took, as
 ## many as there are slots. Only relics the rules know how to use can be worn.

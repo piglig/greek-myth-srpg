@@ -330,8 +330,8 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		if (sk.Heal == 0 && sk.ID != "purify_arrow" || target.HP == target.MaxHP) && cleanseTarget(target) == "" {
 			return "unhurt ally"
 		}
-	} else if target == nil && Kindles(sk) && s.Grid.InBounds(cell) && s.Grid.TerrainAt(cell) == Forest {
-		// 带火的招式可以直接打一格空的林地，把它点着。
+	} else if target == nil && Kindles(sk) && s.Grid.InBounds(cell) && (s.Grid.TerrainAt(cell) == Forest || s.StumpAt(cell) != nil) {
+		// 带火的招式可以直接打一格空的林地，把它点着；也可以打一截断颈，把它烧封。
 		dist := CellDistance(u, cell)
 		minR := sk.MinRange
 		if sk.Ranged && u.Traits.CannotAttackAdjacent {
@@ -345,7 +345,7 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		return "no enemy there"
 	}
 	ranged := sk.Ranged
-	if sk.Throw && (u.Size != 1 || target.Size != 1 || target.Traits.Flying) {
+	if sk.Throw && (u.Size != 1 || target.Size != 1 || target.Traits.Flying || target.Traits.Anchored) {
 		return "cannot throw that"
 	}
 	dist := Distance(u, target)
@@ -494,6 +494,9 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		}
 		emit(ev, Event{Type: EvArea, Unit: u.ID, Skill: sk.ID, To: a.Target})
 		s.kindle(a.Target, ev)
+		if stump := s.StumpAt(a.Target); stump != nil {
+			cauterize(stump, ev)
+		}
 		return
 	}
 	if sk.ID == "purify_arrow" {
@@ -864,6 +867,7 @@ func SettleRound(s *BattleState, ev *[]Event) {
 		}
 	}
 	settleFires(s, ev)
+	settleStumps(s, ev)
 
 	var keys []string
 	for _, u := range s.Living(TeamAny) {

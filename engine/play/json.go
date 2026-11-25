@@ -46,6 +46,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 			"has_moved": u.HasMoved, "has_acted": u.HasActed, "assist_used": u.AssistUsed, "mark_used": u.MarkUsed,
 			"intercept_used": u.InterceptUsed, "post_move": u.PostMove,
 			"alive": u.Alive, "hidden": u.Hidden,
+			"regrow": u.Regrow, "regrown": u.Regrown, "sealed": u.Sealed,
 			"can_undo": u.CanUndoMove(), "height": s.UnitHeight(u),
 		}
 	}
@@ -74,6 +75,8 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 	if s.Drowned > 0 {
 		out["drowned"] = s.Drowned
 	}
+	out["outcome"] = s.Outcome()
+	out["most_regrown"] = s.MostRegrown()
 	if s.FireEver {
 		fires := make([][]int, 0, len(s.Fires))
 		for _, f := range s.Fires {
@@ -128,7 +131,7 @@ func eventsJSON(events []rules.Event) []obj {
 			m["target"], m["amount"], m["dmg_type"], m["source"], m["hp"] = e.Target, e.Amount, int(e.DmgType), e.Source, e.HP
 		case rules.EvArrival, rules.EvRescued, rules.EvFlee:
 			m["unit"] = e.Unit
-		case rules.EvKO, rules.EvBroken, rules.EvEdge:
+		case rules.EvKO, rules.EvBroken, rules.EvEdge, rules.EvCauterize, rules.EvRegrow:
 			m["target"] = e.Target
 		case rules.EvResist:
 			m["target"], m["status"], m["why"] = e.Target, e.Status, e.Why

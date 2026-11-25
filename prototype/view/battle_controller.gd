@@ -94,6 +94,8 @@ var _campaign_reward := {}
 var _purse := {}
 var _camp_stop := {}
 var _saved_orders: Array = []
+## Where the journey stood when a side battle was set out for: the camp returns there.
+var _resume := ""
 var rescued_count := 0
 var _side_road_lost := false  ## said once, when too few travellers are left to open the side road
 var _chiron_joined := false
@@ -158,6 +160,7 @@ func _ready() -> void:
 			for key in ["equipped_relic","boon","divinity","powers","relics_worn"]:
 				if entry.has(key): _campaign_reward[key]=entry[key]
 		_saved_orders=entry.get("orders",[])
+		_resume=str(entry.get("resume",""))
 		_chiron_joined = entry.get("chiron_joined",false)
 		_roster = entry.get("roster",[])
 		_deploy = entry.get("deploy",[])
@@ -233,6 +236,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
 	UnitState.looks["hero"] = Checkpoint.hero_look(state.reward)
+	# The hydra's heads have no drawing of their own yet: the marsh snake stands in.
+	for id: String in state.order:
+		if state.unit(id).def_id == "hydra_head": UnitState.looks[id] = "marsh_snake"
 	Rules.start_battle(state)
 	if battle_id=="2-1":
 		for order: Dictionary in _saved_orders:
@@ -244,9 +250,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		state.orders=_saved_orders.duplicate(true)
 		state.record_orders=_campaign
 	Soundscape.score("ridge")
-	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4"]:
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5","2-S"]:
 		map_view.nemea = true
-		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3","2-4"] else MapView.Wetland.NONE
+		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3","2-4","2-5","2-S"] else MapView.Wetland.NONE
 		map_view.shrine = battle_id=="2-2"
 		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
 		highlights.scale = map_view.scale
@@ -344,6 +350,10 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("巨蟹正面只受一半伤害　·　绕到背后，或把它推进深水",3.5)
 	if battle_id=="2-4":
 		hud.banner("击倒三名女祭司　·　带火的招式能点着林地，火每回合蔓延一格",4.)
+	if battle_id=="2-5":
+		hud.banner("许德拉　·　砍下的头两回合后再生，用火烧封断颈",4.)
+	if battle_id=="2-S":
+		hud.banner("护送负伤的喀戎到泉边",3.5)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -843,6 +853,23 @@ func _play(events: Array, from_round := -1) -> void:
 				rescued_count += 1
 				hud.overlay.add_popup(traveler.position+Vector3.UP*1.45,"安全撤离",Color("#9ae0c6"))
 				_refresh()
+			"cauterize":
+				_popup(e.target,"烧封",Color("#ffb060"))
+				Soundscape.cue("hit")
+				await get_tree().create_timer(.3).timeout
+			"regrow":
+				# A new head on the old neck: a fresh figure where the fallen one lay.
+				var grown := state.unit(e.target)
+				if unit_views.has(e.target): unit_views[e.target].queue_free()
+				var fresh := PixelUnit.new()
+				_units_root.add_child(fresh)
+				fresh.setup(grown,null,null)
+				fresh.position = map_view.anchor_world(state,grown.pos,grown.size)
+				fresh.set_facing(grown.facing)
+				unit_views[e.target] = fresh
+				_popup(e.target,"再生",Color("#e0453a"))
+				Soundscape.cue("warning")
+				await get_tree().create_timer(.35).timeout
 			"arrival":
 				var newcomer := state.unit(e["unit"])
 				var view: UnitView = unit_views[newcomer.id]
@@ -1995,6 +2022,8 @@ func _news(after: Dictionary, summary: String) -> Dictionary:
 	return news
 
 func _settle_at_camp(destination: String, summary: String, fork := false):
+	# A side battle is not a place the journey rests at: back to where it stood.
+	if destination == "2-S": destination = _resume if _resume != "" else "2-2"
 	_camp_stop=_entry(destination)
 	_camp_stop.stage="camp"
 	_camp_stop.choose_route=fork
@@ -2003,6 +2032,9 @@ func _settle_at_camp(destination: String, summary: String, fork := false):
 	_camp_stop.erase("orders")
 	if _battle_id=="2-1" and state.escort_result=="win":
 		_camp_stop.divinity=state.reward.divinity
+	if _battle_id=="2-5" and _outcomes.get("2-5","")=="已通关" and not _camp_stop.get("relics",[]).has("hydra_blood") and not _camp_stop.get("spared",[]).has(2):
+		# The hydra is down: the camp asks what becomes of it.
+		_camp_stop.verdict=2
 	_next_battle="camp"
 	_mode=Mode.OVER
 	var saved:=Checkpoint.write_entry(_camp_stop)==OK
@@ -2145,6 +2177,23 @@ func _check_end() -> bool:
 		_save_checkpoint("1-4")
 		_refresh()
 		return true
+	if _battle_id=="2-S":
+		# The wounded centaur brought to the spring: he joins. If he falls, try again.
+		if state.escort_result=="": return false
+		_mode=Mode.OVER
+		var reached := state.escort_result=="win"
+		Soundscape.score("")
+		Soundscape.cue("victory" if reached else "defeat")
+		if reached:
+			_outcomes["2-S"]="已通关"
+			_chiron_joined=true
+		if _campaign:
+			if reached: Checkpoint.award(_purse,_battle_id)
+			_settle_at_camp(_battle_id,"喀戎到了泉边，伤口洗净，加入队伍" if reached else "喀戎倒在了半路，可整备后重试")
+			return true
+		hud.banner("喀戎到了泉边　按 R 重开" if reached else "喀戎倒下了　按 R 重试",0.)
+		_refresh()
+		return true
 	if not state.escort_exits.is_empty():
 		if state.escort_result=="":return false
 		_mode=Mode.OVER
@@ -2183,6 +2232,22 @@ func _check_end() -> bool:
 		_mode = Mode.OVER
 		_refresh()
 		return true
+	if _battle_id=="2-5" and state.outcome=="win":
+		# The hydra: every neck sealed. No head grown back more than once is the goal aside.
+		var clean := state.most_regrown <= 1
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		var summary := "许德拉的头全部封住了"
+		summary += "，没有一个头再生超过一次（酬金 +%d）" % (Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)) if clean else "，有的头长回来了 %d 次" % state.most_regrown
+		if _campaign:
+			Checkpoint.award(_purse,_battle_id,clean)
+			_settle_at_camp(_battle_id,summary)
+			return true
+		hud.banner(summary+"　按 R 重开",0.0)
+		_mode = Mode.OVER
+		_refresh()
+		return true
 	if not state.targets.is_empty() and state.target_result=="win":
 		# The altar. Two of the three caught by fire on the ground is the goal aside.
 		var burnt := state.targets_scorched >= 2
@@ -2193,7 +2258,7 @@ func _check_end() -> bool:
 		summary += "，其中 %d 人被林火烧到（酬金 +%d）" % [state.targets_scorched,Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)] if burnt else "，林火烧到的不足两人"
 		if _campaign:
 			Checkpoint.award(_purse,_battle_id,burnt)
-			_settle_at_camp(_battle_id,summary)
+			_settle_at_camp("2-5",summary)
 			return true
 		hud.banner(summary+"　按 R 重开",0.0)
 		_mode = Mode.OVER
@@ -2215,7 +2280,7 @@ func _check_end() -> bool:
 		_mode = Mode.OVER
 		_refresh()
 		return true
-	if state.village_result == "win" or state.rescue_result == "win" or (village == null and not map_view.woodland and state.living(Defs.Team.ENEMY).is_empty()):
+	if state.village_result == "win" or state.rescue_result == "win" or (village == null and not map_view.woodland and _battle_id != "2-5" and state.living(Defs.Team.ENEMY).is_empty()):
 		Soundscape.score("")
 		Soundscape.cue("victory")
 		_outcomes[_battle_id]="已通关"
@@ -2285,6 +2350,26 @@ func _refresh() -> void:
 			hud.banner("两名村民倒下了，上山赴宴的路已经错过　·　战斗继续，歼灭敌人即可过关",4.5)
 	if _battle_id=="2-1":
 		objective="美狄亚已入队。护送她抵达东门的青绿色出口；主角和美狄亚必须存活。"
+	if _battle_id=="2-S":
+		objective="护送喀戎抵达东边泉眼的青绿色格子；主角和喀戎必须存活。敌人不必清完。"
+	if _battle_id=="2-5":
+		var stumps := []
+		var soonest := 9
+		for id in state.order:
+			var neck := state.unit(id)
+			if neck.def_id == "hydra_head" and not neck.alive and not neck.sealed and neck.regrow > 0:
+				stumps.append(neck.pos)
+				soonest = mini(soonest,neck.regrow)
+		var standing := 0
+		var sealed := 0
+		for id in state.order:
+			var neck := state.unit(id)
+			if neck.def_id != "hydra_head": continue
+			if neck.alive: standing += 1
+			elif neck.sealed: sealed += 1
+		heading += "　·　头 %d　封住 %d/5" % [standing,sealed]
+		if not stumps.is_empty(): heading += "　断颈 %d（%d 回合后再生）" % [stumps.size(),soonest]
+		objective="把五个头全部封住。头不会移动，也推不动。砍下的头留下断颈（红框），两回合后长回一个满血的头；这期间用带火的招式（巫火、火油罐）打中断颈，或者让头带着灼烧倒下，就永远封住。\n可选：没有一个头再生超过一次（目前最多 %d 次）。" % state.most_regrown
 	if not state.targets.is_empty():
 		heading += "　·　女祭司 %d/%d" % [state.targets_left,state.targets.size()]
 		objective="击倒三名女祭司即可过关，其余敌人不必清完。女祭司每回合会治疗一个同伴。带火的招式（巫火、火油罐）打中林地里的人或直接打一格林地，那一格就起火；火每回合向相邻的林地蔓延一格，橙色框是下一回合会烧到的地方，烧两回合后成为焦土。火不分敌我。\n可选：让地上的火烧到至少两名女祭司（已烧到 %d 人）。" % state.targets_scorched
@@ -2320,9 +2405,14 @@ func _refresh() -> void:
 	hud.set_turn_command(not _next_battle.is_empty() or (_mode != Mode.BUSY and _mode != Mode.OVER and state.phase == Defs.Phase.PLAYER),_next_battle)
 
 	highlights.clear_all()
-	if _battle_id=="2-1": highlights.show_frame("east_gate",state.escort_exits,Color("#48ddbb"),8)
+	if not state.escort_exits.is_empty(): highlights.show_frame("east_gate",state.escort_exits,Color("#48ddbb"),8)
 	if not state.reach_exits.is_empty(): highlights.show_frame("far_bank",state.reach_exits,Color("#48ddbb"),8)
 	if not state.fire_next.is_empty(): highlights.show_frame("fire_next",state.fire_next,Color("#ff9440"),8)
+	var necks: Array[Vector2i] = []
+	for id in state.order:
+		var neck := state.unit(id)
+		if not neck.alive and not neck.sealed and neck.regrow > 0: necks.append(neck.pos)
+	if not necks.is_empty(): highlights.show_frame("stumps",necks,Color("#e0453a"),9)
 	_sync_fires()
 	if map_view.woodland:
 		highlights.show_frame("rescue_gate",state.rescue_exits,Color("#64bcad"),8)

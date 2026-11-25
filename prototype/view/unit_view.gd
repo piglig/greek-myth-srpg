@@ -159,7 +159,7 @@ func _setup_base(u: UnitState, draw_ground_shadow := true) -> void:
 		add_child(shadow)
 
 	sprite_height = {"wolf":1.18,"boar":1.16,"lion":1.75,"heracles":2.18,"centaur":2.28,"chiron":2.28,
-		"marsh_snake":1.15,"giant_crab":1.04,
+		"marsh_snake":1.15,"giant_crab":1.04,"hydra_head":2.1,
 		"stymphalian_bird":1.55,"marsh_flock":1.34}.get(u.def_id,1.88)
 
 
