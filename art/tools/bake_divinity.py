@@ -90,6 +90,10 @@ def paint(pic, mask, tier, scale=1):
             thread=metal & ~erode(metal,2*scale+1) & (((x+2*y)//(4*scale))%3!=0)
             rgb[thread]=[243,239,214]
             rgb[(mask==4)&inside]=[156,51,38]
+            # Marble alone reads as a statue at battle size: close the whole figure in a
+            # line of gold, as the gilding on a cult image, leaving the wrist cord warm and the spear its lightning.
+            gilt=edge & (mask!=4) & ~metal
+            rgb[gilt]=rgb[gilt]*.25+np.array([240,196,104])*.75
     rgb[(mask==5)&inside]=[143,206,235] if tier<3 else [252,247,221]
     data[:,:,:3]=np.clip(rgb,0,255).astype(np.uint8)
     return Image.fromarray(data)
