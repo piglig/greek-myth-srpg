@@ -292,7 +292,13 @@ func (ev *Evaluator) danger(s *rules.BattleState, players, enemies []*rules.Unit
 	}
 	total := 0.0
 	for i, p := range players {
-		total += min(incoming[i]/float64(max(p.HP, 1)), 1.5)
+		at := min(incoming[i]/float64(max(p.HP, 1)), 1.5)
+		// 倒下就输、自己又躲不开的人（负伤的喀戎、被护送的人）：他们挨打的风险按三倍看，
+		// 人会把自己的人挪过去挡着，而不是冲出去多打一下。
+		if p.ID == "wounded_chiron" || (len(s.EscortExits) > 0 && p.ID == s.EscortID()) {
+			at *= 3
+		}
+		total += at
 	}
 	return total
 }
@@ -319,10 +325,13 @@ func (ev *Evaluator) expectedHit(s *rules.BattleState, e, p *rules.UnitState) fl
 			raw := rules.FloorInt(float64(float64(e.Strength) * sk.Mult))
 			dmg := raw
 			if sk.Type == rules.Physical {
-				dmg = max(1, raw-p.Defense)
+				dmg = raw - p.Defense
 			} else if sk.Type == rules.Divine {
-				dmg = max(1, rules.FloorInt(float64(float64(e.Divinity)*sk.Mult))-p.Will)
+				raw = rules.FloorInt(float64(float64(e.Divinity) * sk.Mult))
+				dmg = raw - p.Will
 			}
+			// 和规则一样：防御挡不住的那一份保底伤害。
+			dmg = max(1, dmg, rules.FloorInt(float64(raw)*rules.MinDamageShare))
 			best = max(best, float64(dmg))
 		}
 		hit = best

@@ -166,7 +166,7 @@
   "centaur": {
     "traits": {"turn_on_guard": true},
     "name": "醉酒半人马",
-    "hp": 26,
+    "hp": 24,
     "str": 12,
     "def": 3,
     "wil": 2,

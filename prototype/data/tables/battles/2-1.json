@@ -126,6 +126,17 @@
         7
       ],
       "facing": "W"
+    },
+    {
+      "id": "guard_c",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        10,
+        3
+      ],
+      "facing": "W",
+      "round": 2
     }
   ]
 }

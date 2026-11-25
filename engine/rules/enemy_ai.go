@@ -14,7 +14,6 @@ const (
 	aiKOScore          = 1000.0
 	aiDamageWeight     = 10.0
 	aiIsolatedBonus    = 15.0
-	aiDefenseWeight    = 2.0
 	aiStepCost         = 0.1
 	aiApproachIsolated = 4.0  // 选择走向谁时，落单目标的路程折扣
 	aiFearScore        = 14.0 // 范围控制技能（咆哮）每罩住一个对手的得分
@@ -244,7 +243,9 @@ func ScoreAttack(s *BattleState, events []Event, t *UnitState) float64 {
 			ko = true
 		}
 	}
-	score := float64(float64(dmg)*aiDamageWeight) - float64(float64(t.Defense)*aiDefenseWeight)
+	// 只看实际打出的伤害。以前还要再按目标的防御扣一次分，防御已经算进伤害里了，
+	// 扣两次的结果是主角装备一齐，敌人就宁可绕远路去打别人（2026-11-25 去掉）。
+	score := float64(dmg) * aiDamageWeight
 	if ko {
 		score += aiKOScore
 	}
@@ -264,7 +265,7 @@ func ApproachStep(s *BattleState, u *UnitState) Cell {
 			if !isOpponent(u, t) || FootprintDistance(u, anchor, t) != 1 {
 				continue
 			}
-			val := float64(full.Cost(anchor)) + float64(float64(t.Defense)*0.5)
+			val := float64(full.Cost(anchor)) // 走向最近的对手；防御高低不改变路程
 			if IsIsolated(s, t) {
 				val -= aiApproachIsolated
 			}
