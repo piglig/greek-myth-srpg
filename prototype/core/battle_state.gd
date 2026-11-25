@@ -27,6 +27,16 @@ var reach_result := ""
 var swamp_rests := 0
 ## How many enemies have been pushed into deep water and lost there.
 var drowned := 0
+## Forest that is alight: [x, y, rounds left] each, and the forest cells the fire will
+## take at the next settling of a round.
+var fires: Array = []
+var fire_next: Array[Vector2i] = []
+## Those the battle is fought to kill (2-4), how many still stand, and how many of them a
+## fire on the ground has burnt.
+var targets: Array = []
+var targets_left := 0
+var targets_scorched := 0
+var target_result := ""
 var record_orders := false
 var orders: Array = []
 var rescue_result := ""
@@ -48,6 +58,14 @@ func apply(d: Dictionary) -> void:
 		reach_result = d.reach_result
 		swamp_rests = int(d.get("swamp_rests",0))
 	drowned = int(d.get("drowned",drowned))
+	if d.has("fires"):
+		fires = d.fires
+		fire_next = GoEngine.cells(d.fire_next)
+	if d.has("targets"):
+		targets = d.targets
+		targets_left = int(d.targets_left)
+		targets_scorched = int(d.targets_scorched)
+		target_result = d.target_result
 	if d.has("rescue_exits"):
 		rescue_result = d.rescue_result
 		rescue_exits = GoEngine.cells(d.rescue_exits)

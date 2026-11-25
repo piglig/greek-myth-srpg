@@ -106,7 +106,7 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 		m *= 1.25
 		notes |= NoteKindling
 	}
-	if target.ID == "hero" && s.Reward.EquippedRelic == "lion_pelt" {
+	if target.ID == "hero" && s.Reward.Wears("lion_pelt") {
 		if dmgType == Physical {
 			base = max(1, base-3)
 		}

@@ -130,6 +130,7 @@ type BattleDef struct {
 	Terrain     []string
 	EscortExits []Cell
 	ReachExits  []Cell
+	Targets     []string
 	RescueExits []Cell
 	Village     *Village
 	Units       []BattleUnit
@@ -766,6 +767,16 @@ func (d *Data) Battle(id string) (*BattleDef, error) {
 			b.EscortExits = append(b.EscortExits, cell)
 		}
 	}
+	for _, id := range stringsOf(tbl.m["targets"]) {
+		found := false
+		for _, bu := range b.Units {
+			found = found || (bu.ID == id && bu.Team == TeamEnemy)
+		}
+		if !found {
+			return nil, fmt.Errorf("%s: target %s is not an enemy in this battle", id, id)
+		}
+		b.Targets = append(b.Targets, id)
+	}
 	if exits, ok := tbl.m["reach_exits"].([]any); ok {
 		for _, raw := range exits {
 			cell, err := cellOf(raw)
@@ -928,6 +939,7 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 	s.RescueExits = b.RescueExits
 	s.EscortExits = b.EscortExits
 	s.ReachExits = b.ReachExits
+	s.Targets = b.Targets
 	for _, e := range b.Units {
 		u, err := d.MakeUnit(e.Def, e.ID, e.Team, e.Pos, e.Facing)
 		if err != nil {

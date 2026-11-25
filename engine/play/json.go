@@ -74,6 +74,17 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 	if s.Drowned > 0 {
 		out["drowned"] = s.Drowned
 	}
+	if s.FireEver {
+		fires := make([][]int, 0, len(s.Fires))
+		for _, f := range s.Fires {
+			fires = append(fires, []int{f.Cell.X, f.Cell.Y, f.Left})
+		}
+		out["fires"], out["fire_next"] = fires, cellsJSON(s.FireNext())
+	}
+	if len(s.Targets) > 0 {
+		out["targets"], out["targets_left"], out["targets_scorched"] = s.Targets, s.TargetsLeft(), s.TargetsScorched()
+		out["target_result"] = s.Outcome()
+	}
 	if len(s.RescueExits) > 0 {
 		out["rescue_result"] = s.Outcome()
 		out["rescue_exits"] = cellsJSON(s.RescueExits)
@@ -85,7 +96,7 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 		}
 		out["village"] = obj{"exits": exits, "result": s.Outcome()}
 	}
-	if withGrid || s.Village != nil {
+	if withGrid || s.Village != nil || s.FireEver {
 		g := s.Grid
 		heights := make([]int, 0, g.Width*g.Depth)
 		terrain := make([]int, 0, g.Width*g.Depth)
@@ -143,6 +154,8 @@ func eventsJSON(events []rules.Event) []obj {
 			m["unit"], m["from"], m["to"] = e.Unit, xy(e.From), xy(e.To)
 		case rules.EvWard:
 			m["target"], m["amount"] = e.Target, e.Amount
+		case rules.EvIgnite, rules.EvBurnOut:
+			m["to"] = xy(e.To)
 		case rules.EvArea:
 			m["unit"], m["skill"], m["to"] = e.Unit, e.Skill, xy(e.To)
 		case rules.EvAttack:

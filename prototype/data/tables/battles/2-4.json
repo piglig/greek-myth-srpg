@@ -1,0 +1,136 @@
+{
+  "id": "2-4",
+  "title": "2-4 赫拉的祭坛",
+  "order": 9,
+  "targets": [
+    "priestess_1",
+    "priestess_2",
+    "priestess_3"
+  ],
+  "heights": [
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "11111111111111",
+    "00111001100111",
+    "00000000000000"
+  ],
+  "terrain": [
+    "ffff..ffffffff",
+    "ff....f..fffff",
+    "f.....ff...fff",
+    "......ff.f...f",
+    "....ff...ff...",
+    "....ff...ff...",
+    "f.....f..f...f",
+    "ff....ff...fff",
+    "wwf..wwffwwfff",
+    "wwwwwwwwwwwwww"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        0,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "priestess_1",
+      "def": "hera_priestess",
+      "team": "enemy",
+      "pos": [
+        9,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "priestess_2",
+      "def": "hera_priestess",
+      "team": "enemy",
+      "pos": [
+        10,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "priestess_3",
+      "def": "hera_priestess",
+      "team": "enemy",
+      "pos": [
+        9,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_1",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        7,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_2",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        8,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_1",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_2",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        7
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_3",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        12,
+        5
+      ],
+      "facing": "W"
+    }
+  ]
+}

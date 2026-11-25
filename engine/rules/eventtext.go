@@ -35,7 +35,7 @@ var errorTexts = map[string]string{
 	"need healable ally": "请选择可治疗的同伴", "unhurt ally": "同伴无需救治", "on cooldown": "冷却中", "no enemy there": "那里没有敌人",
 	"out of range": "超出射程",
 	"not in line":  "不在直线上", "no line of sight": "视线被挡住",
-	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标", "cannot be healed": "他已经不是凡人的药能治的了",
+	"not adjacent": "不相邻", "cannot throw that": "摔不动这个目标", "cannot be healed": "他已经不是凡人的药能治的了", "blighted": "蛇毒未清，治不了",
 	"bad facing": "朝向无效", "cannot mark": "不能标记", "need landing": "先选择落点",
 	"bad landing": "不能落在那里", "no boulder there": "那里没有巨石", "already sealed": "这个入口已经封住",
 	"cannot seal the last entrance": "不能封住最后一个入口", "no one in range": "范围内没有目标",
@@ -87,6 +87,10 @@ func describeOne(s *BattleState, e *Event) string {
 		return s.Unit(e.Unit).Name + " 撤出了宴地"
 	case EvRescued:
 		return "村民已从西侧山道撤离"
+	case EvIgnite:
+		return fmt.Sprintf("  %s 的林地烧起来了", cellText(e.To))
+	case EvBurnOut:
+		return fmt.Sprintf("  %s 的火烧尽了", cellText(e.To))
 	case EvArrival:
 		return s.Unit(e.Unit).Name + " 进入战场"
 	case EvAttack:
@@ -100,7 +104,7 @@ func describeOne(s *BattleState, e *Event) string {
 		return fmt.Sprintf("%s 对 %s 使用「%s」（%s%s）", nameOf(s, e.Unit), nameOf(s, e.Target),
 			skillName(s, e.Skill), relationNames[e.Relation], extra)
 	case EvHeal:
-		return fmt.Sprintf("%s 的净化箭为 %s 恢复 %d 点生命（现有 %d）", nameOf(s, e.Unit), nameOf(s, e.Target), e.Amount, e.HP)
+		return fmt.Sprintf("%s 用「%s」为 %s 恢复 %d 点生命（现有 %d）", nameOf(s, e.Unit), skillName(s, e.Skill), nameOf(s, e.Target), e.Amount, e.HP)
 	case EvDamage:
 		label := ""
 		if src, ok := sourceNames[e.Source]; ok && src != "" {

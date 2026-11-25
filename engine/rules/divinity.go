@@ -63,6 +63,9 @@ func (s *BattleState) GrantDivinity(d *Data, reward ChapterReward) error {
 	if err := ValidatePowers(reward.Divinity, reward.Powers); err != "" {
 		return fmt.Errorf("神力不合法: %s", err)
 	}
+	if err := ValidateRelics(reward); err != "" {
+		return fmt.Errorf("圣物不合法: %s", err)
+	}
 	hero := s.Unit("hero")
 	if hero == nil {
 		return nil

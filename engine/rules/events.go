@@ -38,10 +38,12 @@ const (
 	EvFlee
 	EvHeal
 	EvWard
+	EvIgnite
+	EvBurnOut
 )
 
 var eventNames = [...]string{
-	EvWard: "ward", EvHeal: "heal", EvFlee: "flee", EvRescued: "rescued", EvArrival: "arrival", EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
+	EvIgnite: "ignite", EvBurnOut: "burn_out", EvWard: "ward", EvHeal: "heal", EvFlee: "flee", EvRescued: "rescued", EvArrival: "arrival", EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
 	EvStatus: "status", EvStagger: "stagger", EvBroken: "broken", EvCollision: "collision",
 	EvKnockback: "knockback", EvFall: "fall", EvEdge: "edge",
 	EvFace: "face",

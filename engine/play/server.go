@@ -103,19 +103,9 @@ type actionJSON struct {
 }
 
 // partyMember 是营地里选中出战、但关卡文件里没有写的我方单位（剧情加入的同伴或招募来的人）。
-type partyMember struct {
-	ID   string `json:"id"`
-	Def  string `json:"def"`
-	Name string `json:"name"`
-	// Tree 是这个人自己的技能树的名字；空着就用单位定义的那棵。
-	Tree string `json:"tree"`
-	// Skills 是这个人自带、单位定义里没有的招式（招募来的人的起始技能）。
-	Skills []string `json:"skills"`
-}
-
 type request struct {
 	// Party 不为 nil 时由它决定额外出战的人，ChironJoined 不再起作用。
-	Party        []partyMember       `json:"party"`
+	Party        []rules.PartyMember `json:"party"`
 	Reward       rules.ChapterReward `json:"reward"`
 	ChironJoined bool                `json:"chiron_joined"`
 	// Bench 是关卡文件里写了、但这一场留在营地的我方单位。主角不能留守。
@@ -189,85 +179,6 @@ func toAction(a *actionJSON) rules.Action {
 	return act
 }
 
-// deploy 把额外出战的人放到主角身边：从主角所在格向外一圈圈找，站到最近的空地上。
-// 只用和主角高差不超过 1、不是深水也不在燃烧的格子，免得开场就被困住。
-// bench 把关卡文件里的一名我方单位留在营地：这一场没有他。
-func bench(st *rules.BattleState, id string) error {
-	for i, u := range st.Units {
-		if u.ID != id {
-			continue
-		}
-		if id == "hero" || u.Team != rules.TeamPlayer {
-			return fmt.Errorf("%s 不能留守", id)
-		}
-		st.Units = append(st.Units[:i], st.Units[i+1:]...)
-		return nil
-	}
-	return nil
-}
-
-func (s *Server) deploy(st *rules.BattleState, party []partyMember, picks map[string][]string) error {
-	hero := st.Unit("hero")
-	if hero == nil || len(party) == 0 {
-		return nil
-	}
-	seen := map[rules.Cell]bool{hero.Pos: true}
-	ring := []rules.Cell{hero.Pos}
-	next := 0
-	for len(ring) > 0 && next < len(party) {
-		var outer []rules.Cell
-		for _, from := range ring {
-			for _, dir := range rules.Dirs {
-				c := from.Add(dir)
-				if seen[c] || !st.Grid.InBounds(c) {
-					continue
-				}
-				seen[c] = true
-				drop := st.Grid.HeightAt(c) - st.Grid.HeightAt(hero.Pos)
-				terrain := st.Grid.TerrainAt(c)
-				if drop > 1 || drop < -1 || terrain == rules.Deep || terrain == rules.Burning {
-					continue
-				}
-				outer = append(outer, c)
-				if st.UnitAt(c) != nil || next >= len(party) {
-					continue
-				}
-				member := party[next]
-				if st.Unit(member.ID) != nil {
-					return fmt.Errorf("出战名单里的 %s 已经在场上", member.ID)
-				}
-				u, err := s.data.MakeUnit(member.Def, member.ID, rules.TeamPlayer, c, hero.Facing)
-				if err != nil {
-					return err
-				}
-				if member.Name != "" {
-					u.Name = member.Name
-				}
-				for _, id := range member.Skills {
-					sk := s.data.Skill(id)
-					if sk == nil {
-						return fmt.Errorf("出战名单里的 %s 带了不存在的招式 %s", member.ID, id)
-					}
-					u.AddSkill(sk)
-				}
-				if member.Tree != "" && s.data.Trees(member.Tree) == nil {
-					return fmt.Errorf("出战名单里的 %s 要学不存在的技能树 %s", member.ID, member.Tree)
-				}
-				u.Tree = member.Tree
-				s.data.ApplyPicks(u, picks[member.ID])
-				u.HP = u.MaxHP
-				st.AddUnit(u)
-				next++
-			}
-		}
-		ring = outer
-	}
-	if next < len(party) {
-		return fmt.Errorf("主角身边没有足够的空地放下 %d 名出战者", len(party))
-	}
-	return nil
-}
-
 func (s *Server) dispatch(req *request) obj {
 	switch req.Op {
 	case "hello":
@@ -281,55 +192,15 @@ func (s *Server) dispatch(req *request) obj {
 		}
 		return obj{"cost": s.data.PicksCost(req.Def, req.Nodes), "error": s.data.ValidateTraining(req.Def, req.Nodes, budget)}
 	case "build":
-		st, err := s.data.Build(req.Battle, req.Picks)
+		party := req.Party
+		if party == nil && req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {
+			party = []rules.PartyMember{{ID: "chiron", Def: "chiron"}}
+		}
+		st, err := s.data.Muster(req.Battle, rules.Muster{Party: party, Bench: req.Bench, Picks: req.Picks,
+			Loadout: req.Loadout, Mods: req.Mods, Items: req.Items, Reward: req.Reward})
 		if err != nil {
 			return fail("%v", err)
 		}
-		for _, id := range req.Bench {
-			if err := bench(st, id); err != nil {
-				return fail("%v", err)
-			}
-		}
-		party := req.Party
-		if party == nil && req.ChironJoined && (req.Battle == "1-4" || req.Battle == "1-5" || req.Battle == "2-1") {
-			party = []partyMember{{ID: "chiron", Def: "chiron"}}
-		}
-		if err := s.deploy(st, party, req.Picks); err != nil {
-			return fail("%v", err)
-		}
-		if err := st.GrantDivinity(s.data, req.Reward); err != nil {
-			return fail("%v", err)
-		}
-		for id, carried := range req.Loadout {
-			if u := st.Unit(id); u != nil {
-				if err := u.Carry(carried); err != nil {
-					return fail("%v", err)
-				}
-			}
-		}
-		for id, changes := range req.Mods {
-			if u := st.Unit(id); u != nil {
-				if err := u.Adjust(changes); err != nil {
-					return fail("%v", err)
-				}
-			}
-		}
-		for id, kit := range req.Items {
-			u := st.Unit(id)
-			if u == nil {
-				continue
-			}
-			for _, item := range kit {
-				sk := s.data.Skill(item)
-				if sk == nil {
-					return fail("没有这种物品: %s", item)
-				}
-				if err := u.Pack(sk); err != nil {
-					return fail("%v", err)
-				}
-			}
-		}
-		st.EquipReward(s.data, req.Reward)
 		s.nextID++
 		s.sessions[s.nextID] = st
 		s.order = append(s.order, s.nextID)
@@ -528,6 +399,21 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 			act.Target = e.Pos
 			if rules.Validate(st, act) == "" {
 				valid = append(valid, e.Footprint(e.Pos)...)
+			}
+		}
+		if act.Type == rules.ActSkill && sk != nil && rules.Kindles(sk) && !sk.HasLeap {
+			// 带火的招式还能打空着的林地格。
+			for y := 0; y < g.Depth; y++ {
+				for x := 0; x < g.Width; x++ {
+					c := rules.Cell{X: x, Y: y}
+					if g.TerrainAt(c) != rules.Forest || st.UnitAt(c) != nil {
+						continue
+					}
+					act.Target = c
+					if rules.Validate(st, act) == "" {
+						valid = append(valid, c)
+					}
+				}
 			}
 		}
 	}

@@ -3,7 +3,7 @@ extends RefCounted
 ## Turns rule events into Chinese lines for the preview panel and battle log.
 
 const STATUS_NAMES := {
-	"impervious_hide":"不坏之皮","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }

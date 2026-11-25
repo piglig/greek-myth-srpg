@@ -192,7 +192,7 @@ func TestOverlayAndOverrides(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	check(t, slices.Equal(ids, []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "test"}), "battles sorted by their order field")
+	check(t, slices.Equal(ids, []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "2-4", "test"}), "battles sorted by their order field")
 
 	over, err := LoadData(DataOptions{Overlay: "../testdata/parity/overlay", Sets: []string{"units:wolf.str=11", "skills:spear.max_range=3"}})
 	if err != nil {
@@ -202,7 +202,7 @@ func TestOverlayAndOverrides(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	check(t, slices.Equal(ids, []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "1-4x", "test"}), "overlay-only battles are listed too")
+	check(t, slices.Equal(ids, []string{"1-1", "1-2", "1-3", "1-4", "1-5", "2-1", "2-2", "2-3", "2-4", "1-4x", "test"}), "overlay-only battles are listed too")
 	eq(t, over.UnitDef("heracles").Str, 15, "overlay units.json wins")
 	eq(t, over.UnitDef("wolf").HP, 18, "overlay units.json wins")
 	eq(t, over.UnitDef("wolf").Str, 11, "override applied on top of the overlay")

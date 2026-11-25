@@ -31,6 +31,20 @@
 
 重做图标时守一条：一枚图标只画一个主体，不超过三个部件。
 
+## 0.2 第二章新增、暂借图标的六种材料（2026-11-25）
+
+按 2.1 的图标共用提示词出，{主体} 如下。做好后文件名用标识交给我，我把借用关系去掉（材料的借用写在 `campaign_checkpoint.gd` 的 `art` 一项里；剧毒是直接复制了蛇血的图标文件）。
+
+| 完成 | 名称 | 标识 | 现在借用 | {主体} |
+|---|---|---|---|---|
+| [ ] | 蛇皮 | `snake_skin` | 鳞甲 | `a shed snake skin lying in one loose S-curve, the scale pattern shown as a row of diamonds` |
+| [ ] | 毒囊 | `venom_sac` | 中毒 | `a small teardrop-shaped sac tied at the neck with one drop hanging below it` |
+| [ ] | 蟹壳 | `crab_shell` | 破盾 | `the round top shell of a crab seen from above, with a notched front edge` |
+| [ ] | 蟹钳 | `crab_claw` | 兽爪 | `a single large crab claw, pincers slightly open` |
+| [ ] | 祭带 | `sacred_ribbon` | 红线团 | `a long ribbon tied in a bow with two trailing ends, a peacock-feather eye on one end` |
+| [ ] | 乳香 | `incense` | 引火 | `three rough grains of resin with a thin curl of smoke rising from them` |
+| [ ] | 剧毒（蛇血的主动） | `hydra_venom` | 蛇血 | `a serpent's open jaws with two fangs and one drop falling between them` |
+
 ## 1. 第一档：第一章现在就缺
 
 ### 1.1 九个借用形象的人物原画

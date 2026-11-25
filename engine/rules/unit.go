@@ -109,6 +109,7 @@ type UnitState struct {
 
 	// 移动撤销用的快照
 	undoOK              bool
+	Scorched            bool // 被地上的火烧到过
 	undoPos, undoFacing Cell
 
 	index int // 在 BattleState.Units 里的下标

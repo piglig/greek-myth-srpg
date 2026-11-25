@@ -33,6 +33,8 @@ type SimOptions struct {
 	Workers   int             // 并行数；0 由引擎自己定
 	MaxRounds int             // 超过这么多回合算超时（默认 30）
 	Picks     json.RawMessage // 可选：指定技能树选点，{"hero": ["iron_arm", …]}
+	Kit       string          // 可选：出战配置的档名（balance/kits.yaml）；空 = 裸装
+	KitsPath  string
 	// Progress 汇报累计完成数；可以从任意协程调用。
 	Progress func(done, total int)
 }
@@ -70,6 +72,7 @@ type SimRequest struct {
 	Overrides   []string // "units:heracles.str=16"
 	MaxRounds   int
 	Picks       json.RawMessage
+	Kit         string      // 出战配置的档名；结果放进 variants/kit-<档名>/
 	Append      bool        // 保留 runs.jsonl 里已有的局，再追加这些
 	OnProgress  func(n int) // 每完成 n 局调用一次
 }
@@ -78,6 +81,9 @@ type SimRequest struct {
 func (r *Runner) Simulate(ctx context.Context, req SimRequest) (string, error) {
 	if r.Sim == nil {
 		return "", fmt.Errorf("没有配置模拟器")
+	}
+	if req.Kit != "" && req.Variant == "" {
+		req.Variant = "kit-" + req.Kit
 	}
 	out := r.Paths.RunDir(req.Battle, req.Bot, req.Variant)
 	if err := os.MkdirAll(out, 0o755); err != nil {
@@ -90,7 +96,8 @@ func (r *Runner) Simulate(ctx context.Context, req SimRequest) (string, error) {
 	var mu sync.Mutex
 	last := 0
 	opts := SimOptions{Battle: req.Battle, Bot: req.Bot, SeedFrom: req.Seed, Count: req.Runs, DataDir: req.DataDir,
-		TablesDir: r.Paths.Tables, Overrides: req.Overrides, Workers: r.Workers, MaxRounds: maxRounds, Picks: req.Picks}
+		TablesDir: r.Paths.Tables, Overrides: req.Overrides, Workers: r.Workers, MaxRounds: maxRounds, Picks: req.Picks,
+		Kit: req.Kit, KitsPath: r.Paths.Kits()}
 	if req.OnProgress != nil {
 		opts.Progress = func(done, total int) {
 			mu.Lock()

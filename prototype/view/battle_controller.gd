@@ -7,6 +7,8 @@ extends Node
 ##   --battle=<id>     1-4 | 1-5 | test (default 1-4); skips the build panel with default picks
 ##   --data-dir=<dir>  覆盖数据目录，原样交给规则引擎
 ##   --capture=<png>   save a screenshot after the scripted demo and quit
+##   --kit=<a,b>       things for the protagonist to carry (e.g. item_firepot)
+##   --rounds=<n>      how many rounds the "fire" demo lets pass
 ##   --wide            one zoom step out, centred on the map (for looking at a whole field)
 ##   --demo=<name>     build | idle | move | target | threat | rotate | enemy  (scripted captures)
 
@@ -80,6 +82,7 @@ var _drag_from := Vector2.INF
 var _capture_path := ""
 var _demo := ""
 var _wide := false
+var _fire_rounds := 1  ## how many rounds the "fire" demo lets pass: --rounds=N
 var _battle_id := ""
 var _skill_picks := {}
 const Checkpoint := preload("res://core/campaign_checkpoint.gd")
@@ -127,6 +130,14 @@ func _ready() -> void:
 			_bench = Array(arg.trim_prefix("--bench=").split(","))
 		elif arg.begins_with("--battle="):
 			_battle_id = arg.trim_prefix("--battle=")
+		elif arg.begins_with("--worn="):
+			# Which relics he wears in a single battle: --worn=lion_pelt,hydra_blood
+			_campaign_reward["relics_worn"] = Array(arg.trim_prefix("--worn=").split(","))
+		elif arg.begins_with("--kit="):
+			# Things for the protagonist to carry into a single battle: --kit=item_firepot,item_potion
+			_purse["kit"] = {"hero":Array(arg.trim_prefix("--kit=").split(","))}
+		elif arg.begins_with("--rounds="):
+			_fire_rounds = int(arg.trim_prefix("--rounds="))
 		elif arg == "--wide":
 			# For looking at a whole field: one zoom step out, centred on the map.
 			_wide = true
@@ -144,7 +155,7 @@ func _ready() -> void:
 		_outcomes = entry.get("outcomes",{})
 		_rescued = entry.get("rescued", [])
 		if entry.has("equipped_relic"):
-			for key in ["equipped_relic","boon","divinity","powers"]:
+			for key in ["equipped_relic","boon","divinity","powers","relics_worn"]:
 				if entry.has(key): _campaign_reward[key]=entry[key]
 		_saved_orders=entry.get("orders",[])
 		_chiron_joined = entry.get("chiron_joined",false)
@@ -233,9 +244,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		state.orders=_saved_orders.duplicate(true)
 		state.record_orders=_campaign
 	Soundscape.score("ridge")
-	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3"]:
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4"]:
 		map_view.nemea = true
-		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3"] else MapView.Wetland.NONE
+		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3","2-4"] else MapView.Wetland.NONE
 		map_view.shrine = battle_id=="2-2"
 		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
 		highlights.scale = map_view.scale
@@ -331,6 +342,8 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("穿过芦苇荡，抵达对岸　·　沼泽里过夜会中毒",3.5)
 	if battle_id=="2-3":
 		hud.banner("巨蟹正面只受一半伤害　·　绕到背后，或把它推进深水",3.5)
+	if battle_id=="2-4":
+		hud.banner("击倒三名女祭司　·　带火的招式能点着林地，火每回合蔓延一格",4.)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -1949,12 +1962,24 @@ func _news(after: Dictionary, summary: String) -> Dictionary:
 	if won:
 		# What the beaten leave behind goes into the bag (both the one being saved and ours).
 		# Most of it fell as each enemy did; anyone not yet counted is counted now.
+		# Those on the field and not beaten, where the battle was won another way, are paid
+		# for at half: reaching the far bank should not earn less than staying to kill.
+		var standing := []
 		for id: String in state.order:
 			var foe := state.unit(id)
-			if foe != null and foe.team == Defs.Team.ENEMY and not foe.alive: _drop_spoils(id,false)
+			if foe == null or foe.team != Defs.Team.ENEMY: continue
+			if not foe.alive: _drop_spoils(id,false)
+			elif not foe.hidden: standing.append(foe.def_id)
+		var dice := RandomNumberGenerator.new()
+		dice.randomize()
+		var spared := Checkpoint.left_standing(standing,dice) if _campaign else 0
+		if spared > 0:
+			news.coins = int(news.get("coins",0))+spared
+			news.spared = standing.size()
 		var haul := _haul
 		for purse: Dictionary in [_purse,after.get("purse",{})]:
 			Checkpoint.settle_purse(purse)
+			purse.coins = int(purse.get("coins",0))+spared
 			for thing: String in haul: purse.bag[thing] = int(purse.bag.get(thing,0))+int(haul[thing])
 		if not haul.is_empty(): news.loot = haul
 	# Who marched, and who was down when it ended. The camp shares out the experience.
@@ -2048,6 +2073,35 @@ func _end_turn() -> void:
 	_take_next()
 	if _battle_id=="2-1": _save_checkpoint(_battle_id)
 
+## A flame on every cell of forest that is alight, and what grew there taken away.
+var _flames := {}
+var _flame_paint: ShaderMaterial
+
+func _sync_fires() -> void:
+	var alight := {}
+	for fire: Array in state.fires:
+		alight[Vector2i(int(fire[0]),int(fire[1]))] = true
+	for cell: Vector2i in _flames.keys():
+		if not alight.has(cell):
+			_flames[cell].queue_free()
+			_flames.erase(cell)
+	for cell: Vector2i in alight:
+		if _flames.has(cell): continue
+		if _flame_paint == null:
+			_flame_paint = ShaderMaterial.new()
+			_flame_paint.shader = preload("res://view/pixel_flame.gdshader")
+			_flame_paint.set_shader_parameter("atlas",FLAME)
+		var flame := MeshInstance3D.new()
+		var card := QuadMesh.new()
+		card.size = Vector2.ONE*1.9
+		flame.mesh = card
+		flame.material_override = _flame_paint
+		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_units_root.add_child(flame)
+		flame.global_position = map_view.to_global(Vector3(cell.x+.5,map_view.cell_top(cell),cell.y+.5))+Vector3.UP*.7
+		_flames[cell] = flame
+		if map_view.field != null and map_view.field.has_method("scorch"): map_view.field.scorch(cell)
+
 func _finish_escort() -> Dictionary:
 	var next:=_entry("2-1")
 	next.stage="done"
@@ -2129,6 +2183,22 @@ func _check_end() -> bool:
 		_mode = Mode.OVER
 		_refresh()
 		return true
+	if not state.targets.is_empty() and state.target_result=="win":
+		# The altar. Two of the three caught by fire on the ground is the goal aside.
+		var burnt := state.targets_scorched >= 2
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		var summary := "三名女祭司已倒下"
+		summary += "，其中 %d 人被林火烧到（酬金 +%d）" % [state.targets_scorched,Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)] if burnt else "，林火烧到的不足两人"
+		if _campaign:
+			Checkpoint.award(_purse,_battle_id,burnt)
+			_settle_at_camp(_battle_id,summary)
+			return true
+		hud.banner(summary+"　按 R 重开",0.0)
+		_mode = Mode.OVER
+		_refresh()
+		return true
 	if _battle_id=="2-3" and state.living(Defs.Team.ENEMY).is_empty():
 		# The crab beach. One of them pushed under is the goal aside.
 		var sunk := state.drowned > 0
@@ -2139,7 +2209,7 @@ func _check_end() -> bool:
 		summary += "，%d 个敌人被推进了深水（酬金 +%d）" % [state.drowned,Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)] if sunk else "，没有敌人被推进深水"
 		if _campaign:
 			Checkpoint.award(_purse,_battle_id,sunk)
-			_settle_at_camp(_battle_id,summary)
+			_settle_at_camp("2-4",summary)
 			return true
 		hud.banner(summary+"　按 R 重开",0.0)
 		_mode = Mode.OVER
@@ -2215,6 +2285,9 @@ func _refresh() -> void:
 			hud.banner("两名村民倒下了，上山赴宴的路已经错过　·　战斗继续，歼灭敌人即可过关",4.5)
 	if _battle_id=="2-1":
 		objective="美狄亚已入队。护送她抵达东门的青绿色出口；主角和美狄亚必须存活。"
+	if not state.targets.is_empty():
+		heading += "　·　女祭司 %d/%d" % [state.targets_left,state.targets.size()]
+		objective="击倒三名女祭司即可过关，其余敌人不必清完。女祭司每回合会治疗一个同伴。带火的招式（巫火、火油罐）打中林地里的人或直接打一格林地，那一格就起火；火每回合向相邻的林地蔓延一格，橙色框是下一回合会烧到的地方，烧两回合后成为焦土。火不分敌我。\n可选：让地上的火烧到至少两名女祭司（已烧到 %d 人）。" % state.targets_scorched
 	if _battle_id=="2-3":
 		objective="歼灭所有敌人。巨蟹正面受到的伤害减半，钳住的人下一回合不能移动；深蓝色是深水，被推进去的敌人直接出局。\n可选：把至少一个敌人推进深水（%s）。" % ("已做到，%d 个" % state.drowned if state.drowned > 0 else "还没有")
 	if not state.reach_exits.is_empty():
@@ -2249,6 +2322,8 @@ func _refresh() -> void:
 	highlights.clear_all()
 	if _battle_id=="2-1": highlights.show_frame("east_gate",state.escort_exits,Color("#48ddbb"),8)
 	if not state.reach_exits.is_empty(): highlights.show_frame("far_bank",state.reach_exits,Color("#48ddbb"),8)
+	if not state.fire_next.is_empty(): highlights.show_frame("fire_next",state.fire_next,Color("#ff9440"),8)
+	_sync_fires()
 	if map_view.woodland:
 		highlights.show_frame("rescue_gate",state.rescue_exits,Color("#64bcad"),8)
 	if village != null:
@@ -2711,6 +2786,21 @@ func _run_capture() -> void:
 				await get_tree().create_timer(1.0).timeout
 				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 				await get_tree().create_timer(.6).timeout
+		"fire":
+			# A fire pot thrown at empty forest, then two rounds for it to spread and burn out.
+			# Run with --kit=item_firepot.
+			for turn in 3:
+				var aim := Rules.targeting(state,{"type":"skill","unit":"hero","skill":"item_firepot"})
+				var empty: Array = aim.valid.filter(func(cell): return state.unit_at(cell) == null)
+				if turn == 0 and not empty.is_empty():
+					await _perform({"type":"skill","unit":"hero","skill":"item_firepot","target":empty[0]})
+					await get_tree().create_timer(.6).timeout
+				if turn < _fire_rounds:
+					_end_turn()
+					await get_tree().create_timer(1.0).timeout
+					while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
+					await get_tree().create_timer(.4).timeout
+				_refresh()
 		"throw":
 			# The protagonist closes on the nearest enemy and throws them over his shoulder.
 			for turn in 6:

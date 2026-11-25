@@ -12,6 +12,8 @@ uniform sampler2D mud_relief : hint_normal, repeat_enable, filter_linear_mipmap_
 uniform sampler2D rock : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D rock_relief : hint_normal, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D wet_cells : filter_linear, repeat_disable;
+// Red where a cell has burnt to ash, green where there is forest floor.
+uniform sampler2D floor_marks : filter_linear, repeat_disable;
 uniform vec2 field_size;
 uniform float water_level = .04;
 uniform vec3 dry_tint : source_color = vec3(.80,.74,.66);
@@ -58,6 +60,14 @@ void fragment() {
 	float weed = smoothstep(.74,.92,sin(13.*p.x+4.*sin(5.*p.y))*sin(11.*p.y+3.*sin(6.*p.x)));
 	mire = mix(mire,vec3(.215,.270,.105),.55*weed);
 	paint = mix(paint,mire,bog*smoothstep(-.10,-.02,above));
+	// Forest floor is darker and greener, with leaf litter; where it has burnt, black ash
+	// with a pale edge.
+	vec2 marks = texture(floor_marks, bank / field_size).rg;
+	float litter = smoothstep(.35,.65,marks.g + .25*(grain-.3));
+	paint = mix(paint, paint*vec3(.62,.72,.48) + vec3(.012,.020,.006), .8*litter);
+	float ash = smoothstep(.30,.62,marks.r + .30*(grain-.3));
+	paint = mix(paint, vec3(.060,.055,.052) + ink*.13, .88*ash);
+	paint += vec3(.16,.15,.14)*ash*smoothstep(.72,.9,sin(p.x*21.+3.*sin(p.y*9.))*sin(p.y*19.));
 	// Under the water the bed keeps its grain and loses its warmth.
 	float under = smoothstep(.0,-.10,above);
 	paint = mix(paint, paint*vec3(.70,.86,.80), under);

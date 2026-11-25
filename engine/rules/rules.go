@@ -324,9 +324,23 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		if vessel(target) && s.Tier() >= TierInhuman {
 			return "cannot be healed"
 		}
+		if target.HasStatus("blighted") && sk.Heal > 0 {
+			return "blighted"
+		}
 		if (sk.Heal == 0 && sk.ID != "purify_arrow" || target.HP == target.MaxHP) && cleanseTarget(target) == "" {
 			return "unhurt ally"
 		}
+	} else if target == nil && Kindles(sk) && s.Grid.InBounds(cell) && s.Grid.TerrainAt(cell) == Forest {
+		// 带火的招式可以直接打一格空的林地，把它点着。
+		dist := CellDistance(u, cell)
+		minR := sk.MinRange
+		if sk.Ranged && u.Traits.CannotAttackAdjacent {
+			minR = max(minR, 2)
+		}
+		if dist < minR || dist > sk.MaxRange {
+			return "out of range"
+		}
+		return ""
 	} else if target == nil || target.Team == u.Team {
 		return "no enemy there"
 	}
@@ -453,6 +467,35 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		u.HasMoved = true
 	}
 	target := s.UnitAt(a.Target)
+	if sk.ID == "hydra_venom" {
+		u.Facing = dirToward(u, target)
+		u.HasActed = true
+		u.SetCooldown(sk.ID, sk.Cooldown)
+		emit(ev, Event{Type: EvAttack, Unit: u.ID, Target: target.ID, Skill: sk.ID, Relation: ComputeHit(s, u, target, 0, True, true, NoPos, false).Relation})
+		if AddStatus(s, target, "poisoned", sk.Rounds, ev, false) {
+			target.SetStatus("blighted", sk.Rounds)
+			emit(ev, Event{Type: EvStatus, Target: target.ID, Status: "blighted", Rounds: sk.Rounds})
+		}
+		return
+	}
+	if target == nil && Kindles(sk) {
+		// 打在空的林地上：只点火。
+		if dx, dy := a.Target.X-u.Pos.X, a.Target.Y-u.Pos.Y; dx*dx >= dy*dy {
+			u.Facing = Cell{sign(dx), 0}
+			if dx == 0 {
+				u.Facing = East
+			}
+		} else {
+			u.Facing = Cell{0, sign(dy)}
+		}
+		u.HasActed = true
+		if sk.Cooldown > 0 {
+			u.SetCooldown(sk.ID, sk.Cooldown)
+		}
+		emit(ev, Event{Type: EvArea, Unit: u.ID, Skill: sk.ID, To: a.Target})
+		s.kindle(a.Target, ev)
+		return
+	}
 	if sk.ID == "purify_arrow" {
 		u.Facing = dirToward(u, target)
 		u.HasActed = true
@@ -518,6 +561,12 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 	emit(ev, Event{Type: EvAttack, Unit: u.ID, Target: target.ID, Skill: sk.ID, Relation: hit.Relation, Notes: hit.Notes})
 	dodged := target.HasStatus("dodge")
 	Deal(s, target, hit.Amount, sk.Type, sk.ID, ev, true)
+	if !dodged && Kindles(sk) {
+		// 目标脚下是林地就烧起来。
+		for _, c := range target.Footprint(target.Pos) {
+			s.kindle(c, ev)
+		}
+	}
 	if !dodged && target.Alive {
 		switch sk.ID {
 		case "witch_fire", "solar_flame", "cinder_lance":
@@ -535,6 +584,10 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 				rounds++
 			}
 			AddStatus(s, target, sk.Status, rounds, ev, false)
+		}
+		if vessel(u) && s.Reward.Wears("hydra_blood") && hit.Amount > 0 {
+			// 蛇血：他的每一击都带毒。
+			AddStatus(s, target, "poisoned", 1, ev, false)
 		}
 	}
 	if !dodged {
@@ -793,6 +846,7 @@ func SettleRound(s *BattleState, ev *[]Event) {
 		switch terrain := s.Grid.TerrainAt(u.Pos); {
 		case terrain == Burning:
 			AddStatus(s, u, "burning", 2, ev, false)
+			u.Scorched = true
 		case terrain == Swamp && !u.Traits.MarshStride:
 			// 沼泽里长大的不怕沼泽。
 			AddStatus(s, u, "poisoned", 3, ev, false)
@@ -809,6 +863,7 @@ func SettleRound(s *BattleState, ev *[]Event) {
 			Deal(s, u, PoisonDamage, True, "poisoned", ev, false)
 		}
 	}
+	settleFires(s, ev)
 
 	var keys []string
 	for _, u := range s.Living(TeamAny) {
@@ -921,4 +976,14 @@ func ActionTypeByName(name string) ActionType {
 		}
 	}
 	return ActUnknown
+}
+
+func sign(v int) int {
+	if v > 0 {
+		return 1
+	}
+	if v < 0 {
+		return -1
+	}
+	return 0
 }

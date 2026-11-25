@@ -250,6 +250,18 @@ func _open_for_shot(which: String) -> void:
 			screen = "party"
 			member = "r1"
 			page = "tree"
+		"relics":
+			# Two relics and two slots, at the map: which he takes is his to pick.
+			entry.id = "2-4"
+			entry.equipped_relic = "lion_pelt"
+			entry.boon = "moon_hunt"
+			entry.relics = ["lion_pelt","hydra_blood"]
+			entry.divinity = 2
+			entry.powers = ["thunder_bolt"]
+			entry.medea_joined = true
+			entry.outcomes = {"2-1":"已通关","2-2":"已通关","2-3":"已通关"}
+			screen = "march"
+			chapter = 1
 		"depart":
 			# Walk out of the camp into the next battle, to check the hand-over.
 			screen = "march"
@@ -578,8 +590,10 @@ func _story(who: String) -> String:
 	if entry.get("id") == "2-2":
 		return "芦苇荡里看着是地的，一半是泥。踩着干的土墩走，别在泥里过夜；蛇在泥里比你快。"
 	if entry.get("id") == "2-3":
-		if entry.get("outcomes",{}).has("2-3"): return "滩上清净了。再往里是赫拉的祭坛，路我还在探，今晚先把湿衣服烤干。"
 		return "巨蟹的壳正面砍不动。绕到它背后，或者干脆把它顶进深水里，它自己爬不上来。"
+	if entry.get("id") == "2-4":
+		if entry.get("outcomes",{}).has("2-4"): return "祭坛的火灭了。再往里就是许德拉的巢，路我还在探，今晚先歇着。"
+		return "祭坛在一片林子里，女祭司躲在树后给别人治伤。林子怕火，美狄亚的巫火一点就着。"
 	return "我已把下一处落脚点圈在图上。先看路口，再看敌人能从哪边绕到你背后。"
 
 # --- Drawing ------------------------------------------------------------------------
@@ -1285,8 +1299,9 @@ func _sheet(rows: Array) -> void:
 		var recruit := _kind(member)
 		if not recruit.is_empty():
 			sources["随身"] = [_basic(member),recruit.skill]
-		if member == "hero" and entry.get("equipped_relic","") == "lion_pelt":
-			sources["狮皮"] = ["impervious_hide"]
+		if member == "hero":
+			var called := Save.worn(entry).map(func(id): return Save.RELICS[id].skill)
+			if not called.is_empty(): sources["圣物"] = called
 		var offset := x+140
 		for source: String in sources:
 			Px.text(body,source,Rect2(offset,y+7,26,0),Px.SMALL,Px.MUTED)
@@ -1420,8 +1435,9 @@ func _info_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void:
 			if learned.has(node.id) and str(node.get("skill","")) == "": always.append(str(node.name))
 	if member == "hero" and entry.has("equipped_relic"):
 		always.append("%s（圣物 %d 件）" % [Save.TIERS[Save.tier(entry)].name,int(entry.get("divinity",0))])
+		var wearing := Save.worn(entry)
 		for relic: String in entry.get("relics",["lion_pelt"]):
-			always.append("圣物 "+str(Save.RELICS[relic].name))
+			always.append("圣物 "+str(Save.RELICS[relic].name)+("" if wearing.has(relic) else "（未带）"))
 		if entry.get("boon","") != "": always.append("神赐 "+str(Save.BOONS[entry.boon][1]))
 	Px.text(body,"特性",Rect2(x,y,34,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,"、".join(always) if not always.is_empty() else "还没有",Rect2(x+34,y,wide-34,0),Px.SMALL,Px.IVORY if not always.is_empty() else Px.FAINT)
@@ -2188,6 +2204,25 @@ func _march() -> void:
 		Px.text(body,"这一战必须出战" if must else "出战 · 点一下留守" if on else ("名额已满" if toggle.disabled else "留守 · 点一下出战"),Rect2(at.x+40,at.y+19,160,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
 		toggles.append(toggle)
 	Px.chain(toggles)
+	# Which relics he takes: asked only once he has more than he can carry or a choice.
+	var held: Array = (entry.get("relics",[]) as Array).filter(func(id): return Save.RELICS.has(id) and Save.RELICS[id].has("skill"))
+	if entry.has("equipped_relic") and held.size() > 1:
+		var wearing := Save.worn(entry)
+		var room := Save.relic_slots(entry)
+		var ry := DETAIL.end.y-92
+		Px.rule(body,Vector2(x,ry-8),DETAIL.size.x-40,Color(Px.OCHRE,.2))
+		Px.text(body,"圣物",Rect2(x,ry,60,0),Px.SMALL,Px.OCHRE)
+		Px.text(body,"带 %d / %d 件" % [wearing.size(),room],Rect2(x,ry+14,80,0),Px.SMALL,Px.MUTED)
+		for i in held.size():
+			var relic: String = held[i]
+			var on := wearing.has(relic)
+			var pick := Px.row(body,"",Rect2(x+84+i*152,ry-4,146,36),on,_toggle_relic.bind(relic))
+			pick.disabled = not on and wearing.size() >= room
+			pick.tooltip_text = "%s\n常驻：%s\n主动：%s" % [Save.RELICS[relic].name,Save.RELICS[relic].held,Save.RELICS[relic].called]
+			Px.picture(body,Px.icon(Save.RELICS[relic].icon,24),Rect2(x+92+i*152,ry+2,24,24)).modulate = Px.OCHRE if on else Px.FAINT
+			Px.text(body,str(Save.RELICS[relic].name),Rect2(x+122+i*152,ry,104,0),Px.SMALL,Px.IVORY if on else Px.FAINT)
+			Px.text(body,"带上" if on else ("栏位已满" if pick.disabled else "留下"),Rect2(x+122+i*152,ry+14,104,0),Px.SMALL,Px.GREEN if on else Px.FAINT)
+			toggles.append(pick)
 	var go: Button
 	if state == "可出发":
 		go = Px.primary(body,"出征",Rect2(DETAIL.end.x-20-160,DETAIL.end.y-42,160,30),_depart.bind(site))
@@ -2213,6 +2248,15 @@ func _toggle_march(who: String) -> void:
 	_keep(next)
 	_render()
 
+func _toggle_relic(relic: String) -> void:
+	var wearing := Save.worn(entry)
+	if wearing.has(relic): wearing.erase(relic)
+	elif wearing.size() < Save.relic_slots(entry): wearing.append(relic)
+	var next: Dictionary = entry.duplicate(true)
+	next.relics_worn = wearing
+	_keep(next)
+	_render()
+
 func _turn_chapter(step: int) -> void:
 	chapter = clampi(chapter+step,0,Routes.data.size()-1)
 	picked.march = -1
@@ -2225,6 +2269,7 @@ func _depart(site: Dictionary) -> void:
 	next.campaign = persistent
 	next.erase("camp_summary")
 	next.deploy = _marching_to(str(site.id))
+	next.relics_worn = Save.worn(entry)
 	next.bench = Save.PLACED.filter(func(who): return not next.deploy.has(who))
 	var party := []
 	for who: String in next.deploy:
@@ -2740,6 +2785,9 @@ func _settle_verdict() -> void:
 		var relics: Array = next.get("relics",["lion_pelt"])
 		relics.append(case.relic)
 		next.relics = relics
+		# Worn at once if he has picked what he wears and there is a slot free for it.
+		if next.has("relics_worn") and Save.RELICS[case.relic].has("skill") and (next.relics_worn as Array).size() < Save.relic_slots(next):
+			next.relics_worn.append(case.relic)
 		next.divinity = relics.size()
 	else:
 		var spared: Array = next.get("spared",[])

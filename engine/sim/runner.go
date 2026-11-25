@@ -36,6 +36,10 @@ func RunBattle(data *rules.Data, battleID string, picks map[string][]string, pro
 // Runner 连续打很多场战斗时复用搜索用的内存。一个 Runner 只能在一个 goroutine 里用。
 type Runner struct {
 	bot *bots.Bot
+	// Muster 不为 nil 时，每场战斗都按它开局（带上队友、装备、物品、圣物），不再只看 picks。
+	Muster *rules.Muster
+	// Kit 是这套开局的名字，写进每一行记录。
+	Kit string
 }
 
 // RunBattle 与包级的 RunBattle 相同，结果也完全相同。
@@ -45,7 +49,14 @@ func (r *Runner) RunBattle(data *rules.Data, battleID string, picks map[string][
 	if maxRounds <= 0 {
 		maxRounds = DefaultMaxRounds
 	}
-	s, err := data.Build(battleID, picks)
+	var s *rules.BattleState
+	var err error
+	if r.Muster != nil {
+		picks = r.Muster.Picks
+		s, err = data.Muster(battleID, *r.Muster)
+	} else {
+		s, err = data.Build(battleID, picks)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +69,7 @@ func (r *Runner) RunBattle(data *rules.Data, battleID string, picks map[string][
 	}
 	bot := r.bot
 	c := newCollector(s, battleID, picks, prof, seed, hook)
+	c.row.Kit = r.Kit
 
 	result := ""
 	for result == "" {
@@ -152,6 +164,44 @@ func newCollector(s *rules.BattleState, battleID string, picks map[string][]stri
 
 func xy(c rules.Cell) [2]int { return [2]int{c.X, c.Y} }
 
+// countUse 记一笔我方用营地里带来的东西：物品、治疗、点火、圣物主动、神力招式。
+func (c *collector) countUse(e *rules.Event) {
+	m := c.row
+	switch e.Type {
+	case rules.EvIgnite:
+		m.Counts["ignite"]++
+		return
+	case rules.EvStatus:
+		// 给自己上的状态没有出手的事件，按状态名认。
+		switch e.Status {
+		case "impervious_hide":
+			m.Counts["relic"]++
+		case "thunder_body":
+			m.Counts["power"]++
+		}
+		return
+	case rules.EvHeal, rules.EvAttack, rules.EvArea, rules.EvWard:
+	default:
+		return
+	}
+	u := c.s.Unit(e.Unit)
+	if u == nil || u.Team != rules.TeamPlayer {
+		return
+	}
+	if e.Type == rules.EvHeal {
+		m.Counts["heal"]++
+	}
+	sk := u.Skill(e.Skill)
+	switch {
+	case len(e.Skill) > 5 && e.Skill[:5] == "item_":
+		m.Counts["item"]++
+	case sk != nil && sk.Relic:
+		m.Counts["relic"]++
+	case sk != nil && (sk.Blast > 0 || sk.Blink > 0 || sk.AreaShield > 0 || sk.ID == "thunder_bolt"):
+		m.Counts["power"]++
+	}
+}
+
 func (c *collector) collect(events []rules.Event, actor string) {
 	s, m := c.s, c.row
 	if c.hook != nil {
@@ -183,6 +233,10 @@ func (c *collector) collect(events []rules.Event, actor string) {
 		}
 		if isMechanic[e.Type] {
 			m.Counts[e.Type.String()]++
+		}
+		if m.Kit != "" {
+			// 带着出战配置时，另记我方用了几次药、点了几次火、用了几次圣物和神力。
+			c.countUse(e)
 		}
 		switch e.Type {
 		case rules.EvDamage:

@@ -69,6 +69,9 @@ type BattleState struct {
 	ReachExits   []Cell   // 对岸：我方活着的人全部站上去就赢。
 	SwampRests   int      // 我方有多少人次在沼泽里过了回合结算（可选目标用）。
 	Drowned      int      // 有多少敌人被推进深水淹没（可选目标用）。
+	Fires        []Fire   // 正在烧的林地格，按点着的先后。
+	FireEver     bool     // 这一场起过火：地形变过，界面要重新取地图。
+	Targets      []string // 指定要击杀的目标；全部倒下就赢（不可变）。
 	RescueExits  []Cell   // Immutable evacuation zone.
 	Village      *Village // Read-only scenario data.
 	Cave         *Cave
@@ -258,9 +261,15 @@ func (s *BattleState) AppendSignature(buf []byte) []byte {
 	buf = appendStr(buf, s.PreviousMark)
 	buf = appendStr(buf, s.Reward.Boon)
 	buf = appendStr(buf, s.Reward.EquippedRelic)
+	for _, relic := range s.Reward.Worn {
+		buf = appendStr(buf, relic)
+	}
 	buf = binary.AppendVarint(buf, int64(s.Reward.Divinity))
 	if len(s.ReachExits) > 0 {
 		buf = binary.AppendVarint(buf, int64(s.SwampRests))
+	}
+	for _, f := range s.Fires {
+		buf = append(buf, 'f', byte(f.Cell.X), byte(f.Cell.Y), byte(f.Left))
 	}
 	if s.Drowned > 0 {
 		buf = append(buf, 'd')
@@ -340,6 +349,7 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 	dst.RescueExits = s.RescueExits
 	dst.EscortExits = s.EscortExits
 	dst.ReachExits, dst.SwampRests, dst.Drowned = s.ReachExits, s.SwampRests, s.Drowned
+	dst.Fires, dst.FireEver, dst.Targets = append(dst.Fires[:0], s.Fires...), s.FireEver, s.Targets
 	dst.Grid, dst.Round, dst.Phase, dst.MarkedID, dst.mc = s.Grid, s.Round, s.Phase, s.MarkedID, s.mc
 	if cap(dst.slab) < n {
 		dst.slab = make([]UnitState, n)

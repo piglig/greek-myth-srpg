@@ -133,6 +133,9 @@ func (s *BattleState) Outcome() string {
 	if ally := s.Unit("wounded_chiron"); ally != nil && !ally.Alive {
 		return "loss_chiron"
 	}
+	if len(s.Targets) > 0 && s.TargetsLeft() == 0 {
+		return "win"
+	}
 	if len(s.EscortExits) > 0 {
 		ally := s.Unit("medea")
 		if ally == nil || !ally.Alive {

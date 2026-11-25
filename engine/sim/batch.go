@@ -25,6 +25,9 @@ type Options struct {
 	Sets      []string            // 可选的数值改写："<表>:<点分键路径>=<json 值>"
 	Picks     map[string][]string // 技能树加点；nil 表示用表里的默认加点
 	MaxRounds int                 // 回合上限；<= 0 表示 DefaultMaxRounds
+	// Kit 不为空时按这一档出战配置开局（见 kits.go）；KitsPath 是配置文件的位置。
+	Kit      string
+	KitsPath string
 }
 
 // LoadData 按选项读入数据表。
@@ -58,6 +61,16 @@ func RunWith(ctx context.Context, data *rules.Data, opts Options) ([]Row, error)
 	if picks == nil {
 		picks = data.DefaultPicks()
 	}
+	var muster *rules.Muster
+	if opts.Kit != "" {
+		kits, err := LoadKits(opts.KitsPath)
+		if err != nil {
+			return nil, err
+		}
+		if muster, err = kits.Muster(data, opts.Kit, opts.Battle); err != nil {
+			return nil, err
+		}
+	}
 	workers := opts.Workers
 	if workers <= 0 {
 		workers = runtime.NumCPU()
@@ -78,7 +91,7 @@ func RunWith(ctx context.Context, data *rules.Data, opts Options) ([]Row, error)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			runner := new(Runner)
+			runner := &Runner{Muster: muster, Kit: opts.Kit}
 			for i := range jobs {
 				row, err := runOne(runner, data, opts.Battle, picks, prof, opts.SeedFrom+i, opts.MaxRounds)
 				mu.Lock()

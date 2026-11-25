@@ -27,7 +27,8 @@ type Row struct {
 	Kills       []Kill                 `json:"kills"` // 每个敌人倒下时的最后一击
 	MS          int64                  `json:"ms"`
 	PartyHPLeft GDFloat                `json:"party_hp_left"`
-	Phase2Round int                    `json:"phase2_round"` // 首领第一次退回洞穴的回合（0 = 从未）
+	Phase2Round int                    `json:"phase2_round"`  // 首领第一次退回洞穴的回合（0 = 从未）
+	Kit         string                 `json:"kit,omitempty"` // 出战配置的档名；空 = 只有关卡文件里的人，裸装
 	Picks       map[string][]string    `json:"picks"`
 	Result      string                 `json:"result"`
 	Rounds      int                    `json:"rounds"`

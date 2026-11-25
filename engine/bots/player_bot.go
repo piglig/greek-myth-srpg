@@ -342,6 +342,46 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 		}
 		reach = append(reach, skillReach{sk, sk.MinRange, sk.MaxRange + extra})
 	}
+	// 治疗和解毒的对象；给自己或身边上状态的招式；带火的招式能点的空林地（紧挨着站在林地里
+	// 的敌人的那些，火下一回合就烧到他们脚下）。
+	var allies []*rules.UnitState
+	for _, p := range s.Units {
+		if p.Alive && p.Team == rules.TeamPlayer && !p.Hidden {
+			allies = append(allies, p)
+		}
+	}
+	var mends, selfCast, kindlers []*rules.Skill
+	for _, sk := range u.Skills {
+		switch {
+		case sk.HasLeap || sk.Blink > 0 || sk.Blast > 0:
+		case sk.SelfStatus != "":
+			if !u.HasStatus(sk.SelfStatus) {
+				selfCast = append(selfCast, sk)
+			}
+		case sk.IsArea():
+			selfCast = append(selfCast, sk)
+		case sk.Mends() || sk.ID == "purify_arrow":
+			mends = append(mends, sk)
+		case rules.Kindles(sk) && sk.HasMaxRange:
+			kindlers = append(kindlers, sk)
+		}
+	}
+	var tinder []rules.Cell
+	if len(kindlers) > 0 {
+		seen := map[rules.Cell]bool{}
+		for _, e := range enemies {
+			if s.Grid.TerrainAt(e.Pos) != rules.Forest {
+				continue
+			}
+			for _, dir := range rules.Dirs {
+				c := e.Pos.Add(dir)
+				if s.Grid.InBounds(c) && s.Grid.TerrainAt(c) == rules.Forest && s.UnitAt(c) == nil && !seen[c] {
+					seen[c] = true
+					tinder = append(tinder, c)
+				}
+			}
+		}
+	}
 	dist := make([]int, len(enemies))
 	for _, d := range dests {
 		u.Pos = d
@@ -376,6 +416,31 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 				}
 			}
 		}
+		for _, sk := range mends {
+			for _, p := range allies {
+				act := rules.UseSkill(uid, sk.ID, p.Pos)
+				if rules.Validate(s, act) == "" {
+					out = append(out, plan(nil, act))
+				}
+			}
+		}
+		for _, sk := range selfCast {
+			act := rules.UseSkill(uid, sk.ID, d)
+			if rules.Validate(s, act) == "" {
+				out = append(out, plan(nil, act))
+			}
+		}
+		for _, sk := range kindlers {
+			for _, c := range tinder {
+				if gap := rules.CellDistance(u, c); gap < sk.MinRange || gap > sk.MaxRange {
+					continue
+				}
+				act := rules.UseSkill(uid, sk.ID, c)
+				if rules.Validate(s, act) == "" {
+					out = append(out, plan(nil, act))
+				}
+			}
+		}
 		if s.Cave != nil {
 			for i := range s.Cave.Boulders {
 				push := rules.PushBoulder(uid, s.Cave.Boulders[i].Pos)
@@ -389,6 +454,27 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 	u.Pos = start
 	u.HasMoved = wasMoved
 	b.Stats.Plans += len(out)
+
+	// 瞬移的招式：只从当前位置考虑，落点挑敌人身边的格子。
+	for _, sk := range u.Skills {
+		if sk.Blink == 0 || u.Cooldown(sk.ID) > 0 {
+			continue
+		}
+		tried := map[rules.Cell]bool{}
+		for _, e := range enemies {
+			for _, dir := range rules.Dirs {
+				to := e.Pos.Add(dir)
+				if tried[to] {
+					continue
+				}
+				tried[to] = true
+				act := rules.UseSkill(uid, sk.ID, to)
+				if rules.Validate(s, act) == "" {
+					out = append(out, Plan{Main: act})
+				}
+			}
+		}
+	}
 
 	// 跳跃技能：只从当前位置考虑（跳跃本身就是移动）
 	if !u.HasMoved {

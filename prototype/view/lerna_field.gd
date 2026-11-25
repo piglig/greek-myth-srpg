@@ -25,6 +25,15 @@ func _target(x: int, z: int) -> float:
 ## The marsh is a channel between two banks. These are the first and last columns that
 ## hold any water or bog; beyond the map's near and far edges the channel opens into water.
 var channel := Vector2.ZERO
+## Whether the water opens out past the map's far edge (north) and near edge (south).
+var open_north := false
+var open_south := false
+## What grows on each cell of forest, to be taken away when it burns; and a picture the
+## ground reads: red where a cell has burnt, green where there is forest floor.
+var growth := {}
+var floor_marks: Image
+var floor_picture: ImageTexture
+var ground_paint: ShaderMaterial
 
 const ALTAR := preload("res://art/camp/altar.glb")
 const BRAZIER := preload("res://art/camp/brazier.glb")
@@ -39,6 +48,13 @@ func build(battle_grid: BattleGrid, layer_height: float, _village := false, _woo
 			if _wetness(Vector2i(x,z)) > 0.:
 				channel.x = minf(channel.x,x)
 				channel.y = maxf(channel.y,x+1)
+				open_north = open_north or z == 0
+				open_south = open_south or z == grid.depth-1
+	floor_marks = Image.create(grid.width,grid.depth,false,Image.FORMAT_RG8)
+	for z in grid.depth:
+		for x in grid.width:
+			floor_marks.set_pixel(x,z,Color(0,1. if grid.terrain_at(Vector2i(x,z)) == Defs.Terrain.FOREST else 0.,0))
+	floor_picture = ImageTexture.create_from_image(floor_marks)
 	var surface := _build_surface()
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://view/lerna_ground.gdshader")
@@ -57,6 +73,8 @@ func build(battle_grid: BattleGrid, layer_height: float, _village := false, _woo
 	paint.set_shader_parameter("wet_cells",ImageTexture.create_from_image(wet))
 	paint.set_shader_parameter("field_size",Vector2(grid.width,grid.depth))
 	paint.set_shader_parameter("water_level",WATER)
+	paint.set_shader_parameter("floor_marks",floor_picture)
+	ground_paint = paint
 	paint.set_shader_parameter("sand",preload("res://art/thirdparty/ambientcg/sand_color.jpg"))
 	paint.set_shader_parameter("sand_relief",preload("res://art/thirdparty/ambientcg/sand_normal.jpg"))
 	paint.set_shader_parameter("mud",preload("res://art/thirdparty/ambientcg/mud_color.jpg"))
@@ -120,7 +138,7 @@ func _wetness(cell: Vector2i) -> float:
 func _open_water(x: float, z: float) -> float:
 	if channel.y <= channel.x:
 		return 0.
-	var beyond := maxf(-z,z-grid.depth)
+	var beyond := maxf(-z if open_north else 0.,z-grid.depth if open_south else 0.)
 	var inside := minf(x-channel.x,channel.y-x)+.35*beyond
 	return smoothstep(1.2,3.6,beyond+.5*sin(x*.9))*smoothstep(-.6,.6,inside)
 
@@ -265,6 +283,18 @@ func _dress_banks() -> void:
 			var cell := Vector2i(x,z)
 			if _soak(x+.5,z+.5) > 0.:
 				continue
+			if grid.in_bounds(cell) and grid.terrain_at(cell) == Defs.Terrain.FOREST:
+				# Forest on the map: brush and a young tree, thick enough to read as cover.
+				var grown: Array[Node] = []
+				for i in rng.randi_range(2,3):
+					var at := Vector2(x+rng.randf_range(.18,.82),z+rng.randf_range(.18,.82))
+					_plant(THYME,rng.randf_range(.8,1.25),Vector3(at.x,elevation(at.x,at.y),at.y),rng,false)
+					grown.append(get_child(get_child_count()-1))
+				if (x*3+z*5)%4 == 0:
+					_plant(OLIVE,rng.randf_range(1.2,1.7),Vector3(x+.24,elevation(x+.24,z+.26),z+.26),rng)
+					grown.append(get_child(get_child_count()-1))
+				growth[cell] = grown
+				continue
 			if grid.in_bounds(cell):
 				if rng.randf() < .2:
 					var corner := Vector2(x+(.15 if rng.randf() < .5 else .85),z+rng.randf_range(.1,.24))
@@ -297,6 +327,17 @@ func _dress_banks() -> void:
 		shadows.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(shadows)
 		plant_shadows.clear()
+
+
+## A cell of forest has caught: what grew there is gone, and the ground under it is ash.
+func scorch(cell: Vector2i) -> void:
+	for plant: Node in growth.get(cell,[]):
+		if is_instance_valid(plant): plant.queue_free()
+	growth.erase(cell)
+	if floor_marks == null or not grid.in_bounds(cell):
+		return
+	floor_marks.set_pixel(cell.x,cell.y,Color(1,0,0))
+	floor_picture.update(floor_marks)
 
 
 ## A dead tree or a stone from the nature kit, set on the ground with its shadow.

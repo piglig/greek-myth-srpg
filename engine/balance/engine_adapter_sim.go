@@ -23,7 +23,8 @@ func (EngineSimulator) Run(ctx context.Context, o SimOptions) ([]RawRow, error) 
 	}
 	rows, err := sim.Run(ctx, sim.Options{Battle: o.Battle, Bot: o.Bot, SeedFrom: o.SeedFrom, Count: o.Count,
 		DataDir: o.DataDir, Workers: o.Workers, Progress: o.Progress,
-		TablesDir: o.TablesDir, Sets: o.Overrides, Picks: picks, MaxRounds: o.MaxRounds})
+		TablesDir: o.TablesDir, Sets: o.Overrides, Picks: picks, MaxRounds: o.MaxRounds,
+		Kit: o.Kit, KitsPath: o.KitsPath})
 	if err != nil {
 		return nil, err
 	}

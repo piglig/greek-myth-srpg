@@ -2,7 +2,7 @@ extends RefCounted
 ## The Corinth checkpoint also carries the resolved orders up to the last player decision.
 ## Where the save lives. A variable so the flow test can use a file of its own.
 static var PATH := "user://chapter-one.cfg"
-const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3"]
+const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4"]
 
 const STARTING_COINS := 60
 ## Where things are worn. A member wears one thing per place; every charm names its place.
@@ -76,6 +76,12 @@ const GOODS := {
 	"wine_skin": {"slot":"material","name":"酒囊","rarity":"common","price":30,"lore":"还剩小半袋没掺水的酒。"},
 	"horsehair": {"slot":"material","name":"马鬃","rarity":"common","price":28,"lore":"半人马的尾鬃，做弓弦比牛筋还韧。"},
 	"lion_mane": {"slot":"material","name":"狮鬃","rarity":"epic","price":200,"lore":"涅墨亚狮子的鬃毛，刀割不断。"},
+	"snake_skin": {"slot":"material","name":"蛇皮","rarity":"common","price":24,"art":"scale","lore":"整条褪下来的，花纹还在。做刀鞘的人收。"},
+	"venom_sac": {"slot":"material","name":"毒囊","rarity":"rare","price":70,"art":"st_poison","lore":"小心别捏破。药师出的价比猎人高。"},
+	"crab_shell": {"slot":"material","name":"蟹壳","rarity":"common","price":40,"art":"broken_shield","lore":"比盾还硬的一整片背甲。"},
+	"crab_claw": {"slot":"material","name":"蟹钳","rarity":"rare","price":80,"art":"claw","lore":"钳口还合得上。有人拿它当门环。"},
+	"sacred_ribbon": {"slot":"material","name":"祭带","rarity":"common","price":36,"art":"red_thread","lore":"女祭司束发的带子，绣着孔雀翎。"},
+	"incense": {"slot":"material","name":"乳香","rarity":"rare","price":70,"art":"kindling","lore":"祭坛上烧的香。在集市上按粒卖。"},
 }
 ## Shown for a rarity where no hired fighter is involved.
 const STAT_NAMES := {"hp":"生命","str":"力量","def":"防御","wil":"意志","div":"神性","move":"移动","jump":"跳跃"}
@@ -89,8 +95,9 @@ const LOOT := {
 	"boar": [["boar_hide",0.7],["boar_tusk",0.7],["bone",0.4]],
 	"centaur": [["horsehair",0.6],["wine_skin",0.5],["bronze_scrap",0.3],["trail_wraps",0.06],["item_potion",0.1]],
 	"lion": [["lion_mane",1.0],["claw",1.0]],
-	"marsh_snake": [["bone",0.35],["item_antidote",0.2]],
-	"giant_crab": [["bronze_scrap",0.3],["bone",0.5],["item_potion",0.1]],
+	"marsh_snake": [["snake_skin",0.7],["venom_sac",0.08],["item_antidote",0.2]],
+	"hera_priestess": [["sacred_ribbon",0.7],["incense",0.1],["item_potion",0.35],["cup",0.05]],
+	"giant_crab": [["crab_shell",0.7],["crab_claw",0.1],["item_potion",0.1]],
 }
 
 ## How many things one member may carry into battle. The engine holds the same number
@@ -187,6 +194,15 @@ static func roll_loot(beaten: Array, rng: RandomNumberGenerator) -> Dictionary:
 					break
 	return haul
 
+## What those still standing are worth when a battle is won without beating them: half
+## of what their spoils would have sold for, in coin. Winning by the goal should not cost
+## the purse.
+static func left_standing(kinds: Array, rng: RandomNumberGenerator) -> int:
+	var worth := 0
+	var haul := roll_loot(kinds,rng)
+	for thing: String in haul: worth += sell_price(thing)*int(haul[thing])
+	return worth/2
+
 ## How rare a hired hero is: its name and colour.
 const RARITY := {
 	"common": {"name":"普通","tint":"#cfc4b0"},
@@ -263,7 +279,7 @@ static func standing(total: int) -> Dictionary:
 		level += 1
 	return {"level":level,"into":total,"need":xp_need(level)}
 
-## `aside` says the battle's optional goal was met: a quarter more.
+## `aside` says the battle's optional goal was met: as much again.
 static func award(purse: Dictionary, battle: String, aside := false) -> void:
 	var paid: Array=purse.get("paid",[])
 	if paid.has(battle): return
@@ -273,7 +289,7 @@ static func award(purse: Dictionary, battle: String, aside := false) -> void:
 
 static func pay_for(battle: String, aside := false) -> int:
 	var pay := 80 if battle.begins_with("2-") else 60
-	return pay+pay/4 if aside else pay
+	return pay*2 if aside else pay
 
 const BOONS := {
 	"moon_hunt": ["阿耳忒弥斯", "月下狩猎", "追猎标记可同时保留两个目标。"],
@@ -305,8 +321,8 @@ const POWERS := [
 ## called on. Only the lion's pelt works in battle so far; the rest are words until their
 ## chapters are built.
 const RELICS := {
-	"lion_pelt": {"icon":"art_pelt","name":"涅墨亚狮皮","held":"物理伤害在防御后再减 3；受背击的倍率降到 1.25。","called":"不坏之皮：1 回合内免疫物理伤害。冷却 4。"},
-	"hydra_blood": {"icon":"relic_blood","name":"蛇血","held":"他的攻击附带中毒 1 回合。","called":"剧毒：3 格内一个敌人中毒 3 回合。冷却 3。"},
+	"lion_pelt": {"icon":"art_pelt","name":"涅墨亚狮皮","held":"物理伤害在防御后再减 3；受背击的倍率降到 1.25。","called":"不坏之皮：1 回合内免疫物理伤害。冷却 4。","skill":"impervious_hide"},
+	"hydra_blood": {"icon":"relic_blood","name":"蛇血","held":"他的攻击附带中毒 1 回合。","called":"剧毒：3 格内一个敌人中毒 3 回合，期间无法被治疗。冷却 3。","skill":"hydra_venom"},
 	"bronze_feather": {"icon":"art_feather","name":"铜羽","held":"受到的远程伤害减 3，并把三成还给射手。","called":"羽刃：直线 4 格，贯穿，0.8 倍物理伤害。冷却 3。"},
 	"ariadne_thread": {"icon":"art_thread","name":"阿里阿德涅之线","held":"每场 1 次，不耗行动与任意一位同伴交换位置。","called":"归路：把一位同伴拉到他身边，并解开束缚。冷却 4。"},
 	"gorgon_head": {"icon":"brooch","name":"蛇发之首","held":"从正面近身打他的敌人被束缚 1 回合，每回合 1 次。","called":"凝视：面前扇形 3 格内朝着他的敌人眩晕 1 回合；首领改为破势 +30。冷却 5。"},
@@ -349,6 +365,20 @@ static func power_words(id: String) -> String:
 		for power: Array in pair:
 			if power[0] == id: return str(power[2])
 	return ""
+
+## How many relics he may take into a battle: one to begin with, and one more with the
+## second, fourth and sixth relic taken. The engine holds the same rule (rules.RelicSlots).
+static func relic_slots(entry: Dictionary) -> int:
+	return mini(4,1+(entry.get("relics",[]) as Array).size()/2)
+
+## The relics he takes into battle: those picked, or failing that the first he took, as
+## many as there are slots. Only relics the rules know how to use can be worn.
+static func worn(entry: Dictionary) -> Array:
+	if not entry.has("equipped_relic"): return []
+	var held: Array = entry.get("relics",["lion_pelt"])
+	var usable := held.filter(func(id): return RELICS.has(id) and RELICS[id].has("skill"))
+	var picked: Array = entry.get("relics_worn",usable)
+	return picked.filter(func(id): return usable.has(id)).slice(0,relic_slots(entry))
 
 static func chapter_reward(entry: Dictionary) -> Dictionary:
 	var result := entry.duplicate(true)

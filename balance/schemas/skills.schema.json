@@ -19,7 +19,8 @@
       },
       "mult": {
         "type": "number",
-        "exclusiveMinimum": 0,
+        "description": "0 for a technique that lands a status and no blow (the hydra's venom)",
+        "minimum": 0,
         "maximum": 5
       },
       "type": {

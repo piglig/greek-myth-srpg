@@ -20,12 +20,16 @@ type Weights struct {
 	Danger   float64 // 危险度：威胁范围罩住我方的敌人的预期伤害
 	Distance float64 // 向最近的敌人靠拢的一点引力，免得机器人不接战
 	Seal     float64 // 封住洞穴入口
+	Linger   float64 // 身上的灼烧、中毒还要造成的伤害，相对于当场打掉同样多生命的折扣
+	Control  float64 // 敌人被眩晕（束缚按三分之一算）
+	Target   float64 // 指定要击杀的目标，价值是普通敌人的这么多倍
+	Goal     float64 // 要去的地方（护送的出口、要抵达的对岸）每远一格的代价
 }
 
 // DefaultWeights 返回默认权重。
 func DefaultWeights() Weights {
 	return Weights{EnemyHP: 10, EnemyKO: 8, Stagger: 6, PlayerHP: 6, PlayerKO: 25,
-		HeroKO: 100, Danger: 5, Distance: 0.15, Seal: 4}
+		HeroKO: 100, Danger: 5, Distance: 0.15, Seal: 4, Linger: 0.7, Control: 5, Target: 2.5, Goal: 1.2}
 }
 
 // Evaluator 从我方角度给局面打分，越高越好。
@@ -77,14 +81,41 @@ func (ev *Evaluator) Score(s *rules.BattleState) float64 {
 func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 	w := &ev.W
 	v := 0.0
+	// 火下一回合会烧到的格子：站在上面的敌人等于已经挨了半下。
+	var kindling map[rules.Cell]bool
+	if len(s.Fires) > 0 {
+		kindling = map[rules.Cell]bool{}
+		for _, c := range s.FireNext() {
+			kindling[c] = true
+		}
+	}
 	for _, u := range s.Units {
 		switch u.Team {
 		case rules.TeamEnemy:
 			toughness := float64(u.MaxHP) / 20.0
+			if s.IsTarget(u.ID) {
+				toughness *= w.Target
+			}
 			v += w.EnemyHP * toughness * float64(u.MaxHP-max(u.HP, 0)) / float64(u.MaxHP)
 			if !u.Alive {
 				v += float64(w.EnemyKO * toughness)
 				continue
+			}
+			// 还没结算的伤害：身上的灼烧和中毒，脚下的火。
+			owed := lingering(u)
+			if !u.HasStatus("burning") && !u.Hidden {
+				switch {
+				case s.Grid.TerrainAt(u.Pos) == rules.Burning:
+					owed += 2 * rules.BurnDamage
+				case kindling[u.Pos]:
+					owed += rules.BurnDamage
+				}
+			}
+			v += w.Linger * w.EnemyHP * toughness * float64(min(owed, max(u.HP, 0))) / float64(u.MaxHP)
+			if u.HasStatus("stunned") {
+				v += w.Control * toughness
+			} else if u.HasStatus("rooted") {
+				v += w.Control * toughness / 3
 			}
 			if u.IsBoss() {
 				progress := 1.0
@@ -103,6 +134,11 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 				continue
 			}
 			v += w.PlayerHP * float64(u.HP) / float64(u.MaxHP)
+			v -= w.Linger * w.PlayerHP * float64(min(lingering(u), u.HP)) / float64(u.MaxHP)
+			v += 0.5 * w.PlayerHP * float64(min(u.Shield, u.MaxHP)) / float64(u.MaxHP)
+			if u.HasStatus("impervious_hide") || u.HasStatus("thunder_body") {
+				v += 0.2 * w.PlayerHP
+			}
 		}
 	}
 	// 封住一个入口会让首领的行动可以预判：本身就值一点分
@@ -119,6 +155,38 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 	return v
 }
 
+// lingering 是这个单位身上的灼烧和中毒还要扣掉的生命。
+func lingering(u *rules.UnitState) int {
+	owed := 0
+	if rounds, ok := u.Status("burning"); ok {
+		owed += rounds * rules.BurnDamage
+	}
+	if rounds, ok := u.Status("poisoned"); ok {
+		owed += rounds * rules.PoisonDamage
+	}
+	return owed
+}
+
+// footing 是我方单位站在这里过回合要付的生命：沼泽里中毒三回合，火里灼烧两回合，火下一
+// 回合烧到的地方算一半。
+func footing(s *rules.BattleState, p *rules.UnitState, kindling []rules.Cell) int {
+	switch s.Grid.TerrainAt(p.Pos) {
+	case rules.Swamp:
+		if !p.Traits.MarshStride && !p.HasStatus("poisoned") {
+			return 3 * rules.PoisonDamage
+		}
+	case rules.Burning:
+		return 2 * rules.BurnDamage
+	case rules.Forest:
+		for _, c := range kindling {
+			if c == p.Pos {
+				return rules.BurnDamage
+			}
+		}
+	}
+	return 0
+}
+
 func (ev *Evaluator) Positional(s *rules.BattleState) float64 {
 	players, enemies := ev.players[:0], ev.enemies[:0]
 	for _, u := range s.Units {
@@ -132,16 +200,40 @@ func (ev *Evaluator) Positional(s *rules.BattleState) float64 {
 		}
 	}
 	ev.players, ev.enemies = players, enemies
-	if len(enemies) == 0 {
-		return 0
+	// 有地方要去的关卡：被护送的人离出口每远一格都要付代价；要全员抵达的，人人都算，轻一些。
+	goal := 0.0
+	nearest := func(p *rules.UnitState, exits []rules.Cell) float64 {
+		best := 99
+		for _, c := range exits {
+			best = min(best, rules.CellDistance(p, c))
+		}
+		return float64(best)
 	}
-	v := 0.0
+	for _, p := range players {
+		if len(s.EscortExits) > 0 && p.ID == "medea" {
+			goal -= ev.W.Goal * nearest(p, s.EscortExits)
+		}
+		if len(s.ReachExits) > 0 {
+			goal -= ev.W.Goal * 0.25 * nearest(p, s.ReachExits)
+		}
+	}
+	if len(enemies) == 0 {
+		return goal
+	}
+	v := goal
+	var kindling []rules.Cell
+	if len(s.Fires) > 0 {
+		kindling = s.FireNext()
+	}
 	for _, p := range players {
 		near := 99
 		for _, e := range enemies {
 			near = min(near, rules.Distance(p, e))
 		}
 		v -= float64(ev.W.Distance * float64(min(near, 12)))
+		if cost := footing(s, p, kindling); cost > 0 {
+			v -= ev.W.Linger * ev.W.PlayerHP * float64(min(cost, p.HP)) / float64(p.MaxHP)
+		}
 	}
 	return v - float64(ev.W.Danger*ev.danger(s, players, enemies))
 }

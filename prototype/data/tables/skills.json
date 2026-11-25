@@ -1,4 +1,7 @@
 {
+  "hydra_venom": {"name": "剧毒", "mult": 0, "type": "divine", "min_range": 1, "max_range": 3, "ranged": true, "status": "poisoned", "rounds": 3, "cooldown": 3, "relic": true},
+  "sacred_staff": {"name": "石榴杖", "mult": 0.8, "type": "divine", "min_range": 1, "max_range": 2},
+  "hera_blessing": {"name": "天后的赐福", "heal": 8, "min_range": 1, "max_range": 3},
   "claw_grip": {"name": "钳制", "mult": 0.9, "type": "physical", "min_range": 1, "max_range": 1, "status": "rooted", "rounds": 1},
   "venom_bite": {"name": "毒牙", "mult": 0.8, "type": "physical", "min_range": 1, "max_range": 1, "status": "poisoned", "rounds": 3},
   "purify_arrow": {

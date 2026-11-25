@@ -90,6 +90,28 @@ func PlanFor(s *BattleState, u *UnitState) Plan {
 			if sk.HasLeap {
 				continue // 跳跃本身就是移动：只从起点考虑，见下面
 			}
+			if sk.Mends() {
+				// 治疗：补得越多越值得，补不满一半的量就不如去打人。
+				for _, t := range sim.Units {
+					if !t.Alive || t.Hidden || t.Team != su.Team || t == su {
+						continue
+					}
+					act := UseSkill(su.ID, sk.ID, t.Pos)
+					if Validate(sim, act) != "" {
+						continue
+					}
+					gain := min(sk.Heal, t.MaxHP-t.HP)
+					if gain*2 < sk.Heal {
+						continue
+					}
+					score := float64(gain)*aiDamageWeight*1.5 - float64(costOf(anchor)*aiStepCost)
+					if score > bestScore {
+						bestScore = score
+						best, found = Plan{HasMove: true, MoveTo: anchor, Action: act}, true
+					}
+				}
+				continue
+			}
 			for _, t := range sim.Units {
 				if !isOpponent(su, t) {
 					continue

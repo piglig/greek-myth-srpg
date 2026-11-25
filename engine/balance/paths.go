@@ -20,6 +20,9 @@ type Paths struct {
 	WebDist   string // balance/web/dist
 }
 
+// Kits 是出战配置文件的位置。
+func (p Paths) Kits() string { return filepath.Join(p.Balance, "kits.yaml") }
+
 // NewPaths 以仓库根目录推出默认布局。
 func NewPaths(project string) Paths {
 	b := filepath.Join(project, "balance")

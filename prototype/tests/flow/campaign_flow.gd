@@ -269,6 +269,7 @@ func _end_battle(won: bool) -> bool:
 				if traveller != null and traveller.def_id == "refugee": traveller.hidden = true
 		if not field.state.escort_exits.is_empty(): field.state.escort_result = "win"
 		if not field.state.reach_exits.is_empty(): field.state.reach_result = "win"
+		if not field.state.targets.is_empty(): field.state.target_result = "win"
 	else:
 		field.state.unit("hero").alive = false
 	field._check_end()
@@ -456,7 +457,7 @@ func _lose_a_battle() -> bool:
 ## Wins every battle from here until the second chapter's second battle is cleared.
 func _to_the_second_chapter() -> void:
 	var seen := {}
-	for round in 10:
+	for round in 11:
 		var camp := _scene()
 		var saved := _disk()
 		if camp.asking == "cheer":
@@ -474,7 +475,7 @@ func _to_the_second_chapter() -> void:
 			_check("the second chapter's goods are on the shelf",_button("青铜胸甲") != null)
 		saved = _disk()
 		var target: String = saved.id
-		if saved.outcomes.get("2-3","") == "已通关": break
+		if saved.outcomes.get("2-4","") == "已通关": break
 		var before := saved.duplicate(true)
 		camp._go("march")
 		await _frames()
@@ -525,7 +526,7 @@ func _to_the_second_chapter() -> void:
 		saved = _disk()
 		_check("%s is saved as cleared" % fought,saved.outcomes.get(fought,"") == "已通关",saved.outcomes)
 		_check("it paid",int(saved.purse.coins) > int(before.purse.coins),"%s -> %s" % [before.purse.coins,saved.purse.coins])
-		if fought == "2-2": _check("crossing dry paid a quarter more",str(saved.get("camp_summary","")).contains("酬金 +20"),saved.get("camp_summary"))
+		if fought == "2-2": _check("crossing dry paid as much again",str(saved.get("camp_summary","")).contains("酬金 +80"),saved.get("camp_summary"))
 		if fought == "2-3": _check("nobody was pushed under, so no more than the pay",str(saved.get("camp_summary","")).contains("没有敌人被推进深水"),saved.get("camp_summary"))
 		_check("it taught the hero",int(saved.xp.hero) == int(before.xp.hero)+Save.xp_for(fought),"%s -> %s" % [before.xp.hero,saved.xp.hero])
 		for who: String in saved.xp:
@@ -537,7 +538,8 @@ func _to_the_second_chapter() -> void:
 	_check("2-1 is cleared",last.outcomes.get("2-1","") == "已通关",last.outcomes)
 	_check("2-2 is cleared",last.outcomes.get("2-2","") == "已通关",last.outcomes)
 	_check("2-3 is cleared",last.outcomes.get("2-3","") == "已通关",last.outcomes)
-	_check("the save rests at the crab beach",last.id == "2-3",last.id)
+	_check("2-4 is cleared",last.outcomes.get("2-4","") == "已通关",last.outcomes)
+	_check("the save rests at the altar",last.id == "2-4",last.id)
 	_check("chiron is with the party",last.get("chiron_joined",false))
 	_check("medea is with the party",last.get("medea_joined",false))
 	var camp := _scene()
