@@ -66,6 +66,8 @@ type BattleState struct {
 	PreviousMark string
 	Reward       ChapterReward
 	EscortExits  []Cell
+	ReachExits   []Cell   // 对岸：我方活着的人全部站上去就赢。
+	SwampRests   int      // 我方有多少人次在沼泽里过了回合结算（可选目标用）。
 	RescueExits  []Cell   // Immutable evacuation zone.
 	Village      *Village // Read-only scenario data.
 	Cave         *Cave
@@ -256,6 +258,9 @@ func (s *BattleState) AppendSignature(buf []byte) []byte {
 	buf = appendStr(buf, s.Reward.Boon)
 	buf = appendStr(buf, s.Reward.EquippedRelic)
 	buf = binary.AppendVarint(buf, int64(s.Reward.Divinity))
+	if len(s.ReachExits) > 0 {
+		buf = binary.AppendVarint(buf, int64(s.SwampRests))
+	}
 	for _, u := range s.Units {
 		if u.DefID == "centaur" {
 			buf = append(buf, byte(u.chargeDir.X+1), byte(u.chargeDir.Y+1))
@@ -329,6 +334,7 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 	dst.Village = s.Village
 	dst.RescueExits = s.RescueExits
 	dst.EscortExits = s.EscortExits
+	dst.ReachExits, dst.SwampRests = s.ReachExits, s.SwampRests
 	dst.Grid, dst.Round, dst.Phase, dst.MarkedID, dst.mc = s.Grid, s.Round, s.Phase, s.MarkedID, s.mc
 	if cap(dst.slab) < n {
 		dst.slab = make([]UnitState, n)

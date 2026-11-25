@@ -2,7 +2,7 @@ extends RefCounted
 ## The Corinth checkpoint also carries the resolved orders up to the last player decision.
 ## Where the save lives. A variable so the flow test can use a file of its own.
 static var PATH := "user://chapter-one.cfg"
-const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1"]
+const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2"]
 
 const STARTING_COINS := 60
 ## Where things are worn. A member wears one thing per place; every charm names its place.
@@ -89,6 +89,7 @@ const LOOT := {
 	"boar": [["boar_hide",0.7],["boar_tusk",0.7],["bone",0.4]],
 	"centaur": [["horsehair",0.6],["wine_skin",0.5],["bronze_scrap",0.3],["trail_wraps",0.06],["item_potion",0.1]],
 	"lion": [["lion_mane",1.0],["claw",1.0]],
+	"marsh_snake": [["bone",0.35],["item_antidote",0.2]],
 }
 
 ## How many things one member may carry into battle. The engine holds the same number
@@ -261,12 +262,17 @@ static func standing(total: int) -> Dictionary:
 		level += 1
 	return {"level":level,"into":total,"need":xp_need(level)}
 
-static func award(purse: Dictionary, battle: String) -> void:
+## `aside` says the battle's optional goal was met: a quarter more.
+static func award(purse: Dictionary, battle: String, aside := false) -> void:
 	var paid: Array=purse.get("paid",[])
 	if paid.has(battle): return
 	paid.append(battle)
 	purse.paid=paid
-	purse.coins=int(purse.get("coins",STARTING_COINS))+(80 if battle.begins_with("2-") else 60)
+	purse.coins=int(purse.get("coins",STARTING_COINS))+pay_for(battle,aside)
+
+static func pay_for(battle: String, aside := false) -> int:
+	var pay := 80 if battle.begins_with("2-") else 60
+	return pay+pay/4 if aside else pay
 
 const BOONS := {
 	"moon_hunt": ["阿耳忒弥斯", "月下狩猎", "追猎标记可同时保留两个目标。"],
@@ -368,11 +374,11 @@ static func read_entry() -> Dictionary:
 			if not node is String:
 				return {}
 	if entry.has("equipped_relic"):
-		if entry.id not in ["1-5","2-1"] or entry.equipped_relic != "lion_pelt" or int(entry.get("divinity",-1)) < 0:
+		if entry.id not in ["1-5","2-1","2-2"] or entry.equipped_relic != "lion_pelt" or int(entry.get("divinity",-1)) < 0:
 			return {}
 		if entry.get("boon") != "" and not BOONS.has(entry.get("boon")):
 			return {}
-	if entry.id=="2-1" and (not entry.has("equipped_relic") or not BOONS.has(entry.get("boon",""))):
+	if entry.id.begins_with("2-") and (not entry.has("equipped_relic") or not BOONS.has(entry.get("boon",""))):
 		return {}
 	return entry
 

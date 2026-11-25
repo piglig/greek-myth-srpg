@@ -1,4 +1,5 @@
 {
+  "marsh_snake": {"name": "沼蛇", "hp": 20, "str": 9, "def": 2, "wil": 2, "move": 4, "jump": 1, "skills": ["venom_bite"], "traits": {"marsh_stride": true}},
   "medea": {"name": "美狄亚", "hp": 30, "str": 5, "div": 13, "def": 3, "wil": 9, "move": 4, "jump": 2, "skills": ["witch_fire"]},
   "hero": {
     "name": "主角",

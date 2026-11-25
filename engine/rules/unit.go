@@ -11,7 +11,7 @@ type KV struct {
 // Traits 是单位的特性。规则会查询的特性拆成字段；其余只记名字。
 type Traits struct {
 	PhysicalImmune, Block, ForestStride, Flying, CannotAttackAdjacent, HunterMark bool
-	IronArm, ShieldWall, Intercept, Patience, Skirmish, Undead                    bool
+	IronArm, ShieldWall, Intercept, Patience, Skirmish, Undead, MarshStride       bool
 	Other                                                                         []string // 规则不关心的特性（guest、anti_air……）
 }
 
@@ -23,6 +23,8 @@ func (t *Traits) flag(key string) *bool {
 		return &t.Block
 	case "forest_stride":
 		return &t.ForestStride
+	case "marsh_stride":
+		return &t.MarshStride
 	case "flying":
 		return &t.Flying
 	case "cannot_attack_adjacent":
@@ -334,7 +336,7 @@ func (u *UnitState) Index() int { return u.index }
 func (t *Traits) Names() []string {
 	var out []string
 	for _, k := range [...]string{"physical_immune", "block", "forest_stride", "flying", "cannot_attack_adjacent",
-		"hunter_mark", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "undead"} {
+		"hunter_mark", "iron_arm", "shield_wall", "intercept", "patience", "skirmish", "undead", "marsh_stride"} {
 		if t.Has(k) {
 			out = append(out, k)
 		}

@@ -268,6 +268,7 @@ func _end_battle(won: bool) -> bool:
 				var traveller: UnitState = field.state.unit(id)
 				if traveller != null and traveller.def_id == "refugee": traveller.hidden = true
 		if not field.state.escort_exits.is_empty(): field.state.escort_result = "win"
+		if not field.state.reach_exits.is_empty(): field.state.reach_result = "win"
 	else:
 		field.state.unit("hero").alive = false
 	field._check_end()
@@ -452,10 +453,10 @@ func _lose_a_battle() -> bool:
 	return true
 
 
-## Wins every battle from here until the second chapter's first battle is cleared.
+## Wins every battle from here until the second chapter's second battle is cleared.
 func _to_the_second_chapter() -> void:
 	var seen := {}
-	for round in 8:
+	for round in 9:
 		var camp := _scene()
 		var saved := _disk()
 		if camp.asking == "cheer":
@@ -473,7 +474,7 @@ func _to_the_second_chapter() -> void:
 			_check("the second chapter's goods are on the shelf",_button("青铜胸甲") != null)
 		saved = _disk()
 		var target: String = saved.id
-		if saved.outcomes.get("2-1","") == "已通关": break
+		if saved.outcomes.get("2-2","") == "已通关": break
 		var before := saved.duplicate(true)
 		camp._go("march")
 		await _frames()
@@ -517,6 +518,9 @@ func _to_the_second_chapter() -> void:
 	_begin("the second chapter")
 	var last := _disk()
 	_check("2-1 is cleared",last.outcomes.get("2-1","") == "已通关",last.outcomes)
+	_check("2-2 is cleared",last.outcomes.get("2-2","") == "已通关",last.outcomes)
+	_check("the save rests at the reed marsh",last.id == "2-2",last.id)
+	_check("crossing dry paid a quarter more",str(last.get("camp_summary","")).contains("酬金 +20"),last.get("camp_summary"))
 	_check("chiron is with the party",last.get("chiron_joined",false))
 	_check("medea is with the party",last.get("medea_joined",false))
 	var camp := _scene()

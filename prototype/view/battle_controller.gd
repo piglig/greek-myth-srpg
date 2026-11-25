@@ -7,6 +7,7 @@ extends Node
 ##   --battle=<id>     1-4 | 1-5 | test (default 1-4); skips the build panel with default picks
 ##   --data-dir=<dir>  覆盖数据目录，原样交给规则引擎
 ##   --capture=<png>   save a screenshot after the scripted demo and quit
+##   --wide            one zoom step out, centred on the map (for looking at a whole field)
 ##   --demo=<name>     build | idle | move | target | threat | rotate | enemy  (scripted captures)
 
 const DUST := preload("res://art/thirdparty/pixelfx/dust.png")
@@ -78,6 +79,7 @@ var _active_enemy := ""
 var _drag_from := Vector2.INF
 var _capture_path := ""
 var _demo := ""
+var _wide := false
 var _battle_id := ""
 var _skill_picks := {}
 const Checkpoint := preload("res://core/campaign_checkpoint.gd")
@@ -124,6 +126,9 @@ func _ready() -> void:
 			_bench = Array(arg.trim_prefix("--bench=").split(","))
 		elif arg.begins_with("--battle="):
 			_battle_id = arg.trim_prefix("--battle=")
+		elif arg == "--wide":
+			# For looking at a whole field: one zoom step out, centred on the map.
+			_wide = true
 	if not GoEngine.ensure():
 		_engine_missing()
 		return
@@ -227,8 +232,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		state.orders=_saved_orders.duplicate(true)
 		state.record_orders=_campaign
 	Soundscape.score("ridge")
-	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1"]:
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2"]:
 		map_view.nemea = true
+		map_view.wetland = MapView.Wetland.LERNA if battle_id=="2-2" else MapView.Wetland.NONE
 		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
 		highlights.scale = map_view.scale
 		cam_rig.painted = true
@@ -308,6 +314,10 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 			cam_rig.zoom_step(-1)
 			cam_rig.focus(cam_rig.pivot)
 		cam_rig.keep_in_view(everyone if cam_rig.spans(everyone,.12,.82) else party,.12,.82)
+	if _wide:
+		cam_rig.zoom_step(-1)
+		var middle := Vector2i(state.grid.width/2,state.grid.depth/2)
+		cam_rig.focus(map_view.to_global(Vector3(middle.x+.5,map_view.cell_top(middle),middle.y+.5)))
 	hud.set_help_visible(true, cam_rig.painted)
 	_refresh()
 	hud.announce_phase(state.round_number, state.phase == Defs.Phase.PLAYER)
@@ -315,6 +325,8 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 	_save_checkpoint(battle_id)
 	if battle_id=="2-1" and _saved_orders.is_empty():
 		hud.banner("美狄亚加入队伍　·　护送她抵达东门",3.5)
+	if battle_id=="2-2":
+		hud.banner("穿过芦苇荡，抵达对岸　·　沼泽里过夜会中毒",3.5)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -508,6 +520,10 @@ func _entry(id: String) -> Dictionary:
 		entry.stage="battle"
 		entry.medea_joined=true
 		entry.orders=state.orders.duplicate(true)
+	elif id.begins_with("2-"):
+		# The second chapter is reached with the lion's pelt and Medea: keep both.
+		entry.merge(_campaign_reward)
+		entry.medea_joined=true
 	return entry
 
 func _save_checkpoint(id: String, choose_route := false) -> void:
@@ -2079,7 +2095,7 @@ func _check_end() -> bool:
 			if _campaign:
 				Checkpoint.award(_purse,_battle_id)
 				Soundscape.cue("victory")
-				_settle_at_camp("2-1","护送成功，美狄亚已随队撤离")
+				_settle_at_camp("2-2","护送成功，美狄亚已随队撤离")
 				return true
 			_next_battle="corinth_map"
 			var saved:=not _campaign or Checkpoint.write_entry(_finish_escort())==OK
@@ -2091,6 +2107,22 @@ func _check_end() -> bool:
 				return true
 			hud.banner("美狄亚倒下了　按 R 重试",0.)
 			Soundscape.cue("defeat")
+		_refresh()
+		return true
+	if not state.reach_exits.is_empty() and state.reach_result=="win":
+		# Across the reeds. Nobody left standing in swamp at a round's end is the goal aside.
+		var dry := state.swamp_rests == 0
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		var summary := "已抵达对岸" if state.living(Defs.Team.ENEMY).size() > 0 else "芦苇荡已肃清"
+		summary += "，没有人在沼泽里过夜（酬金 +%d）" % (Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)) if dry else "，有人在沼泽里过了夜"
+		if _campaign:
+			Checkpoint.award(_purse,_battle_id,dry)
+			_settle_at_camp(_battle_id,summary)
+			return true
+		hud.banner(summary+"　按 R 重开",0.0)
+		_mode = Mode.OVER
 		_refresh()
 		return true
 	if state.village_result == "win" or state.rescue_result == "win" or (village == null and not map_view.woodland and state.living(Defs.Team.ENEMY).is_empty()):
@@ -2150,6 +2182,8 @@ func _refresh() -> void:
 		objective = "肃清林道，护送至少两人。指向村民可查看撤离路线和威胁。\n第 4 回合南北夹击，第 6 回合头目从东侧入场。"
 	if _battle_id=="2-1":
 		objective="美狄亚已入队。护送她抵达东门的青绿色出口；主角和美狄亚必须存活。"
+	if not state.reach_exits.is_empty():
+		objective="所有人抵达对岸的青绿色区域，或肃清沼蛇。沼泽移动消耗 3，回合结束时还站在沼泽里会中毒。\n可选：没有人在沼泽里结束回合（%s）。" % ("目前做到了" if state.swamp_rests == 0 else "已有 %d 人次" % state.swamp_rests)
 	hud.overlay.charge_lanes.clear()
 	if _battle_id=="1-3":
 		objective = "护住负伤的喀戎，击退五名半人马。喀戎会在我方回合结束时放箭。"
@@ -2179,6 +2213,7 @@ func _refresh() -> void:
 
 	highlights.clear_all()
 	if _battle_id=="2-1": highlights.show_frame("east_gate",state.escort_exits,Color("#48ddbb"),8)
+	if not state.reach_exits.is_empty(): highlights.show_frame("far_bank",state.reach_exits,Color("#48ddbb"),8)
 	if map_view.woodland:
 		highlights.show_frame("rescue_gate",state.rescue_exits,Color("#64bcad"),8)
 	if village != null:

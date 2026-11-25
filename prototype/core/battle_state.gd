@@ -20,6 +20,11 @@ var village_exits: Array[Vector2i] = []
 var village_result := ""
 var escort_exits: Array[Vector2i] = []
 var escort_result := ""
+## The far bank (2-2): every living one of ours standing there wins. `swamp_rests` counts
+## how many times one of ours was still in swamp when a round was settled.
+var reach_exits: Array[Vector2i] = []
+var reach_result := ""
+var swamp_rests := 0
 var record_orders := false
 var orders: Array = []
 var rescue_result := ""
@@ -36,6 +41,10 @@ func apply(d: Dictionary) -> void:
 	if d.has("escort_exits"):
 		escort_exits=GoEngine.cells(d.escort_exits)
 		escort_result=d.escort_result
+	if d.has("reach_exits"):
+		reach_exits = GoEngine.cells(d.reach_exits)
+		reach_result = d.reach_result
+		swamp_rests = int(d.get("swamp_rests",0))
 	if d.has("rescue_exits"):
 		rescue_result = d.rescue_result
 		rescue_exits = GoEngine.cells(d.rescue_exits)

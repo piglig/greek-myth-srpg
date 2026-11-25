@@ -111,7 +111,10 @@ func isControlStatus(s string) bool {
 	return s == "stunned" || s == "rooted"
 }
 
-func terrainCost(t Terrain, forestStride bool) int {
+func terrainCost(t Terrain, forestStride, marshStride bool) int {
+	if marshStride && (t == Shallow || t == Swamp) {
+		return 1
+	}
 	switch t {
 	case Forest:
 		if forestStride {

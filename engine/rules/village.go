@@ -104,6 +104,26 @@ func (s *BattleState) atVillageGate() bool {
 	return true
 }
 
+// atFarBank 表示我方活着的人全部站在对岸。
+func (s *BattleState) atFarBank() bool {
+	if len(s.ReachExits) == 0 {
+		return false
+	}
+	for _, u := range s.Units {
+		if !u.Alive || u.Hidden || u.Team != TeamPlayer {
+			continue
+		}
+		there := false
+		for _, c := range s.ReachExits {
+			there = there || u.Pos == c
+		}
+		if !there {
+			return false
+		}
+	}
+	return true
+}
+
 // Outcome is empty while the battle continues.
 func (s *BattleState) Outcome() string {
 	hero := s.Unit("hero")
@@ -138,7 +158,7 @@ func (s *BattleState) Outcome() string {
 	if !players {
 		return "loss_wipe"
 	}
-	if !enemies || s.atVillageGate() {
+	if !enemies || s.atVillageGate() || s.atFarBank() {
 		return "win"
 	}
 	return ""

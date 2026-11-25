@@ -186,7 +186,7 @@ func stepCost(s *BattleState, u *UnitState, a, b Cell, occ []int8) int {
 		for dx := 0; dx < u.Size; dx++ {
 			c := Cell{b.X + dx, b.Y + dy}
 			ci := c.Y*g.Width + c.X
-			tc := terrainCost(g.terrain[ci], u.Traits.ForestStride)
+			tc := terrainCost(g.terrain[ci], u.Traits.ForestStride, u.Traits.MarshStride)
 			if tc < 0 && !flying {
 				return -1
 			}

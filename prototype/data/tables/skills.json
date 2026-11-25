@@ -1,4 +1,5 @@
 {
+  "venom_bite": {"name": "毒牙", "mult": 0.8, "type": "physical", "min_range": 1, "max_range": 1, "status": "poisoned", "rounds": 3},
   "purify_arrow": {
     "name": "净化箭",
     "mult": 1,

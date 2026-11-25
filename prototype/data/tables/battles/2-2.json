@@ -1,0 +1,181 @@
+{
+  "id": "2-2",
+  "title": "2-2 芦苇荡",
+  "order": 7,
+  "reach_exits": [
+    [
+      12,
+      2
+    ],
+    [
+      12,
+      3
+    ],
+    [
+      12,
+      4
+    ],
+    [
+      12,
+      5
+    ],
+    [
+      12,
+      6
+    ],
+    [
+      12,
+      7
+    ],
+    [
+      13,
+      2
+    ],
+    [
+      13,
+      3
+    ],
+    [
+      13,
+      4
+    ],
+    [
+      13,
+      5
+    ],
+    [
+      13,
+      6
+    ],
+    [
+      13,
+      7
+    ]
+  ],
+  "heights": [
+    "11000000000111",
+    "11100000000111",
+    "11000000000111",
+    "11100000000011",
+    "11100000000111",
+    "11000000000111",
+    "11100000000011",
+    "11000000000111",
+    "11000000000111",
+    "11000000000111"
+  ],
+  "terrain": [
+    "..sswwwssss...",
+    "...s.wwss.s...",
+    "..ss.sws..s...",
+    "...s..s.s.ss..",
+    "....s.s.ss....",
+    "..s.s...s.s...",
+    "...ss.s.s..s..",
+    "..s..ss.wws...",
+    "..sssswwwss...",
+    "..ssswwDDws..."
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        0,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "snake_1",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        4,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_2",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        6,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_3",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        6,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_4",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        9,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_5",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        10,
+        1
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_6",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        10,
+        7
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_7",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        8,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_8",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        8,
+        7
+      ],
+      "facing": "W"
+    }
+  ]
+}

@@ -66,6 +66,11 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 		out["escort_exits"] = cellsJSON(s.EscortExits)
 		out["escort_result"] = s.Outcome()
 	}
+	if len(s.ReachExits) > 0 {
+		out["reach_exits"] = cellsJSON(s.ReachExits)
+		out["reach_result"] = s.Outcome()
+		out["swamp_rests"] = s.SwampRests
+	}
 	if len(s.RescueExits) > 0 {
 		out["rescue_result"] = s.Outcome()
 		out["rescue_exits"] = cellsJSON(s.RescueExits)

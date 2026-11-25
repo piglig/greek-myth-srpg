@@ -793,8 +793,12 @@ func SettleRound(s *BattleState, ev *[]Event) {
 		switch terrain := s.Grid.TerrainAt(u.Pos); {
 		case terrain == Burning:
 			AddStatus(s, u, "burning", 2, ev, false)
-		case terrain == Swamp:
+		case terrain == Swamp && !u.Traits.MarshStride:
+			// 沼泽里长大的不怕沼泽。
 			AddStatus(s, u, "poisoned", 3, ev, false)
+			if u.Team == TeamPlayer {
+				s.SwampRests++
+			}
 		case terrain == Styx && !u.Traits.Undead:
 			Deal(s, u, StyxDamage, True, "styx", ev, false)
 		}

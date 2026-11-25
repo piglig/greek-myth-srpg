@@ -549,8 +549,10 @@ func _site(id: String) -> Dictionary:
 
 func _status(at: int, site: Dictionary) -> String:
 	var outcomes: Dictionary = entry.get("outcomes",{})
-	if at == 1 and site.id == "2-1" and entry.get("id") == "2-1":
-		return str(outcomes[site.id]) if outcomes.has(site.id) else "可出发"
+	if at == 1 and str(entry.get("id","")).begins_with("2-"):
+		if outcomes.has(site.id): return str(outcomes[site.id])
+		if site.id == entry.id: return "可出发"
+		return "尚未抵达" if Save.BATTLES.has(site.id) else "尚未开放"
 	if at != 0: return "尚未开放"
 	if site.id == "1-5" and entry.has("equipped_relic"): return "已通关"
 	if outcomes.has(site.id): return str(outcomes[site.id])
@@ -572,8 +574,10 @@ func _story(who: String) -> String:
 			return "记着狼扑过来的那一瞬。先稳后脚，再把盾送出去。光靠胳膊，你挡不住第二下。"
 	if entry.get("choose_route",false): return "村民说山上还亮着酒宴的灯。往山里去能赶上宴席，向东走则直通涅墨亚。"
 	if entry.get("id") == "2-1":
-		if entry.get("outcomes",{}).has("2-1"): return "东门已经安全，美狄亚和我们一道走。今晚可以收起这张刑场图了。"
 		return "科林斯的东门有条窄路。接到美狄亚就往那里撤，别为了追守卫把她落下。"
+	if entry.get("id") == "2-2":
+		if entry.get("outcomes",{}).has("2-2"): return "过了芦苇荡，前面就是巨蟹滩。路我还在探，今晚先把湿衣服烤干。"
+		return "芦苇荡里看着是地的，一半是泥。踩着干的土墩走，别在泥里过夜；蛇在泥里比你快。"
 	return "我已把下一处落脚点圈在图上。先看路口，再看敌人能从哪边绕到你背后。"
 
 # --- Drawing ------------------------------------------------------------------------
