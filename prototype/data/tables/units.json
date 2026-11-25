@@ -1,4 +1,5 @@
 {
+  "stymphalian_bird": {"name": "铜羽鸟", "hp": 27, "str": 11, "def": 1, "wil": 2, "move": 5, "jump": 2, "skills": ["feather_shot"], "traits": {"flying": true}},
   "hydra_head": {"name": "许德拉之首", "hp": 30, "str": 17, "div": 12, "def": 4, "wil": 5, "move": 0, "jump": 0, "skills": ["hydra_bite", "hydra_spit"], "traits": {"anchored": true, "regrows": true}},
   "hera_priestess": {"name": "赫拉的女祭司", "hp": 28, "str": 4, "div": 9, "def": 1, "wil": 6, "move": 3, "jump": 1, "skills": ["sacred_staff", "hera_blessing"]},
   "giant_crab": {"name": "巨蟹", "hp": 30, "str": 17, "def": 4, "wil": 2, "move": 3, "jump": 1, "skills": ["claw_grip"], "traits": {"block": true, "marsh_stride": true}},

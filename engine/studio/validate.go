@@ -136,6 +136,11 @@ func validateBattle(bid string, b, units, sch *oj.Object) []*oj.Object {
 			continue
 		}
 		size := units.Object(def).Int("size", 1)
+		// 会飞的可以从水面上空开局。
+		flying := false
+		if traits := units.Object(def).Object("traits"); traits != nil {
+			flying, _ = traits.Get("flying").(bool)
+		}
 		x0, y0 := intAt(u.Array("pos"), 0), intAt(u.Array("pos"), 1)
 		var cells [][2]int
 		inside := true
@@ -156,7 +161,7 @@ func validateBattle(bid string, b, units, sch *oj.Object) []*oj.Object {
 				out = append(out, issue("error", where, fmt.Sprintf("%s 与 %s 重叠", id, other), "unit", id, "cells", cellList([][2]int{c})))
 			}
 			occupied[c] = id
-			if len(terrain) > 0 && !strings.ContainsRune(walkable, rune(str(terrain, c[1])[c[0]])) {
+			if len(terrain) > 0 && !flying && !strings.ContainsRune(walkable, rune(str(terrain, c[1])[c[0]])) {
 				out = append(out, issue("error", where, id+" 站在不可通行的地形上", "unit", id, "cells", cellList([][2]int{c})))
 			}
 			levels[str(heights, c[1])[c[0]]] = true

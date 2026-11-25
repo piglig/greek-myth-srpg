@@ -1,0 +1,141 @@
+{
+  "id": "3-1",
+  "title": "3-1 湖岸",
+  "order": 12,
+  "note": "第三章第一场。鸟在天上，近战够不着；紧挨着铜钹的人敲响它，三格内的鸟落地一回合。",
+  "heights": [
+    "111110000000",
+    "111111000000",
+    "111111100000",
+    "111111110000",
+    "111111110000",
+    "111111111000",
+    "111111110000",
+    "111111110000",
+    "111111100000",
+    "111110000000"
+  ],
+  "terrain": [
+    "....wwDDDDDD",
+    ".....wwDDDDD",
+    "......wwDDDD",
+    ".f.....wwDDD",
+    ".......wwDDD",
+    "........wwDD",
+    ".f......wwDD",
+    ".......wwDDD",
+    "......wwDDDD",
+    ".....wwDDDDD"
+  ],
+  "cymbals": [
+    [
+      5,
+      4
+    ]
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        1,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "bird_1",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        8,
+        1
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bird_2",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        9,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bird_3",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        8,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bird_4",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        9,
+        7
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bird_5",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        7,
+        8
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bird_6",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        11,
+        2
+      ],
+      "facing": "W",
+      "round": 3
+    },
+    {
+      "id": "bird_7",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        11,
+        6
+      ],
+      "facing": "W",
+      "round": 3
+    },
+    {
+      "id": "bird_8",
+      "def": "stymphalian_bird",
+      "team": "enemy",
+      "pos": [
+        11,
+        4
+      ],
+      "facing": "W",
+      "round": 3
+    }
+  ]
+}

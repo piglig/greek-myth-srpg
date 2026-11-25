@@ -643,6 +643,15 @@ func _site(id: String) -> Dictionary:
 
 func _status(at: int, site: Dictionary) -> String:
 	var outcomes: Dictionary = entry.get("outcomes",{})
+	if at == 2 and str(entry.get("id","")).begins_with("3-"):
+		if outcomes.has(site.id): return str(outcomes[site.id])
+		if site.id == entry.id: return "可出发"
+		return "尚未抵达" if Save.BATTLES.has(site.id) else "尚未开放"
+	if at == 1 and int(str(entry.get("id","")).get_slice("-",0)) > 2:
+		# The marsh is behind him: what he fought there is cleared, what he passed by is past.
+		return str(outcomes.get(site.id,"未到访"))
+	if at == 0 and int(str(entry.get("id","")).get_slice("-",0)) > 1:
+		return str(outcomes.get(site.id,"已通关" if not site.optional else "未到访"))
 	if at == 1 and str(entry.get("id","")).begins_with("2-"):
 		if outcomes.has(site.id): return str(outcomes[site.id])
 		if site.id == "2-S":
@@ -679,8 +688,11 @@ func _story(who: String) -> String:
 		return "巨蟹的壳正面砍不动。绕到它背后，或者干脆把它顶进深水里，它自己爬不上来。"
 	if entry.get("id") == "2-4":
 		return "祭坛在一片林子里，女祭司躲在树后给别人治伤。林子怕火，美狄亚的巫火一点就着。"
+	if entry.get("id") == "3-1":
+		if entry.get("outcomes",{}).has("3-1"): return "湖岸清出来了。再往里是祭坛，那边的路我还在探。"
+		return "斯廷法利斯湖的鸟在天上，矛够不着。湖滩上有一面铜钹，站到它旁边敲响，近处的鸟会掉下来一回合。先敲，再打。"
 	if entry.get("id") == "2-5":
-		if entry.get("outcomes",{}).has("2-5"): return "沼泽静下来了。往北是斯廷法利斯湖，路我还在探，今晚好好歇一夜。"
+		if entry.get("outcomes",{}).has("2-5"): return "沼泽静下来了。往北是斯廷法利斯湖，等你定了那头怪物的下场，我们就动身。"
 		return "它的头砍了会再长。砍下来就让美狄亚往断口上烧，或者先点着再砍。一个一个来，别同时惹五个。"
 	return "我已把下一处落脚点圈在图上。先看路口，再看敌人能从哪边绕到你背后。"
 
@@ -2974,6 +2986,8 @@ func _settle_verdict() -> void:
 	var case: Dictionary = Save.VERDICTS[chapter_no]
 	var next: Dictionary = entry.duplicate(true)
 	next.erase("verdict")
+	# With the hydra settled the road north is open: the journey moves on to the lake.
+	if chapter_no == 2 and str(next.get("id","")) == "2-5" and Save.BATTLES.has("3-1"): next.id = "3-1"
 	if leaning == "take":
 		var relics: Array = next.get("relics",["lion_pelt"])
 		relics.append(case.relic)

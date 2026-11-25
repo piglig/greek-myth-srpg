@@ -43,10 +43,11 @@ const (
 	EvCauterize
 	EvRegrow
 	EvSupport // 支援英雄登场：Unit（主角） Skill To Source（是哪位英雄）
+	EvStrike  // 敲响铜钹：Unit To
 )
 
 var eventNames = [...]string{
-	EvSupport: "support", EvCauterize: "cauterize", EvRegrow: "regrow", EvIgnite: "ignite", EvBurnOut: "burn_out", EvWard: "ward", EvHeal: "heal", EvFlee: "flee", EvRescued: "rescued", EvArrival: "arrival", EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
+	EvStrike: "strike", EvSupport: "support", EvCauterize: "cauterize", EvRegrow: "regrow", EvIgnite: "ignite", EvBurnOut: "burn_out", EvWard: "ward", EvHeal: "heal", EvFlee: "flee", EvRescued: "rescued", EvArrival: "arrival", EvNone: "", EvDodge: "dodge", EvShield: "shield", EvDamage: "damage", EvKO: "ko", EvResist: "resist",
 	EvStatus: "status", EvStagger: "stagger", EvBroken: "broken", EvCollision: "collision",
 	EvKnockback: "knockback", EvFall: "fall", EvEdge: "edge",
 	EvFace: "face",

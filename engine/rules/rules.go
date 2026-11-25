@@ -21,10 +21,11 @@ const (
 	ActPushBoulder            // Unit, Target（巨石所在的格子）
 	ActRetreat                // Unit
 	ActEmerge                 // Unit, Entrance
+	ActStrike                 // Unit, Target（铜钹所在的格子）
 )
 
 var actionNames = [...]string{"", "move", "undo_move", "skill", "wait", "face", "mark", "push_boulder",
-	"retreat", "emerge"}
+	"retreat", "emerge", "strike"}
 
 func (t ActionType) String() string { return actionNames[t] }
 
@@ -120,6 +121,8 @@ func Do(s *BattleState, a Action, ev *[]Event) string {
 	case ActFace:
 		u.Facing = a.Facing
 		emit(ev, Event{Type: EvFace, Unit: u.ID, Facing: u.Facing})
+	case ActStrike:
+		doStrike(s, u, a.Target, ev)
 	case ActPushBoulder:
 		doPush(s, u, s.BoulderAt(a.Target), ev)
 	case ActRetreat:
@@ -196,6 +199,8 @@ func Validate(s *BattleState, a Action) string {
 		if m == nil || m.Team == u.Team {
 			return "no enemy there"
 		}
+	case ActStrike:
+		return validateStrike(s, u, a.Target)
 	case ActPushBoulder:
 		return validatePush(s, u, a.Target)
 	case ActRetreat:
@@ -348,7 +353,10 @@ func validateShot(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
 		return "no enemy there"
 	}
 	ranged := sk.Ranged
-	if sk.Throw && (u.Size != 1 || target.Size != 1 || target.Traits.Flying || target.Traits.Anchored) {
+	if target.Aloft() && !u.Aloft() && !sk.ReachesSky() {
+		return "out of reach in the sky"
+	}
+	if sk.Throw && (u.Size != 1 || target.Size != 1 || target.Aloft() || target.Traits.Anchored) {
 		return "cannot throw that"
 	}
 	dist := Distance(u, target)
@@ -902,6 +910,7 @@ func SettleRound(s *BattleState, ev *[]Event) {
 			u.Cooldowns[i].Val = max(0, u.Cooldowns[i].Val-1)
 		}
 	}
+	s.settleCymbals()
 }
 
 // --- 几何 ------------------------------------------------------------------------

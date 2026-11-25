@@ -180,7 +180,7 @@ func stepCost(s *BattleState, u *UnitState, a, b Cell, occ []int8) int {
 		return -1
 	}
 	g := s.Grid
-	flying := u.Traits.Flying
+	flying := u.Aloft()
 	cost := 0
 	for dy := 0; dy < u.Size; dy++ {
 		for dx := 0; dx < u.Size; dx++ {

@@ -80,6 +80,14 @@ tiers:
       - at: "2-5"
         buy: [pendant]
         wear: {medea: [pendant]}
+      - at: "3-1"                   # 第三章四人出战，他只有三个人；蛇血到手，学第一招神力
+        relics: [lion_pelt, hydra_blood]
+        powers: [thunder_bolt]
+        picks:
+          hero: [iron_arm, stagger_fist, heel_strike, shield_wall]
+          medea: [frailty, kindling, solar_flame, cinder_lance]
+          iphicles: [iph_thick, iph_stride, iph_ready]
+
 
   typical:
     earns: {asides: 0.5, spoils: materials, optional: true}
@@ -144,6 +152,16 @@ tiers:
         picks:
           hero: [iron_arm, stagger_fist, heel_strike, shield_wall]
           medea: [frailty, kindling, solar_flame]
+      - at: "3-1"                   # 第三章四人出战：喀戎和美狄亚都上；蛇血到手，学第一招神力
+        relics: [lion_pelt, hydra_blood]
+        powers: [thunder_bolt]
+        party: [chiron, medea]
+        picks:
+          atalanta: [vital_shot, patience, skirmish, leap_shot, pin_shot]
+          chiron: [purify_arrow, weak_point, mentor_stagger, field_medicine, repel_arrow]
+          medea: [frailty, kindling, solar_flame, cinder_lance, bind_hex]
+          phalerus: [pha_steady, pha_far, pha_quick]
+
 
   rich:
     earns: {asides: 1, spoils: all, optional: true}
@@ -210,3 +228,12 @@ tiers:
         picks:
           hero: [iron_arm, stagger_fist, heel_strike, shield_wall]
           medea: [frailty, kindling, solar_flame, cinder_lance]
+      - at: "3-1"
+        relics: [lion_pelt, hydra_blood]
+        powers: [thunder_bolt]
+        party: [chiron, medea]
+        picks:
+          atalanta: [vital_shot, patience, skirmish, leap_shot, pin_shot]
+          chiron: [purify_arrow, weak_point, mentor_stagger, field_medicine, repel_arrow]
+          medea: [frailty, kindling, solar_flame, cinder_lance, bind_hex]
+          ancaeus: [anc_heavy, anc_step, anc_tireless]

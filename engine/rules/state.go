@@ -65,7 +65,9 @@ type BattleState struct {
 	MarkedID     string
 	PreviousMark string
 	Reward       ChapterReward
-	Support      string // 这一场带来支援的英雄（recruits.json 里的名字），没有就是空的
+	Support      string   // 这一场带来支援的英雄（recruits.json 里的名字），没有就是空的
+	Cymbals      []Cymbal // 地图上的铜钹（见 sky.go）
+	Felled       int      // 被铜钹弄下来的敌人次数（可选目标用）
 	EscortExits  []Cell
 	Escort       string   // 被护送的人的单位 id（不写就是美狄亚）
 	ReachExits   []Cell   // 对岸：我方活着的人全部站上去就赢。
@@ -277,6 +279,9 @@ func (s *BattleState) AppendSignature(buf []byte) []byte {
 		buf = append(buf, 'd')
 		buf = binary.AppendVarint(buf, int64(s.Drowned))
 	}
+	for i := range s.Cymbals {
+		buf = append(buf, 'c', byte(s.Cymbals[i].Rest))
+	}
 	for _, u := range s.Units {
 		if u.DefID == "centaur" {
 			buf = append(buf, byte(u.chargeDir.X+1), byte(u.chargeDir.Y+1))
@@ -350,6 +355,7 @@ func (s *BattleState) CopyInto(dst *BattleState) *BattleState {
 		dst = &BattleState{}
 	}
 	dst.Reward, dst.PreviousMark, dst.Support = s.Reward, s.PreviousMark, s.Support
+	dst.Cymbals, dst.Felled = append(dst.Cymbals[:0], s.Cymbals...), s.Felled
 	dst.Village = s.Village
 	dst.RescueExits = s.RescueExits
 	dst.EscortExits, dst.Escort = s.EscortExits, s.Escort

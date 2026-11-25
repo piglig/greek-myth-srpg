@@ -27,6 +27,10 @@ var reach_result := ""
 var swamp_rests := 0
 ## How many enemies have been pushed into deep water and lost there.
 var drowned := 0
+## Bronze cymbals on the field, each {pos: Vector2i, rest: rounds until it can ring again},
+## and how many times a flying enemy has been brought down by one.
+var cymbals: Array = []
+var felled := 0
 ## Forest that is alight: [x, y, rounds left] each, and the forest cells the fire will
 ## take at the next settling of a round.
 var fires: Array = []
@@ -62,6 +66,11 @@ func apply(d: Dictionary) -> void:
 		reach_result = d.reach_result
 		swamp_rests = int(d.get("swamp_rests",0))
 	drowned = int(d.get("drowned",drowned))
+	felled = int(d.get("felled",felled))
+	if d.has("cymbals"):
+		cymbals = []
+		for one: Dictionary in d.cymbals:
+			cymbals.append({"pos":Vector2i(int(one.pos[0]),int(one.pos[1])),"rest":int(one.rest)})
 	outcome = str(d.get("outcome",outcome))
 	most_regrown = int(d.get("most_regrown",most_regrown))
 	if d.has("fires"):

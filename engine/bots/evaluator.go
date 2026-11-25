@@ -125,6 +125,10 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 			} else if u.HasStatus("rooted") {
 				v += w.Control * toughness / 3
 			}
+			// 被铜钹弄下来的飞行敌人：这一回合谁都打得到它，值半个眩晕。
+			if u.Traits.Flying && !u.Aloft() {
+				v += w.Control * toughness / 2
+			}
 			if u.IsBoss() {
 				progress := 1.0
 				if !u.HasStatus("staggered") {

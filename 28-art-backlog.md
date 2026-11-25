@@ -262,6 +262,37 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 ---
 
+## 0.5 第三章 3-1 湖岸缺的美术（2026-11-25）
+
+3-1 已经能打。鸟用的是上一版的图（返工见 0.1），湖岸用的是现成的布景。缺下面三样：
+
+#### [ ] 铜钹 `cymbal`（单张，另加一张敲过之后的）
+
+战场上的机关：一面挂在木架上的铜钹，一人高。现在是一根木杆挂一面铜盘的占位模型。要两张：能敲的（铜色发亮）和刚敲过在歇的（发暗、微微晃动的残影）。
+
+```
+Single game prop on transparent background, high overhead 35 degree orthographic view: a large bronze cymbal as wide as a man's chest hanging by a leather thong from a weathered wooden frame of two posts and a crossbar, a short wooden striker tied to one post, the bronze bright and polished with a faint pattern of concentric rings. Ancient Mediterranean gouache illustration, broad rich earthy color planes, readable silhouette, the whole prop fits in frame with empty margins. No text no ground no backdrop.
+```
+
+#### [ ] 铜钹敲响的特效 `cymbal_ring.png`
+
+按 2.2 的特效模板出，6 帧，不循环。
+
+```
+{内容}: three thin bright bronze-gold rings expanding outward from a centre point one after another, each ring breaking into short arcs as it widens, with a few sharp glints at the start
+```
+
+#### [ ] 两枚图标
+
+按 2.1 的图标模板出。
+
+| 完成 | 名称 | 标识 | {主体} |
+|---|---|---|---|
+| [ ] | 敲铜钹（指令） | `act_strike` | `a round cymbal with a short striker held against it and two sound arcs` |
+| [ ] | 落地（状态） | `grounded` | `a bird with folded wings standing on a ground line with a down arrow above it` |
+
+---
+
 ## 1. 第一档：第一章现在就缺
 
 ### 1.1 九个借用形象的人物原画

@@ -88,6 +88,10 @@ func receive_impact(force: Vector3, severity: float, source: String, blocked: bo
 			impact_side=clampf(force.normalized().dot(cam.global_basis.x),-1.,1.)
 	else: impact_side=0.
 
+## Set by the battle when a cymbal has brought this flying unit down.
+var grounded := false
+var grounded_fall := 0.
+
 func react_to_hit(force: Vector3,severity: float):
 	receive_impact(force,severity,"",false)
 
@@ -96,6 +100,9 @@ func _process(dt: float):
 	if kind == "stymphalian_bird" or kind == "marsh_flock":
 		# The larger bird rides higher; the flock skims the reed tops.
 		var lift := 17. + 2.7*sin(_time*3.1) if kind == "stymphalian_bird" else 1.8*sin(_time*4.2)
+		# Brought down by a cymbal: on the ground, wings folded, until the round is out.
+		grounded_fall = move_toward(grounded_fall,1. if grounded else 0.,dt*5.)
+		lift *= 1.-grounded_fall
 		_sprite.offset.y = 112.*_art_scale + lift
 		reaction.offset.y = 52. + lift
 	if falling or balance_motion!=null:

@@ -5,7 +5,7 @@ extends RefCounted
 const Checkpoint := preload("res://core/campaign_checkpoint.gd")
 
 const STATUS_NAMES := {
-	"sundered":"破甲（防御 −4）","impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"grounded":"落地（近战打得到）","sundered":"破甲（防御 −4）","impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }
@@ -113,6 +113,8 @@ static func _line(s: BattleState, e: Dictionary) -> String:
 			return "%s 移动到 %s" % [name_of(s, e["unit"]), _cell(e["to"])]
 		"leap":
 			return "%s 跃到 %s" % [name_of(s, e["unit"]), _cell(e["to"])]
+		"strike":
+			return "%s 敲响了铜钹" % name_of(s, e["unit"])
 		"support":
 			return "%s 前来支援：「%s」" % [str(Checkpoint.RECRUITS.get(str(e.get("source","")),{}).get("name","援军")), skill_name(e["skill"])]
 		"area":

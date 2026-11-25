@@ -51,6 +51,11 @@ func stateJSON(s *rules.BattleState, withGrid bool) obj {
 		}
 	}
 	out := obj{"round": s.Round, "phase": int(s.Phase), "marked": s.MarkedID, "previous_mark": s.PreviousMark, "reward": s.Reward, "units": units, "cave": nil}
+	cymbals := make([]obj, len(s.Cymbals))
+	for i := range s.Cymbals {
+		cymbals[i] = obj{"pos": xy(s.Cymbals[i].Pos), "rest": s.Cymbals[i].Rest}
+	}
+	out["cymbals"], out["felled"] = cymbals, s.Felled
 	if c := s.Cave; c != nil {
 		entrances := make([]obj, len(c.Entrances))
 		for i, e := range c.Entrances {
@@ -159,6 +164,8 @@ func eventsJSON(events []rules.Event) []obj {
 			m["target"], m["amount"] = e.Target, e.Amount
 		case rules.EvIgnite, rules.EvBurnOut:
 			m["to"] = xy(e.To)
+		case rules.EvStrike:
+			m["unit"], m["to"] = e.Unit, xy(e.To)
 		case rules.EvSupport:
 			m["unit"], m["skill"], m["to"], m["source"] = e.Unit, e.Skill, xy(e.To), e.Source
 		case rules.EvArea:
@@ -197,7 +204,7 @@ func actionOut(a rules.Action) obj {
 		if a.HasTo {
 			m["to"] = xy(a.To)
 		}
-	case rules.ActMark, rules.ActPushBoulder:
+	case rules.ActMark, rules.ActPushBoulder, rules.ActStrike:
 		m["target"] = xy(a.Target)
 	case rules.ActFace:
 		m["facing"] = xy(a.Facing)

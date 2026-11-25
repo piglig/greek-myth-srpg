@@ -162,7 +162,7 @@ func _ready() -> void:
 		if entry.has("equipped_relic"):
 			for key in ["equipped_relic","boon","divinity","powers","relics_worn"]:
 				if entry.has(key): _campaign_reward[key]=entry[key]
-		if str(entry.get("support","")) != "":
+		if str(entry.get("support","")) not in ["","none"]:
 			_campaign_reward["support"] = str(entry.support)
 			_campaign_reward["support_picks"] = entry.get("support_picks",[])
 		_saved_orders=entry.get("orders",[])
@@ -246,9 +246,9 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		state.orders=_saved_orders.duplicate(true)
 		state.record_orders=_campaign
 	Soundscape.score("ridge")
-	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5","2-S"]:
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5","2-S","3-1"]:
 		map_view.nemea = true
-		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3","2-4","2-5","2-S"] else MapView.Wetland.NONE
+		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3","2-4","2-5","2-S"] else (MapView.Wetland.STYMPHALUS if battle_id.begins_with("3-") else MapView.Wetland.NONE)
 		map_view.shrine = battle_id=="2-2"
 		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
 		highlights.scale = map_view.scale
@@ -301,6 +301,7 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 				var parts := rock.find_children("*","MeshInstance3D",true,false)
 				var surface := parts[0] as MeshInstance3D
 				boulder_vertices = surface.mesh.get_faces()
+	_raise_cymbals()
 	_sync_views()
 	cam_rig.bounds = AABB(Vector3.ZERO, Vector3(state.grid.width, 0, state.grid.depth)*map_view.scale)
 	cam_rig.focus(map_view.to_global(Vector3(state.grid.width * 0.5, 1.45 if village != null else 0.83, state.grid.depth * 0.5)))
@@ -350,6 +351,8 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("许德拉　·　砍下的头两回合后再生，用火烧封断颈",4.)
 	if battle_id=="2-S":
 		hud.banner("护送负伤的喀戎到泉边",3.5)
+	if battle_id=="3-1":
+		hud.banner("鸟在天上，近战够不着　·　站到铜钹旁敲响它，近处的鸟落地一回合",4.5)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -1067,6 +1070,14 @@ func _play(events: Array, from_round := -1) -> void:
 				_popup(e.target,"护盾 +%d" % int(e.amount),Color("#8fd0ff"))
 				if not events.any(func(ev): return ev.get("skill","")=="sky_dome"):
 					BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
+			"strike":
+				# The cymbal rings: a flash over it, and whatever was aloft nearby comes down.
+				var spot := Vector2i(int(e.to[0]),int(e.to[1]))
+				Soundscape.cue("hit")
+				_popup(e.unit,"铜钹",Color("#e8b95a"))
+				BattleFX.spawn(_units_root,ROAR,map_view.anchor_world(state,spot,1)+Vector3.UP*.9,.5)
+				_sync_cymbals()
+				await get_tree().create_timer(.35).timeout
 			"support":
 				await _support_arrives(e)
 			"area":
@@ -1606,6 +1617,61 @@ func _recover_cover(hero: PixelUnit, home: Vector3, contact: bool) -> void:
 	hero.release_intercept()
 
 
+## The bronze cymbals of the lake shore: a disc hung on a post at each one's cell. A stand-in
+## until the painted one is made (28-art-backlog).
+var _cymbal_views := {}
+
+func _raise_cymbals() -> void:
+	for view: Node3D in _cymbal_views.values(): view.queue_free()
+	_cymbal_views.clear()
+	if state == null: return
+	for cymbal: Dictionary in state.cymbals:
+		var stand := Node3D.new()
+		var post := MeshInstance3D.new()
+		var shaft := CylinderMesh.new()
+		shaft.top_radius = .035
+		shaft.bottom_radius = .05
+		shaft.height = 1.0
+		post.mesh = shaft
+		post.position.y = .5
+		var wood := StandardMaterial3D.new()
+		wood.albedo_color = Color("#5a4630")
+		post.material_override = wood
+		stand.add_child(post)
+		var disc := MeshInstance3D.new()
+		var plate := CylinderMesh.new()
+		plate.top_radius = .3
+		plate.bottom_radius = .3
+		plate.height = .035
+		disc.mesh = plate
+		disc.rotation_degrees = Vector3(90,0,25)
+		disc.position.y = .92
+		var bronze := StandardMaterial3D.new()
+		bronze.albedo_color = Color("#c98a3c")
+		bronze.metallic = .7
+		bronze.roughness = .35
+		disc.material_override = bronze
+		disc.name = "disc"
+		stand.add_child(disc)
+		stand.position = map_view.anchor_world(state,cymbal.pos,1)+Vector3(.28,0,-.28)
+		_units_root.add_child(stand)
+		_cymbal_views[cymbal.pos] = stand
+	_sync_cymbals()
+
+## A cymbal that has just rung hangs dull until it can ring again; and every flying unit is
+## told whether it is on the ground.
+func _sync_cymbals() -> void:
+	if state == null: return
+	for cymbal: Dictionary in state.cymbals:
+		var stand: Node3D = _cymbal_views.get(cymbal.pos)
+		if stand == null: continue
+		var disc := stand.get_node("disc") as MeshInstance3D
+		(disc.material_override as StandardMaterial3D).albedo_color = Color("#c98a3c") if int(cymbal.rest) == 0 else Color("#6b5a44")
+	for id in state.order:
+		var u := state.unit(id)
+		if u.has_trait("flying") and unit_views.has(id) and unit_views[id] is PixelUnit:
+			(unit_views[id] as PixelUnit).grounded = u.has_status("grounded")
+
 ## A hired hero answers the call: he steps in beside the protagonist, on the side nearest
 ## where he is needed, strikes once and is gone. He is a figure only: the rules never had
 ## him on the field. Drawn from the sheets he already has until his own arrival is painted
@@ -1931,6 +1997,7 @@ func _popup(id: String, text: String, col: Color, attacker: UnitView = null) -> 
 
 
 func _sync_views() -> void:
+	_sync_cymbals()
 	if village != null and fire_round != state.round_number:
 		map_view.grid = state.grid
 		if tactical:
@@ -2281,6 +2348,22 @@ func _check_end() -> bool:
 		_mode = Mode.OVER
 		_refresh()
 		return true
+	if _battle_id=="3-1" and state.living(Defs.Team.ENEMY).is_empty():
+		# The lake shore. Three birds brought down with the cymbal is the goal aside.
+		var rung := state.felled >= 3
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		var summary := "湖岸已肃清"
+		summary += "，铜钹敲下了 %d 只鸟（酬金 +%d）" % [state.felled,Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)] if rung else "，铜钹只敲下了 %d 只鸟" % state.felled
+		if _campaign:
+			Checkpoint.award(_purse,_battle_id,rung)
+			_settle_at_camp("3-1",summary)
+			return true
+		hud.banner(summary+"　按 R 重开",0.0)
+		_mode = Mode.OVER
+		_refresh()
+		return true
 	if _battle_id=="2-5" and state.outcome=="win":
 		# The hydra: every neck sealed. No head grown back more than once is the goal aside.
 		var clean := state.most_regrown <= 1
@@ -2422,6 +2505,13 @@ func _refresh() -> void:
 	if not state.targets.is_empty():
 		heading += "　·　女祭司 %d/%d" % [state.targets_left,state.targets.size()]
 		objective="击倒三名女祭司即可过关，其余敌人不必清完。女祭司每回合会治疗一个同伴。带火的招式（巫火、火油罐）打中林地里的人或直接打一格林地，那一格就起火；火每回合向相邻的林地蔓延一格，橙色框是下一回合会烧到的地方，烧两回合后成为焦土。火不分敌我。\n可选：让地上的火烧到至少两名女祭司（已烧到 %d 人）。" % state.targets_scorched
+	if _battle_id=="3-1":
+		var aloft := 0
+		for id in state.order:
+			var bird := state.unit(id)
+			if bird.alive and not bird.hidden and bird.team == Defs.Team.ENEMY and bird.has_trait("flying") and not bird.has_status("grounded"): aloft += 1
+		heading += "　·　天上 %d 只" % aloft
+		objective="歼灭所有铜羽鸟。鸟在天上时近战够不着，只有射击和神力打得到；它们的铜羽不看防御。站到铜钹旁（或站在它上面）敲响，3 格内的鸟落地到这一回合结束，这期间谁都打得到。铜钹敲过后要歇 2 回合。\n可选：用铜钹让 3 只鸟落地（现在 %d 只）。" % state.felled
 	if _battle_id=="2-3":
 		objective="歼灭所有敌人。巨蟹正面受到的伤害减半，钳住的人下一回合不能移动；深蓝色是深水，被推进去的敌人直接出局。\n可选：把至少一个敌人推进深水（%s）。" % ("已做到，%d 个" % state.drowned if state.drowned > 0 else "还没有")
 	if not state.reach_exits.is_empty():
@@ -2627,6 +2717,18 @@ func _actions_for(u: UnitState) -> Array:
 	if u.has_trait("hunter_mark"):
 		var act := {"type": "mark"}
 		out.append({"group":"skill","label":"标记","art":"mark","brief":"视野内","words":"标记一个敌人，对它的射击更远更准。不耗行动。","kind":"target","action":act,"enabled":my_phase and not u.mark_used,"active":_is_pending(act)})
+	for cymbal: Dictionary in state.cymbals:
+		# Offered whenever he could reach it; says why not when it cannot be rung just now.
+		var strike := {"type":"strike","unit":u.id,"target":cymbal.pos}
+		var why := Rules.validate(state,strike)
+		if why in ["","still ringing"]:
+			var falls := 0
+			for id in state.order:
+				var bird := state.unit(id)
+				if bird.alive and bird.team == Defs.Team.ENEMY and bird.has_trait("flying") and not bird.has_status("grounded") and absi(bird.pos.x-cymbal.pos.x)+absi(bird.pos.y-cymbal.pos.y) <= 3: falls += 1
+			out.append({"group":"skill","label":"敲铜钹","art":"act_push","brief":"相邻" if why == "" else "还要歇 %d 回合" % int(cymbal.rest),
+				"words":"敲响铜钹：3 格内还在天上的敌人落地，到这一回合结束前谁都打得到。现在会落下 %d 只。敲过后铜钹要歇 2 回合。" % falls,
+				"kind":"do","action":{"type":"strike","target":cymbal.pos},"enabled":can_act and why == ""})
 	if not state.cave.is_empty():
 		for id in state.cave["boulders"]:
 			var push := {"type": "push_boulder", "unit": u.id, "target": state.cave["boulders"][id]["pos"]}

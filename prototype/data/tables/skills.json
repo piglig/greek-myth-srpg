@@ -412,5 +412,6 @@
   "sup_ancaeus": {"name": "劈盾", "support": "sunder", "power": 12, "rounds": 2, "max_range": 3, "cooldown": 4},
   "sup_pholus": {"name": "驮行", "support": "aid", "power": 10, "carry": 5, "max_range": 3, "cooldown": 4},
   "sup_idas": {"name": "碎阵", "support": "break", "power": 12, "stagger_bonus": 30, "max_range": 3, "cooldown": 5},
-  "sup_eurytion": {"name": "冲锋", "support": "charge", "power": 12, "knockback": 1, "max_range": 4, "cooldown": 5}
+  "sup_eurytion": {"name": "冲锋", "support": "charge", "power": 12, "knockback": 1, "max_range": 4, "cooldown": 5},
+  "feather_shot": {"name": "铜羽", "mult": 1.0, "type": "physical", "min_range": 2, "max_range": 4, "shape": "line", "ranged": true, "pierce": true}
 }

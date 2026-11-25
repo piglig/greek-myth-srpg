@@ -116,6 +116,7 @@ func _run() -> void:
 	if failures.is_empty() or _scene().scene_file_path.ends_with("camp.tscn"):
 		await _old_save()
 		await _call_for_help()
+		await _lake_shore()
 		await _side_road()
 		await _verdicts()
 	_finish()
@@ -741,6 +742,67 @@ func _call_for_help() -> void:
 		break
 	if _check("the axe finds someone within five rounds, and leaves the armour split",not marks.is_empty()):
 		_check("split armour has a name the player can read",str(EventText.STATUS_NAMES.get("sundered","")).contains("破甲"),EventText.STATUS_NAMES.get("sundered"))
+
+## The first battle of the third chapter: birds in the air, and a cymbal to bring them down.
+func _lake_shore() -> void:
+	_begin("the lake shore")
+	var entry := _disk()
+	entry.id = "3-1"
+	entry.choose_route = false
+	entry.campaign = false
+	entry.deploy = ["atalanta"]
+	entry.bench = []
+	entry.party = []
+	entry.support = "none"
+	get_tree().set_meta("battle_entry",entry)
+	get_tree().change_scene_to_file("res://main.tscn")
+	await _frames(4)
+	if not await _battle_ready(): return
+	var field := _scene()
+	_check("the lake has a cymbal on its shore",field.state.cymbals.size() == 1 and field._cymbal_views.size() == 1,field.state.cymbals)
+	var birds: Array = field.state.units.values().filter(func(u): return u.team == Defs.Team.ENEMY and u.has_trait("flying"))
+	_check("and birds over the water",birds.size() >= 5,birds.size())
+	var hero: UnitState = field.state.unit("hero")
+	var bird: UnitState = birds[0]
+	_check("a spear cannot reach a bird in the air",Rules.validate(field.state,{"type":"skill","unit":"hero","skill":"spear","target":bird.pos}) != "")
+	# Hold back until the birds have flown in over the shore, then step up and ring it: walking
+	# out to the cymbal alone only puts him under every beak at once.
+	var spot: Vector2i = field.state.cymbals[0].pos
+	var rung := false
+	for round in 8:
+		field = _scene()
+		if field._mode == field.Mode.OVER: break
+		hero = field.state.unit("hero")
+		var near := 0
+		for one: UnitState in field.state.units.values():
+			if one.alive and one.team == Defs.Team.ENEMY and one.has_trait("flying") and absi(one.pos.x-spot.x)+absi(one.pos.y-spot.y) <= 3: near += 1
+		var beside: Array = Movement.destinations(field.state,hero,-1).keys().filter(func(cell): return absi(cell.x-spot.x)+absi(cell.y-spot.y) <= 1)
+		if near > 0 and field.state.round_number >= 2 and not beside.is_empty():
+			field._select("hero")
+			await _frames()
+			if not beside.has(hero.pos):
+				await field._perform({"type":"move","unit":"hero","to":beside[0]})
+				await _frames()
+				field._select("hero")
+				await _frames()
+			var at := -1
+			for i in field._actions.size():
+				if str(field._actions[i].get("label","")) == "敲铜钹": at = i
+			if _check("the cymbal is one of his commands once he stands by it",at >= 0 and field._actions[at].enabled,field._actions.map(func(a): return a.get("label",""))):
+				_check("and it says how many will fall",str(field._actions[at].words).contains("落下 %d 只" % near),field._actions[at].words)
+				field._on_action(at)
+				await _frames(40)
+				rung = true
+			break
+		if not await _next_round(): return
+	if not _check("the protagonist reaches the cymbal while birds are near and rings it",rung): return
+	var down: Array = field.state.units.values().filter(func(u): return u.alive and u.has_status("grounded"))
+	_check("birds come down",not down.is_empty() and field.state.felled == down.size(),[down.size(),field.state.felled])
+	_check("the cymbal rests after ringing",int(field.state.cymbals[0].rest) > 0,field.state.cymbals[0])
+	if not down.is_empty():
+		var fallen: UnitState = down[0]
+		_check("the one on the ground is drawn on the ground",(field.unit_views[fallen.id] as PixelUnit).grounded)
+		_check("its state has a name the player can read",str(EventText.STATUS_NAMES.get("grounded","")).contains("落地"))
 
 func _side_road() -> void:
 	_begin("the wounded centaur")

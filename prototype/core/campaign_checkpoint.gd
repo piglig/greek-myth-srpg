@@ -2,7 +2,7 @@ extends RefCounted
 ## The Corinth checkpoint also carries the resolved orders up to the last player decision.
 ## Where the save lives. A variable so the flow test can use a file of its own.
 static var PATH := "user://chapter-one.cfg"
-const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5"]
+const BATTLES := ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3","2-4","2-5","3-1"]
 
 ## The numbers the campaign runs on, and the tables of things, spoils and heroes, are
 ## data/tables/*.json: the rules engine reads the same files, so that what a simulated

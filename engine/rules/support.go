@@ -155,7 +155,7 @@ func SupportTargets(s *BattleState, u *UnitState, sk *Skill, cell Cell) []*UnitS
 	var hit []*UnitState
 	seen := map[*UnitState]bool{}
 	for _, c := range chargeLane(s, u, cell.Sub(u.Pos), sk.MaxRange) {
-		if t := s.UnitAt(c); t != nil && t.Alive && !t.Hidden && t.Team == TeamEnemy && !seen[t] {
+		if t := s.UnitAt(c); t != nil && t.Alive && !t.Hidden && t.Team == TeamEnemy && !t.Aloft() && !seen[t] {
 			seen[t] = true
 			hit = append(hit, t)
 		}
@@ -219,6 +219,10 @@ func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell, to Cell) str
 	default:
 		if target.Team != TeamEnemy {
 			return "no enemy there"
+		}
+		// 远射够得着天上的；斧头够不着。
+		if target.Aloft() && sk.Support != "shot" {
+			return "out of reach in the sky"
 		}
 	}
 	return ""

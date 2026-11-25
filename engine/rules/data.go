@@ -140,6 +140,7 @@ type BattleDef struct {
 	Escort      string
 	ReachExits  []Cell
 	Targets     []string
+	Cymbals     []Cell // 铜钹所在的格子
 	RescueExits []Cell
 	Village     *Village
 	Units       []BattleUnit
@@ -808,6 +809,15 @@ func (d *Data) Battle(id string) (*BattleDef, error) {
 		}
 		b.Targets = append(b.Targets, id)
 	}
+	if spots, ok := tbl.m["cymbals"].([]any); ok {
+		for _, raw := range spots {
+			c, err := cellOf(raw)
+			if err != nil {
+				return nil, fmt.Errorf("战斗 %s 的 cymbals: %w", id, err)
+			}
+			b.Cymbals = append(b.Cymbals, c)
+		}
+	}
 	if exits, ok := tbl.m["reach_exits"].([]any); ok {
 		for _, raw := range exits {
 			cell, err := cellOf(raw)
@@ -972,6 +982,9 @@ func (d *Data) Build(id string, picks map[string][]string) (*BattleState, error)
 	s.Escort = b.Escort
 	s.ReachExits = b.ReachExits
 	s.Targets = b.Targets
+	for _, c := range b.Cymbals {
+		s.Cymbals = append(s.Cymbals, Cymbal{Pos: c})
+	}
 	for _, e := range b.Units {
 		u, err := d.MakeUnit(e.Def, e.ID, e.Team, e.Pos, e.Facing)
 		if err != nil {

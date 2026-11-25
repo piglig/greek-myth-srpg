@@ -587,6 +587,13 @@ func (b *Bot) appendPlans(out []Plan, s *rules.BattleState, u *rules.UnitState) 
 				}
 			}
 		}
+		// 铜钹：站到它旁边敲响，只在真有东西会掉下来的时候。
+		for i := range s.Cymbals {
+			at := s.Cymbals[i].Pos
+			if strike := rules.Strike(uid, at); rules.Validate(s, strike) == "" && len(rules.StrikeTargets(s, at)) > 0 {
+				out = append(out, plan(nil, strike))
+			}
+		}
 		out = append(out, plan(nil, rules.Wait(uid)))
 	}
 	u.Pos = start

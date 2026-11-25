@@ -104,6 +104,9 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 	if attacker.Traits.Has("beast_hunter") && target.Size > 1 {
 		m *= 1.2
 	}
+	if attacker.Traits.Has("anti_air") && target.Aloft() {
+		m *= AntiAirMult
+	}
 	if dmgType == Divine && attacker.Traits.Has("kindling") && target.HasStatus("burning") {
 		m *= 1.25
 		notes |= NoteKindling

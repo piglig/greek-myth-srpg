@@ -83,7 +83,8 @@ func AddStagger(u *UnitState, amount int, ev *[]Event) {
 
 // Knockback 把 target 沿 dir 推 steps 格（07-combat-rules §5.1）。
 func Knockback(s *BattleState, target *UnitState, dir Cell, steps int, source string, ev *[]Event) {
-	if !target.Alive || steps <= 0 || target.Traits.Anchored {
+	// 钉在地上的和还在天上的都推不动。
+	if !target.Alive || steps <= 0 || target.Traits.Anchored || target.Aloft() {
 		return
 	}
 	start := target.Pos
@@ -125,7 +126,7 @@ func Knockback(s *BattleState, target *UnitState, dir Cell, steps int, source st
 }
 
 func drowns(s *BattleState, u *UnitState, anchor Cell) bool {
-	if u.Traits.Flying {
+	if u.Aloft() {
 		return false
 	}
 	for dy := 0; dy < u.Size; dy++ {

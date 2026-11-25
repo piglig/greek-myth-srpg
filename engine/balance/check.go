@@ -245,6 +245,11 @@ func checkLayout(t *Tables, b *oj.Object) (errs []string) {
 			continue
 		}
 		size := def.Int("size", 1)
+		// 会飞的可以从水面上空开局。
+		flying := false
+		if traits := def.Object("traits"); traits != nil {
+			flying, _ = traits.Get("flying").(bool)
+		}
 		pos := u.Array("pos")
 		x0f, _ := oj.Float(pos[0])
 		y0f, _ := oj.Float(pos[1])
@@ -259,7 +264,7 @@ func checkLayout(t *Tables, b *oj.Object) (errs []string) {
 					fail("%s overlaps %s at (%d, %d)", id, other, x, y)
 				}
 				occupied[[2]int{x, y}] = id
-				if len(terrain) > 0 && !strings.ContainsRune(".fwsbx", rune(row(terrain, y)[x])) {
+				if len(terrain) > 0 && !flying && !strings.ContainsRune(".fwsbx", rune(row(terrain, y)[x])) {
 					fail("%s starts on impassable terrain at (%d, %d)", id, x, y)
 				}
 			}
