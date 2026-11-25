@@ -18,6 +18,8 @@ const TERRAIN_COLORS := {
 
 enum Wetland { NONE, LERNA, STYMPHALUS }
 var wetland := Wetland.NONE
+## Whether the wetland has a shrine on its far bank (the reed marsh does).
+var shrine := false
 var nemea := false
 var village_sites := false
 var woodland := false
@@ -39,6 +41,7 @@ func build(g: BattleGrid) -> void:
 		else:
 			var shore := preload("res://view/lerna_field.gd").new()
 			shore.pale_lake = wetland == Wetland.STYMPHALUS
+			shore.shrine = shrine
 			field = shore
 		field.grid_lines = grid_lines
 		add_child(field)

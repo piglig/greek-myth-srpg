@@ -1,0 +1,121 @@
+{
+  "id": "2-3",
+  "title": "2-3 巨蟹滩",
+  "order": 8,
+  "heights": [
+    "00000000000000",
+    "00000110000000",
+    "01101111000011",
+    "11111101111221",
+    "11111001221111",
+    "11011001220111",
+    "11111111011111",
+    "00110001100100",
+    "00000000000000",
+    "00000000000000"
+  ],
+  "terrain": [
+    "DDDDwwDDDDDDww",
+    "wwDww..wwDDwww",
+    "w..w....wwDw..",
+    "......w.......",
+    ".....DD.......",
+    "..w..DD...w...",
+    "........w.....",
+    "ww..wwD..ww.ww",
+    "wDDwwDDDwwDDww",
+    "DDDDDDDDDDDDDD"
+  ],
+  "units": [
+    {
+      "id": "hero",
+      "def": "hero",
+      "team": "player",
+      "pos": [
+        1,
+        4
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "atalanta",
+      "def": "atalanta",
+      "team": "player",
+      "pos": [
+        0,
+        5
+      ],
+      "facing": "E"
+    },
+    {
+      "id": "crab_1",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        7,
+        3
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_2",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        7,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_3",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        9,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_4",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        10,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "crab_5",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        12,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_1",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        7
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_2",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        8,
+        1
+      ],
+      "facing": "W"
+    }
+  ]
+}

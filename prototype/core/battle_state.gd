@@ -25,6 +25,8 @@ var escort_result := ""
 var reach_exits: Array[Vector2i] = []
 var reach_result := ""
 var swamp_rests := 0
+## How many enemies have been pushed into deep water and lost there.
+var drowned := 0
 var record_orders := false
 var orders: Array = []
 var rescue_result := ""
@@ -45,6 +47,7 @@ func apply(d: Dictionary) -> void:
 		reach_exits = GoEngine.cells(d.reach_exits)
 		reach_result = d.reach_result
 		swamp_rests = int(d.get("swamp_rests",0))
+	drowned = int(d.get("drowned",drowned))
 	if d.has("rescue_exits"):
 		rescue_result = d.rescue_result
 		rescue_exits = GoEngine.cells(d.rescue_exits)

@@ -4,7 +4,9 @@
 
 | 目录 | 素材 | 作者 | 许可 | 可商用 | 可随仓库分发 | 来源 | 用了哪些 |
 |---|---|---|---|---|---|---|---|
-| `nature/` | Stylized Nature MegaKit（免费标准版） | Quaternius | CC0 1.0 | 是 | 是 | https://opengameart.org/content/stylized-nature-megakit | TwistedTree_1–3（橄榄树）、Pine_1 / Pine_3（柏树位置）、Bush_Common、Grass_Wispy_Short。贴图缩到 512，去掉了法线贴图 |
+| `nature/` | Stylized Nature MegaKit（免费标准版） | Quaternius | CC0 1.0 | 是 | 是 | https://opengameart.org/content/stylized-nature-megakit | TwistedTree_1–3（橄榄树）、Pine_1 / Pine_3（柏树位置）、Bush_Common、Grass_Wispy_Short；沼泽战场另取 DeadTree_1–3（枯树）、Rock_Medium_1–3（岸边石块）。贴图缩到 512，去掉了法线贴图 |
+| `water/` | Seamless looping waves heightmaps（waves3，100 帧取 50）；Water Caustics Effect (Small)（16 帧） | 前者见 OpenGameArt 页面署名；后者 leeor_net | 均为 CC0 1.0 | 是 | 是 | https://opengameart.org/content/seamless-looping-waves-heightmaps 、https://opengameart.org/content/water-caustics-effect-small | 沼泽战场的水面。水波高度图由 `art/tools/bake_water.py` 算出坡度并打包成 `waves.png`（10×5 格）；水底光网打包成 `caustics.png`（4×4 格）。原始压缩包没有入库 |
+| `ambientcg/` | Ground080（沙）、Ground109（泥）、Rock051（层状岩） | ambientCG（Lennart Demes） | CC0 1.0 | 是 | 是 | https://ambientcg.com/view?id=Ground080 、https://ambientcg.com/view?id=Ground109 、https://ambientcg.com/view?id=Rock051 | 沼泽战场（2-2、2-3）的三种地面：干处的沙、近水处的泥、陡坎的岩壁。各取 1K 的颜色图和法线图，存为 `sand_*`、`mud_*`、`rock_*`。沙的颜色在着色里压掉了大半，只留纹理 |
 
 模型只提供形状，叶片颜色由 `view/flora.gdshader` 决定。设置环境变量 `SRPG_FLORA=0` 可以切回程序生成的树，用于对比。
 

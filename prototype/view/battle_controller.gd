@@ -92,6 +92,7 @@ var _purse := {}
 var _camp_stop := {}
 var _saved_orders: Array = []
 var rescued_count := 0
+var _side_road_lost := false  ## said once, when too few travellers are left to open the side road
 var _chiron_joined := false
 ## Carried through from the camp so a battle never loses them: who has been hired, who was
 ## picked to march, and the marching list in the form the engine takes (null = not chosen).
@@ -232,9 +233,10 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		state.orders=_saved_orders.duplicate(true)
 		state.record_orders=_campaign
 	Soundscape.score("ridge")
-	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2"]:
+	if battle_id in ["1-1","1-2","1-3","1-4","1-5","2-1","2-2","2-3"]:
 		map_view.nemea = true
-		map_view.wetland = MapView.Wetland.LERNA if battle_id=="2-2" else MapView.Wetland.NONE
+		map_view.wetland = MapView.Wetland.LERNA if battle_id in ["2-2","2-3"] else MapView.Wetland.NONE
+		map_view.shrine = battle_id=="2-2"
 		map_view.scale = Vector3(MapView.CHAPTER_CELL_PITCH,1.,MapView.CHAPTER_CELL_PITCH)
 		highlights.scale = map_view.scale
 		cam_rig.painted = true
@@ -327,6 +329,8 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("美狄亚加入队伍　·　护送她抵达东门",3.5)
 	if battle_id=="2-2":
 		hud.banner("穿过芦苇荡，抵达对岸　·　沼泽里过夜会中毒",3.5)
+	if battle_id=="2-3":
+		hud.banner("巨蟹正面只受一半伤害　·　绕到背后，或把它推进深水",3.5)
 
 
 # --- Scene construction --------------------------------------------------------
@@ -2119,6 +2123,22 @@ func _check_end() -> bool:
 		summary += "，没有人在沼泽里过夜（酬金 +%d）" % (Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)) if dry else "，有人在沼泽里过了夜"
 		if _campaign:
 			Checkpoint.award(_purse,_battle_id,dry)
+			_settle_at_camp("2-3",summary)
+			return true
+		hud.banner(summary+"　按 R 重开",0.0)
+		_mode = Mode.OVER
+		_refresh()
+		return true
+	if _battle_id=="2-3" and state.living(Defs.Team.ENEMY).is_empty():
+		# The crab beach. One of them pushed under is the goal aside.
+		var sunk := state.drowned > 0
+		Soundscape.score("")
+		Soundscape.cue("victory")
+		_outcomes[_battle_id]="已通关"
+		var summary := "巨蟹滩已肃清"
+		summary += "，%d 个敌人被推进了深水（酬金 +%d）" % [state.drowned,Checkpoint.pay_for(_battle_id,true)-Checkpoint.pay_for(_battle_id)] if sunk else "，没有敌人被推进深水"
+		if _campaign:
+			Checkpoint.award(_purse,_battle_id,sunk)
 			_settle_at_camp(_battle_id,summary)
 			return true
 		hud.banner(summary+"　按 R 重开",0.0)
@@ -2178,10 +2198,25 @@ func _refresh() -> void:
 		if state.round_number < 3:
 			objective += "\n阿塔兰忒将在第 3 回合从北面山脊支援"
 	if map_view.woodland:
-		heading += "　·　已撤离 %d/3" % rescued_count
-		objective = "肃清林道，护送至少两人。指向村民可查看撤离路线和威胁。\n第 4 回合南北夹击，第 6 回合头目从东侧入场。"
+		# Saving two of the three travellers is the goal aside: it opens the side road to
+		# the feast. The battle is won by clearing the road either way, and says so.
+		var fallen := 0
+		for id in state.order:
+			var traveler := state.unit(id)
+			if traveler.def_id == "refugee" and not traveler.alive: fallen += 1
+		heading += "　·　村民已撤离 %d/3" % rescued_count
+		if fallen > 0: heading += "，倒下 %d" % fallen
+		var aside := "可选：救出至少两名村民，打开上山赴宴的路（已救 %d 人）。" % rescued_count
+		if rescued_count >= 2: aside = "可选目标已达成：两名村民获救，上山赴宴的路打开了。"
+		elif fallen >= 2: aside = "可选目标已错过：倒下的村民太多，上山赴宴的路不会打开。战斗继续。"
+		objective = "歼灭所有敌人即可过关。%s\n指向村民可查看撤离路线和威胁。第 4 回合南北夹击，第 6 回合头目从东侧入场。" % aside
+		if fallen >= 2 and rescued_count < 2 and not _side_road_lost:
+			_side_road_lost = true
+			hud.banner("两名村民倒下了，上山赴宴的路已经错过　·　战斗继续，歼灭敌人即可过关",4.5)
 	if _battle_id=="2-1":
 		objective="美狄亚已入队。护送她抵达东门的青绿色出口；主角和美狄亚必须存活。"
+	if _battle_id=="2-3":
+		objective="歼灭所有敌人。巨蟹正面受到的伤害减半，钳住的人下一回合不能移动；深蓝色是深水，被推进去的敌人直接出局。\n可选：把至少一个敌人推进深水（%s）。" % ("已做到，%d 个" % state.drowned if state.drowned > 0 else "还没有")
 	if not state.reach_exits.is_empty():
 		objective="所有人抵达对岸的青绿色区域，或肃清沼蛇。沼泽移动消耗 3，回合结束时还站在沼泽里会中毒。\n可选：没有人在沼泽里结束回合（%s）。" % ("目前做到了" if state.swamp_rests == 0 else "已有 %d 人次" % state.swamp_rests)
 	hud.overlay.charge_lanes.clear()

@@ -682,7 +682,7 @@ func _add_tags(parent: Container, u: UnitState) -> void:
 		tags.add_child(_badge("破势 %d/%d" % [u.stagger,u.stagger_max],Color("#bc8258")))
 	for status in u.statuses:
 		tags.add_child(_badge("%s · %d" % [EventText.STATUS_NAMES.get(status,status),u.statuses[status]],Color("#c7896b")))
-	var traits := {"physical_immune":"物理免疫","block":"正面格挡","cannot_attack_adjacent":"不能攻击相邻","forest_stride":"林地疾行","guest":"倒下后撤离"}
+	var traits := {"physical_immune":"物理免疫","block":"正面格挡","cannot_attack_adjacent":"不能攻击相邻","forest_stride":"林地疾行","marsh_stride":"涉水如平地","guest":"倒下后撤离"}
 	for key in traits:
 		if u.has_trait(key):
 			tags.add_child(_badge(traits[key],Color("#b69a6e")))

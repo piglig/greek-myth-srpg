@@ -34,11 +34,13 @@ static func _flora_material(source: Material, part: int, shade: Color, light: Co
 
 
 ## A kit plant scaled so that its crown spans what the generated one did at this width.
-static func flora(kind: PackedScene, width: float) -> Node3D:
+static func flora(kind: Variant, width: float) -> Node3D:
 	if flora_cast.is_empty():
 		flora_cast[OLIVE] = [["TwistedTree_1",1.0],["TwistedTree_2",1.0],["TwistedTree_3",1.0]]
 		flora_cast[CYPRESS] = [["Pine_1",.62],["Pine_3",.56]]
 		flora_cast[THYME] = [["Bush_Common",.62],["Grass_Wispy_Short",.5],["Bush_Common",.55]]
+		flora_cast["dead_tree"] = [["DeadTree_1",1.0],["DeadTree_2",1.0],["DeadTree_3",1.0]]
+		flora_cast["rock"] = [["Rock_Medium_1",1.0],["Rock_Medium_2",1.0],["Rock_Medium_3",1.0]]
 	var choices: Array = flora_cast[kind]
 	var pick: Array = choices[flora_turn%choices.size()]
 	flora_turn += 1
@@ -58,7 +60,7 @@ static func flora(kind: PackedScene, width: float) -> Node3D:
 			var source := part.mesh.surface_get_material(surface)
 			var label := source.resource_name
 			var paint: ShaderMaterial
-			if label.begins_with("Bark"):
+			if label.begins_with("Bark") or label.begins_with("Rock"):
 				paint = _flora_material(source,0,Color.BLACK,Color.WHITE)
 			elif label.begins_with("Grass"):
 				paint = _flora_material(source,2,Color("4a4c2c"),Color("a39a5c"))

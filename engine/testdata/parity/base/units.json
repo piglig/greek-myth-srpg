@@ -1,4 +1,5 @@
 {
+  "giant_crab": {"name": "巨蟹", "hp": 28, "str": 11, "def": 4, "wil": 2, "move": 3, "jump": 1, "skills": ["claw_grip"], "traits": {"block": true, "marsh_stride": true}},
   "marsh_snake": {"name": "沼蛇", "hp": 20, "str": 9, "def": 2, "wil": 2, "move": 4, "jump": 1, "skills": ["venom_bite"], "traits": {"marsh_stride": true}},
   "hero": {
     "name": "主角",

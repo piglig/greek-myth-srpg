@@ -91,7 +91,7 @@ func Knockback(s *BattleState, target *UnitState, dir Cell, steps int, source st
 		nxt := target.Pos.Add(dir)
 		curH := s.UnitHeight(target)
 		if !s.FootprintInBounds(nxt, target.Size) || drowns(s, target, nxt) {
-			edge(s, target, ev)
+			sink(s, target, nxt, ev)
 			break
 		}
 		if hit := s.firstBlocker(nxt, target.Size, target); hit != nil {
@@ -137,6 +137,15 @@ func drowns(s *BattleState, u *UnitState, anchor Cell) bool {
 	return false
 }
 
+// sink 是被推出边缘或推进深水；敌人掉进深水淹没的，另记一笔（可选目标用）。
+func sink(s *BattleState, u *UnitState, to Cell, ev *[]Event) {
+	deep := s.FootprintInBounds(to, u.Size) && drowns(s, u, to)
+	edge(s, u, ev)
+	if deep && u.Team == TeamEnemy && !u.Alive {
+		s.Drowned++
+	}
+}
+
 func edge(s *BattleState, u *UnitState, ev *[]Event) {
 	emit(ev, Event{Type: EvEdge, Target: u.ID})
 	if u.Team == TeamEnemy && !u.IsBoss() {
@@ -161,7 +170,7 @@ func Throw(s *BattleState, thrower, target *UnitState, source string, ev *[]Even
 	thrower.Facing = dir
 	drop := 0
 	if !s.FootprintInBounds(dest, target.Size) || drowns(s, target, dest) {
-		edge(s, target, ev)
+		sink(s, target, dest, ev)
 	} else if hit := s.firstBlocker(dest, target.Size, target); hit != nil {
 		emit(ev, Event{Type: EvCollision, Target: target.ID, With: hit.ID})
 		Deal(s, target, CollisionDamage, True, "collision", ev, false)

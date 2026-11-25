@@ -456,7 +456,7 @@ func _lose_a_battle() -> bool:
 ## Wins every battle from here until the second chapter's second battle is cleared.
 func _to_the_second_chapter() -> void:
 	var seen := {}
-	for round in 9:
+	for round in 10:
 		var camp := _scene()
 		var saved := _disk()
 		if camp.asking == "cheer":
@@ -474,7 +474,7 @@ func _to_the_second_chapter() -> void:
 			_check("the second chapter's goods are on the shelf",_button("青铜胸甲") != null)
 		saved = _disk()
 		var target: String = saved.id
-		if saved.outcomes.get("2-2","") == "已通关": break
+		if saved.outcomes.get("2-3","") == "已通关": break
 		var before := saved.duplicate(true)
 		camp._go("march")
 		await _frames()
@@ -502,6 +502,21 @@ func _to_the_second_chapter() -> void:
 			_check("the journey moves on after %s" % fought,false,"came back to it")
 			return
 		seen[fought] = true
+		if fought == "1-2":
+			# Two travellers down: the side road is lost, the battle is not, and it says so.
+			var field := _scene()
+			var downed: Array[UnitState] = []
+			for id: String in field.state.order:
+				var person: UnitState = field.state.unit(id)
+				if person.def_id == "refugee" and downed.size() < 2:
+					person.alive = false
+					downed.append(person)
+			field._refresh()
+			_check("losing two travellers is announced once",field._side_road_lost)
+			_check("the goal says the battle goes on",field.hud._objective.tooltip_text.contains("可选目标已错过") and field.hud._objective.text.begins_with("歼灭所有敌人"),field.hud._objective.tooltip_text)
+			_check("the battle is not over",field._mode != field.Mode.OVER,field._mode)
+			for person in downed: person.alive = true
+			field._refresh()
 		var marched := 0
 		for who: String in ["hero","atalanta"]+before.get("deploy",[]):
 			if _scene().state.unit(who) != null: marched += 1
@@ -510,6 +525,8 @@ func _to_the_second_chapter() -> void:
 		saved = _disk()
 		_check("%s is saved as cleared" % fought,saved.outcomes.get(fought,"") == "已通关",saved.outcomes)
 		_check("it paid",int(saved.purse.coins) > int(before.purse.coins),"%s -> %s" % [before.purse.coins,saved.purse.coins])
+		if fought == "2-2": _check("crossing dry paid a quarter more",str(saved.get("camp_summary","")).contains("酬金 +20"),saved.get("camp_summary"))
+		if fought == "2-3": _check("nobody was pushed under, so no more than the pay",str(saved.get("camp_summary","")).contains("没有敌人被推进深水"),saved.get("camp_summary"))
 		_check("it taught the hero",int(saved.xp.hero) == int(before.xp.hero)+Save.xp_for(fought),"%s -> %s" % [before.xp.hero,saved.xp.hero])
 		for who: String in saved.xp:
 			if not before.xp.has(who): continue
@@ -519,8 +536,8 @@ func _to_the_second_chapter() -> void:
 	var last := _disk()
 	_check("2-1 is cleared",last.outcomes.get("2-1","") == "已通关",last.outcomes)
 	_check("2-2 is cleared",last.outcomes.get("2-2","") == "已通关",last.outcomes)
-	_check("the save rests at the reed marsh",last.id == "2-2",last.id)
-	_check("crossing dry paid a quarter more",str(last.get("camp_summary","")).contains("酬金 +20"),last.get("camp_summary"))
+	_check("2-3 is cleared",last.outcomes.get("2-3","") == "已通关",last.outcomes)
+	_check("the save rests at the crab beach",last.id == "2-3",last.id)
 	_check("chiron is with the party",last.get("chiron_joined",false))
 	_check("medea is with the party",last.get("medea_joined",false))
 	var camp := _scene()
