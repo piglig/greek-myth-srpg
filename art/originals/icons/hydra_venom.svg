@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64" fill="white">
+  <title>蛇血主动技：剧毒</title>
+  <path fill-rule="evenodd" d="M8 19 Q17 9 32 9 Q48 9 56 19 L52 28 46 42 44 25 Q33 18 20 25 L18 42 11 28Z M18 16 L28 13 24 17Z M47 16 L36 13 40 17Z"/>
+  <path fill-rule="evenodd" d="M32 32 C30 37 23 44 23 48 A9 9 0 0 0 41 48 C41 44 35 37 32 32Z M28 47 Q29 43 32 41 L30 48Z"/>
+</svg>

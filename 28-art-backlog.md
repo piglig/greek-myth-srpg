@@ -33,17 +33,19 @@
 
 ## 0.2 第二章新增、暂借图标的六种材料（2026-11-25）
 
-按 2.1 的图标共用提示词出，{主体} 如下。做好后文件名用标识交给我，我把借用关系去掉（材料的借用写在 `campaign_checkpoint.gd` 的 `art` 一项里；剧毒是直接复制了蛇血的图标文件）。
+按 2.1 的图标共用提示词出，{主体} 如下。做好后文件名用标识交给我，我把借用关系去掉（材料的借用写在 `prototype/data/tables/goods.json` 的 `art` 一项里；剧毒是直接复制了蛇血的图标文件）。
 
 | 完成 | 名称 | 标识 | 现在借用 | {主体} |
 |---|---|---|---|---|
-| [ ] | 蛇皮 | `snake_skin` | 鳞甲 | `a shed snake skin lying in one loose S-curve, the scale pattern shown as a row of diamonds` |
-| [ ] | 毒囊 | `venom_sac` | 中毒 | `a small teardrop-shaped sac tied at the neck with one drop hanging below it` |
-| [ ] | 蟹壳 | `crab_shell` | 破盾 | `the round top shell of a crab seen from above, with a notched front edge` |
-| [ ] | 蟹钳 | `crab_claw` | 兽爪 | `a single large crab claw, pincers slightly open` |
-| [ ] | 祭带 | `sacred_ribbon` | 红线团 | `a long ribbon tied in a bow with two trailing ends, a peacock-feather eye on one end` |
-| [ ] | 乳香 | `incense` | 引火 | `three rough grains of resin with a thin curl of smoke rising from them` |
-| [ ] | 剧毒（蛇血的主动） | `hydra_venom` | 蛇血 | `a serpent's open jaws with two fangs and one drop falling between them` |
+| [x] | 蛇皮 | `snake_skin` | 鳞甲 | `a shed snake skin lying in one loose S-curve, the scale pattern shown as a row of diamonds` |
+| [x] | 毒囊 | `venom_sac` | 中毒 | `a small teardrop-shaped sac tied at the neck with one drop hanging below it` |
+| [x] | 蟹壳 | `crab_shell` | 破盾 | `the round top shell of a crab seen from above, with a notched front edge` |
+| [x] | 蟹钳 | `crab_claw` | 兽爪 | `a single large crab claw, pincers slightly open` |
+| [x] | 祭带 | `sacred_ribbon` | 红线团 | `a long ribbon tied in a bow with two trailing ends, a peacock-feather eye on one end` |
+| [x] | 乳香 | `incense` | 引火 | `three rough grains of resin with a thin curl of smoke rising from them` |
+| [x] | 剧毒（蛇血的主动） | `hydra_venom` | 蛇血 | `a serpent's open jaws with two fangs and one drop falling between them` |
+
+2026-11-25 已交付六种材料与「剧毒」的独立图标，每个标识的 SVG 和 PNG 均位于 [图标原稿目录](art/originals/icons/)。表中借用关系供后续接入时核对。
 
 ## 0.3 第二章缺的和不合适的美术（2026-11-25）
 
@@ -181,18 +183,20 @@ A small ruined Greek shrine on a low stone platform of two worn steps: four slim
 
 ### 0.3.5 图标
 
-按 2.1 的图标模板出。0.2 那七枚也还没做。
+按 2.1 的图标模板出。配套的六种材料与「剧毒」主动技能图标见 0.2。
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 毒牙（沼蛇） | `venom_bite` | `a snake's head in profile with jaws open and two long fangs` |
-| [ ] | 钳制（巨蟹） | `claw_grip` | `a crab claw closed tight round a short bar` |
-| [ ] | 石榴杖（女祭司） | `sacred_staff` | `a staff topped with a pomegranate` |
-| [ ] | 天后的赐福（女祭司） | `hera_blessing` | `an open hand held palm down over a single peacock feather` |
-| [ ] | 噬咬（许德拉） | `hydra_bite` | `a wide serpent jaw seen from the front with four fangs` |
-| [ ] | 毒涎（许德拉） | `hydra_spit` | `a serpent's head spitting three drops in an arc` |
-| [ ] | 蛇毒（状态：无法被治疗） | `blighted` | `a heart shape with a snake coiled once round it` |
-| [ ] | 许德拉之首（回合条上的小标） | `boss_hydra_head` | `a single serpent head on a thick neck rising from the ground` |
+| [x] | 毒牙（沼蛇） | `venom_bite` | `a snake's head in profile with jaws open and two long fangs` |
+| [x] | 钳制（巨蟹） | `claw_grip` | `a crab claw closed tight round a short bar` |
+| [x] | 石榴杖（女祭司） | `sacred_staff` | `a staff topped with a pomegranate` |
+| [x] | 天后的赐福（女祭司） | `hera_blessing` | `an open hand held palm down over a single peacock feather` |
+| [x] | 噬咬（许德拉） | `hydra_bite` | `a wide serpent jaw seen from the front with four fangs` |
+| [x] | 毒涎（许德拉） | `hydra_spit` | `a serpent's head spitting three drops in an arc` |
+| [x] | 蛇毒（状态：无法被治疗） | `blighted` | `a heart shape with a snake coiled once round it` |
+| [x] | 许德拉之首（回合条上的小标） | `boss_hydra_head` | `a single serpent head on a thick neck rising from the ground` |
+
+2026-11-25 已交付八枚白色透明剪影，[矢量稿与同名 PNG](art/originals/icons/) 均已按 24×24 复核，「蛇毒」另按 14×14 复核。许德拉之首小标的 PNG 为 512×512，其余为 256×256。
 
 ---
 
