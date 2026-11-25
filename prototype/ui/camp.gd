@@ -485,12 +485,16 @@ func _reserves() -> Array:
 	pool.append_array(entry.get("roster",[]).map(func(hand): return hand.id))
 	return pool
 
+## How many may march beside the protagonist to the battle the journey stands at.
+func _seats() -> int:
+	return Save.seats(str(entry.get("id","1-1")))
+
 ## Who the player has picked to march beside the protagonist, up to the seats.
 func _marching() -> Array:
 	var pool := _reserves()
 	if not entry.has("deploy"):
-		return pool.slice(0,Save.SEATS)
-	return (entry.deploy as Array).filter(func(who): return pool.has(who)).slice(0,Save.SEATS)
+		return pool.slice(0,_seats())
+	return (entry.deploy as Array).filter(func(who): return pool.has(who)).slice(0,_seats())
 
 ## Who a battle's story needs there, of those in camp.
 func _required(battle: String) -> Array:
@@ -502,7 +506,7 @@ func _marching_to(battle: String) -> Array:
 	var going := _required(battle)
 	for who: String in _marching():
 		if not going.has(who): going.append(who)
-	return going.slice(0,Save.SEATS)
+	return going.slice(0,Save.seats(battle))
 
 func _coins() -> int:
 	return int(entry.get("purse",{}).get("coins",Save.STARTING_COINS))
@@ -2136,7 +2140,7 @@ func _hire(offer_id: String) -> void:
 	next.purse = purse
 	# A new hand marches at once if there is room.
 	var going := _marching()
-	if going.size() < Save.SEATS: going.append(who)
+	if going.size() < _seats(): going.append(who)
 	next.deploy = going
 	if _keep(next):
 		note = "%s加入了营地。" % offer.name
@@ -2181,7 +2185,7 @@ func _march() -> void:
 	var needed := _required(str(site.id))
 	var going := _marching_to(str(site.id))
 	Px.text(body,"出战名单",Rect2(x,y,120,0),Px.SMALL,Px.OCHRE)
-	Px.text(body,"另选 %d / %d 人" % [going.size(),Save.SEATS],Rect2(x+230,y,200,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
+	Px.text(body,"另选 %d / %d 人" % [going.size(),Save.seats(str(site.id))],Rect2(x+230,y,200,0),Px.SMALL,Px.MUTED,HORIZONTAL_ALIGNMENT_RIGHT)
 	y += 20
 	Px.picture(body,Px.face(_look("hero"),32),Rect2(x,y,32,32))
 	Px.text(body,_name("hero"),Rect2(x+40,y+2,120,0),Px.BODY,Px.IVORY)
@@ -2197,7 +2201,7 @@ func _march() -> void:
 		var at := Vector2(x+(i%2)*220,y+(i/2)*40)
 		var toggle := Px.row(body,"",Rect2(at.x-10,at.y,214,36),on,_toggle_march.bind(who))
 		var must := needed.has(who)
-		toggle.disabled = must or (not on and going.size() >= Save.SEATS)
+		toggle.disabled = must or (not on and going.size() >= Save.seats(str(site.id)))
 		Px.picture(body,Px.face(_look(who),32),Rect2(at.x,at.y+2,32,32)).modulate = Color.WHITE if on else Color(1,1,1,.45)
 		var ink: Color = _rarity(who)[1] if not _rarity(who).is_empty() else Px.IVORY
 		Px.text(body,_name(who),Rect2(at.x+40,at.y+3,120,0),Px.BODY,ink if on else ink.darkened(.3))
@@ -2242,7 +2246,7 @@ func _march() -> void:
 func _toggle_march(who: String) -> void:
 	var going := _marching()
 	if going.has(who): going.erase(who)
-	elif going.size() < Save.SEATS: going.append(who)
+	elif going.size() < _seats(): going.append(who)
 	var next: Dictionary = entry.duplicate(true)
 	next.deploy = going
 	_keep(next)

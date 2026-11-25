@@ -353,7 +353,8 @@ func _hire() -> void:
 	_check("the hire is on the roster",saved.roster.size() == 1 and saved.roster[0].name == pick.name,saved.get("roster"))
 	_check("the hire left the list",Save.offers(saved).size() == listed.size()-1 and not Save.offers(saved).any(func(offer): return offer.kind == pick.kind),Save.offers(saved))
 	var who: String = saved.roster[0].id
-	_check("the hire marches at once",saved.deploy.has(who),saved.get("deploy"))
+	# The first chapter has one seat beside the protagonist, and Atalanta is in it.
+	_check("the hire waits in camp while the one seat is taken",not saved.deploy.has(who) and saved.deploy == ["atalanta"],saved.get("deploy"))
 	_check("the hire starts with half the hero's experience",int(saved.xp.get(who,-1)) == int(saved.xp.hero)/2,saved.xp)
 	_check("the hire has a plain attack",camp._basic(who) != "",camp._basic(who))
 	_check("and one technique besides",camp._known(who).size() == 1,camp._known(who))
@@ -419,10 +420,8 @@ func _lose_a_battle() -> bool:
 	_check("the battle is 1-2",field._battle_id == "1-2",field._battle_id)
 	var who: String = _disk().roster[0].id if not _disk().get("roster",[]).is_empty() else ""
 	var hire: UnitState = field.state.unit(who)
-	_check("the hire is drawn in colours of their own",UnitState.looks.has(who) and UnitState.looks[who] != hire.def_id if hire != null else false,UnitState.looks)
-	if _check("the hire is on the field",hire != null,who):
-		_check("on the player's side",hire.team == Defs.Team.PLAYER)
-		_check("with a plain attack and a technique",hire.skills.size() == 2,hire.skills)
+	# This battle needs Atalanta, and the chapter has the one seat: the hire is not here.
+	_check("the hire stayed in camp",hire == null,who)
 	var atalanta: UnitState = field.state.unit("atalanta")
 	_check("atalanta brought only her plain attack",atalanta.skills.size() == 1,atalanta.skills)
 	var hero: UnitState = field.state.unit("hero")
@@ -630,15 +629,25 @@ func _old_save() -> void:
 	_check("the olive branch is still on the hero",purse.worn.get("hero",{}).get("hand","") == "olive",purse.get("worn"))
 	_check("the old lists are gone",not purse.has("owned") and not purse.has("equipped"))
 	_check("everyone has experience for the level they were",camp._level("hero") == 4 and camp._level("chiron") == 4,camp.entry.get("xp"))
-	_check("the party still marches, Atalanta now among the chosen",camp._marching() == ["atalanta","chiron","iphicles"],camp._marching())
+	# The first chapter takes one beside the protagonist: of the three the old save sent, the first.
+	_check("the party still marches, Atalanta now among the chosen",camp._marching() == ["atalanta"],camp._marching())
 	# Only the protagonist is fixed: Atalanta may stay behind, unless the battle needs her.
 	camp._toggle_march("atalanta")
 	_check("Atalanta can be left in camp",not camp._marching_to("1-4").has("atalanta"),camp._marching_to("1-4"))
 	_check("the lion hunt takes her along all the same",camp._marching_to("1-5")[0] == "atalanta",camp._marching_to("1-5"))
+	camp._toggle_march("iphicles")
+	_check("the hire takes her place",camp._marching() == ["iphicles"],camp._marching())
 	camp._toggle_march("atalanta")
+	_check("a second has no seat in the first chapter",camp._marching() == ["iphicles"],camp._marching())
+	_check("the party grows a seat a chapter, to four in all",Save.seats("2-2") == 2 and Save.seats("3-1") == 3 and Save.seats("7-4") == 3)
 	camp._go("march")
 	await _frames()
 	if not await _press("出征"): return
 	if not await _battle_ready(): return
 	_check("the old save reaches its battle",_scene()._battle_id == "1-4",_scene()._battle_id)
-	_check("the old hire is on the field",_scene().state.unit(camp.entry.roster[0].id) != null if is_instance_valid(camp) else _scene().state.unit("iphicles") != null)
+	var hired: UnitState = _scene().state.unit("iphicles")
+	if _check("the old hire is on the field",hired != null):
+		_check("on the player's side",hired.team == Defs.Team.PLAYER)
+		_check("with a plain attack and a technique",hired.skills.size() == 2,hired.skills)
+		_check("drawn in colours of their own",UnitState.looks.has("iphicles") and UnitState.looks["iphicles"] != hired.def_id,UnitState.looks)
+	_check("Atalanta gave up the seat",_scene().state.unit("atalanta") == null)

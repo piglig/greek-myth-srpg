@@ -103,6 +103,30 @@ func TestBotUsesWhatThePartyBrings(t *testing.T) {
 	}
 }
 
+// 残血时先顾命：主角只剩四分之一生命、手里有药，普通玩家水平的机器人第一选择是喝药。
+func TestWoundedDrinksFirst(t *testing.T) {
+	data, err := rules.LoadData(rules.DataOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := data.Muster("2-3", rules.Muster{Items: map[string][]string{"hero": {"item_potion"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rules.StartBattle(s)
+	hero := s.Unit("hero")
+	prof, _ := ProfileByName("casual")
+	bot := New(prof)
+	if best := bot.scoredPlans(s, hero)[0].plan.Main; best.Skill == "item_potion" {
+		t.Error("at full health the potion should stay in the bag")
+	}
+	hero.HP = hero.MaxHP / 4
+	bot.Reset(prof)
+	if best := bot.scoredPlans(s, hero)[0].plan.Main; best.Skill != "item_potion" {
+		t.Errorf("at a quarter health he should drink; he chose %v %s", best.Type, best.Skill)
+	}
+}
+
 func hasAny(plans []Plan, skill string) bool {
 	for _, p := range plans {
 		if p.Main.Type == rules.ActSkill && p.Main.Skill == skill {

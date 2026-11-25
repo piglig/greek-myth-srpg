@@ -32,7 +32,7 @@ import (
 func init() {
 	register("check", "校验数据表和静态规格，有问题时退出码非 0（--no-junit 不写 JUnit 文件）", balCheck)
 	register("ttk", "打印主要攻击对第 1 章敌人几下打死（--scenario front|side|back|broken_side，--no-export）", balTTK)
-	register("sim", "模拟战斗并存入 balance/out/sim（<战斗> --bot -n/--runs --seed --max-rounds --workers --kit <档名>）", balSim)
+	register("sim", "模拟战斗并存入 balance/out/sim（<战斗> --bot -n/--runs --seed --max-rounds --workers --kit <档名|none>；默认 typical）", balSim)
 	register("report", "按设计目标判定模拟结果并写 HTML 报告，有 FAIL 时退出码 1（<战斗>）", balReport)
 	register("run", "把目标里的每个机器人模拟到定论再出报告（<战斗> -n/--runs --seed --full）", balRun)
 	register("sweep", "参数扫描：逐轮减半找最符合目标的组合（<战斗> --set 表:键=v1,v2 … --bots -n/--runs --first --seed）", balSweep)

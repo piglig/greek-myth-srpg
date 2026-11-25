@@ -10,6 +10,8 @@ import (
 // Profile 是机器人的水平设定。
 //
 //	novice  —— 按出场顺序一次只看一个单位，对方案分数做高温 softmax 抽样；不会标记
+//	casual  —— 同样一次只看一个单位，但多半挑得出最好的那个方案，也会标记：打过几关、
+//	           不做全盘推演的普通玩家
 //	skilled —— 对整个我方回合做束搜索（行动顺序和每个单位的方案），带一点随种子变化的噪声
 type Profile struct {
 	Name        string
@@ -23,7 +25,7 @@ type Profile struct {
 }
 
 // ProfileNames 列出所有机器人。
-func ProfileNames() []string { return []string{"novice", "skilled"} }
+func ProfileNames() []string { return []string{"novice", "casual", "skilled"} }
 
 // ProfileByName 返回指定名字的机器人设定。
 func ProfileByName(name string) (Profile, error) {
@@ -32,6 +34,8 @@ func ProfileByName(name string) (Profile, error) {
 	case "novice":
 		w.Danger = 2.0
 		return Profile{Name: name, Search: "greedy", Temperature: 3.0, PerUnit: 6, Weights: w}, nil
+	case "casual":
+		return Profile{Name: name, Search: "greedy", Temperature: 0.8, PerUnit: 6, UseMark: true, Weights: w}, nil
 	case "skilled":
 		return Profile{Name: name, Search: "beam", Beam: 6, PerUnit: 8, Noise: 0.3, UseMark: true,
 			Weights: w}, nil

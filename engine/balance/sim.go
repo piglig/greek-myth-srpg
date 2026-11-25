@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -77,12 +78,30 @@ type SimRequest struct {
 	OnProgress  func(n int) // 每完成 n 局调用一次
 }
 
+// DefaultKit 是不指定时用的出战配置档。
+const DefaultKit = "typical"
+
+// 战役里的关卡（"1-4"、"2-S"）；测试图和工坊里另起名字的变体不套出战配置。
+var campaignBattle = regexp.MustCompile(`^[0-9]+-[0-9A-Z]+$`)
+
 // Simulate 跑 Runs 局并写入 runs.jsonl，返回文件路径。
 func (r *Runner) Simulate(ctx context.Context, req SimRequest) (string, error) {
 	if r.Sim == nil {
 		return "", fmt.Errorf("没有配置模拟器")
 	}
-	if req.Kit != "" && req.Variant == "" {
+	// 默认按"一般玩家打到这一关时的样子"开局：模拟一关，就该用那时玩家手里有的东西，
+	// 不是只有关卡文件里摆的那两个人。裸装要明说（Kit: "none"），结果另放。
+	switch {
+	case req.Kit == "none":
+		req.Kit = ""
+		if req.Variant == "" {
+			req.Variant = "bare"
+		}
+	case req.Kit == "":
+		if _, err := os.Stat(r.Paths.Kits()); err == nil && campaignBattle.MatchString(req.Battle) {
+			req.Kit = DefaultKit
+		}
+	case req.Kit != DefaultKit && req.Variant == "":
 		req.Variant = "kit-" + req.Kit
 	}
 	out := r.Paths.RunDir(req.Battle, req.Bot, req.Variant)

@@ -24,12 +24,16 @@ type Weights struct {
 	Control  float64 // 敌人被眩晕（束缚按三分之一算）
 	Target   float64 // 指定要击杀的目标，价值是普通敌人的这么多倍
 	Goal     float64 // 要去的地方（护送的出口、要抵达的对岸）每远一格的代价
+	Wounded  float64 // 我方单位生命低于 WoundedBelow 时，每再少一成生命额外的代价（人在残血时会先顾命）
 }
+
+// WoundedBelow 是"残血"的界线：生命低于这个比例，机器人开始把保命看得比多打一下重。
+const WoundedBelow = 0.45
 
 // DefaultWeights 返回默认权重。
 func DefaultWeights() Weights {
 	return Weights{EnemyHP: 10, EnemyKO: 8, Stagger: 6, PlayerHP: 6, PlayerKO: 25,
-		HeroKO: 100, Danger: 5, Distance: 0.15, Seal: 4, Linger: 0.7, Control: 5, Target: 2.5, Goal: 1.2}
+		HeroKO: 100, Danger: 5, Distance: 0.15, Seal: 4, Linger: 0.7, Control: 5, Target: 2.5, Goal: 1.2, Wounded: 1.5}
 }
 
 // Evaluator 从我方角度给局面打分，越高越好。
@@ -125,15 +129,24 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 				v += float64(w.Stagger * progress)
 			}
 		case rules.TeamPlayer:
+			// 倒下就输的人：主角，1-3 里负伤的喀戎，护送关里的美狄亚。人会一直护着他们。
+			vital := u.ID == "hero" || u.ID == "wounded_chiron" || (len(s.EscortExits) > 0 && u.ID == "medea")
 			if !u.Alive {
-				if u.ID == "hero" {
+				if vital {
 					v -= w.HeroKO
 				} else {
 					v -= w.PlayerKO
 				}
 				continue
 			}
-			v += w.PlayerHP * float64(u.HP) / float64(u.MaxHP)
+			health := float64(u.HP) / float64(u.MaxHP)
+			v += w.PlayerHP * health
+			if vital && u.ID != "hero" {
+				v += w.PlayerHP * health // 他们自己不怎么还手，生命按双份看
+			}
+			if health < WoundedBelow {
+				v -= w.Wounded * w.PlayerHP * (WoundedBelow - health)
+			}
 			v -= w.Linger * w.PlayerHP * float64(min(lingering(u), u.HP)) / float64(u.MaxHP)
 			v += 0.5 * w.PlayerHP * float64(min(u.Shield, u.MaxHP)) / float64(u.MaxHP)
 			if u.HasStatus("impervious_hide") || u.HasStatus("thunder_body") {

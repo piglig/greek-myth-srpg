@@ -74,7 +74,7 @@ func writeFile(path string, data []byte) error {
 func cmdSimulate(args []string) error {
 	fs := flag.NewFlagSet("simulate", flag.ContinueOnError)
 	battle := fs.String("battle", "1-4", "战斗 id")
-	bot := fs.String("bot", "skilled", "机器人：novice | skilled")
+	bot := fs.String("bot", "skilled", "机器人：novice | casual | skilled")
 	runs := fs.Int("runs", 10, "场数；第 i 场用种子 seed+i")
 	seed := fs.Int("seed", 0, "起始种子")
 	out := fs.String("out", "", "输出的 JSONL 文件（留空写到标准输出）")
@@ -170,7 +170,7 @@ func cmdSimulate(args []string) error {
 func cmdReplay(args []string) error {
 	fs := flag.NewFlagSet("replay", flag.ContinueOnError)
 	battle := fs.String("battle", "1-4", "战斗 id")
-	bot := fs.String("bot", "skilled", "机器人：novice | skilled")
+	bot := fs.String("bot", "skilled", "机器人：novice | casual | skilled")
 	seed := fs.Int("seed", 0, "种子")
 	out := fs.String("out", "", "输出的 JSON 文件（留空写到标准输出）")
 	maxRounds := fs.Int("max-rounds", sim.DefaultMaxRounds, "回合上限")
@@ -202,7 +202,7 @@ func cmdReplay(args []string) error {
 func cmdBench(args []string) error {
 	fs := flag.NewFlagSet("bench", flag.ContinueOnError)
 	battle := fs.String("battle", "1-4", "战斗 id")
-	bot := fs.String("bot", "skilled", "机器人：novice | skilled")
+	bot := fs.String("bot", "skilled", "机器人：novice | casual | skilled")
 	runs := fs.Int("runs", 400, "场数")
 	seed := fs.Int("seed", 0, "起始种子")
 	workers := fs.Int("workers", 0, "多线程那一遍的并行数（默认全部 CPU）")
@@ -293,7 +293,7 @@ func cmdExportMetrics(args []string) error {
 func cmdProfileBattle(args []string) error {
 	fs := flag.NewFlagSet("profile-battle", flag.ContinueOnError)
 	battle := fs.String("battle", "1-4", "战斗 id")
-	bot := fs.String("bot", "skilled", "机器人：novice | skilled")
+	bot := fs.String("bot", "skilled", "机器人：novice | casual | skilled")
 	seed := fs.Int("seed", 0, "种子")
 	var df dataFlags
 	df.register(fs)

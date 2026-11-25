@@ -227,7 +227,11 @@ const RECRUITS := {
 ## start at no cost; the hero's (盾击) is already part of the unit.
 const STARTERS := {"atalanta":"vital_shot","chiron":"purify_arrow","medea":"frailty"}
 ## How many heroes march beside the protagonist, who always goes. The player picks them all.
-const SEATS := 3
+## One in the first chapter, two in the second, three from the third: with him that is a
+## party of two, then three, then four, and each chapter's battles are set out for a party
+## of that size (2026-11-25).
+static func seats(battle: String) -> int:
+	return clampi(int(battle.get_slice("-",0)),1,3)
 ## Battles whose story needs someone there: they march whatever the player picked.
 const REQUIRED := {"1-1":["atalanta"],"1-2":["atalanta"],"1-5":["atalanta"]}
 ## Heroes a battle's own file places on the field. Left behind, they are benched; taken

@@ -2,14 +2,23 @@
 #
 # 模拟器不知道营地里发生过什么。这份文件替它记着，分三档，对应 17-economy-shops.md
 # 核算收入时的三种玩家：
-#   frugal   只拿酬金、不卖东西、不打可选战。队伍只有剧情里加入的人，没有装备。
-#   typical  卖材料、拿一半可选目标、打了 1-3。招两三个人，四个人各有两三件装备。
-#   rich     全拿全卖。招到史诗英雄，主力装备齐全。
+#   frugal   只拿酬金、不卖东西、不打可选战。没有装备。
+#   typical  卖材料、拿一半可选目标、打了 1-3。上场的人各有三四件装备，带一两瓶药。
+#   rich     全拿全卖。主力装备齐全。
+#
+# 原则（2026-11-25）：模拟一关，就用玩家打到那一关时能有的东西。不拿后面章节才出现的
+# 东西来测，也不沿用前面章节偏弱的状态。engine/sim/kits_test.go 会检查等级、点数、
+# 圣物和出战人数是否合时宜；装备是否已上架、招募的人是否已出现、花销是否超过收入，
+# 引擎读不到这些数据，靠下面的注释人工核对。
+#
+# 出战人数（2026-11-25 定）：第一章连主角共 2 人，第二章 3 人，第三章起 4 人。前两章
+# 名额都被剧情里的同伴占着，所以这三档都没有招募任何人，钱全花在装备上。
 #
 # 写法：每一档是按关卡先后排的一串变化，`at` 是"进入这一关之前"。打到哪一关，就把那一关
 # 及之前的变化都叠上：
 #   hire    从这时起在营地里的人（招募的，以及剧情里加入的喀戎、美狄亚）。累加。
-#   party   跟主角出战的人，不含关卡文件里已经摆好的（阿塔兰忒一直是摆好的）。写了就换掉。
+#   party   跟主角出战的人，不含关卡文件里已经摆好的（阿塔兰忒一直是摆好的，占一个名额）。
+#           写了就换掉。
 #   picks   技能树加点，按人。写了就换掉那个人的。
 #   mods    装备带来的属性增减，按人。累加（换装就写差额）。
 #   items   随身物品，按人。写了就换掉那个人的。
@@ -17,11 +26,14 @@
 #   level   这时大家大约几级，只用来核对加点花费（每级 1 点；阿塔兰忒、喀戎、美狄亚的
 #           第一招不花点）。
 #
-# 每一步的花销都在注释里写了累计数，不超过那一档到那时的累计收入。价格取自
+# 每一步的花销都在注释里写了累计数，不超过那一档到那时的累计收入（17 §2.1 的核算：
+# typical 进入各关时约 60 / 257 / 527 / 630 / 883 / 1103 / 1302 / 1538 / 1804，
+# rich 约 60 / 306 / 656 / 918 / 1216 / 1466 / 1733 / 2049 / 2375）。价格取自
 # prototype/core/campaign_checkpoint.gd；那边改了价，这里要跟着核一遍。
 #
-# 用法：srpg sim 2-3 --bot skilled -n 200 --kit typical
-# 结果写到 balance/out/sim/<关>/variants/kit-<档名>/。
+# 用法：srpg sim 2-3 --bot casual -n 200            （默认 typical）
+#       srpg sim 2-3 --bot casual -n 200 --kit frugal
+#       srpg sim 2-3 --bot casual -n 200 --kit none  （裸装，只有关卡文件里摆的人）
 
 tiers:
   frugal:
@@ -34,7 +46,7 @@ tiers:
     - at: "1-5"                     # 没打可选的 1-3，经验少一场，喀戎也没入队
       level: 3
       picks: {hero: [iron_arm, shield_wall], atalanta: [vital_shot, patience]}
-    - at: "2-1"
+    - at: "2-1"                     # 第二章多一个名额，但营地里没有别人；2-1 的美狄亚是关卡里摆的
       level: 4
       relics: [lion_pelt]
       boon: moon_hunt
@@ -52,132 +64,116 @@ tiers:
         medea: [frailty, kindling, solar_flame]
 
   typical:
-    - at: "1-1"                     # 累计花 60：伊菲克勒斯 60
+    - at: "1-1"                     # 起始的 60 留着
       level: 1
-      hire: [{id: iphicles, def: bandit, name: 伊菲克勒斯, skills: [heavy_cut], tree: iphicles}]
-      party: [iphicles]
       picks: {hero: [], atalanta: [vital_shot]}
-    - at: "1-2"                     # 累计 230：法勒洛斯 80，皮甲（主角）90
+    - at: "1-2"                     # 累计花 245：皮甲（主角）90，皮手套（主角）55，短衣（阿塔兰忒）45，拳带（阿塔兰忒）55
       level: 2
-      hire: [{id: phalerus, def: bandit_archer, name: 法勒洛斯, skills: [aimed_shot], tree: phalerus}]
-      party: [iphicles, phalerus]
-      picks: {hero: [iron_arm], atalanta: [vital_shot, skirmish], iphicles: [iph_stand]}
-      mods: {hero: {def: 2}}
-    - at: "1-3"                     # 累计 425：短衣（阿塔兰忒）45，皮手套（主角）55，拳带（伊菲克勒斯）55，回复药 40
+      picks: {hero: [iron_arm], atalanta: [vital_shot, skirmish]}
+      mods: {hero: {def: 3}, atalanta: {hp: 3, str: 1}}
+    - at: "1-3"                     # 累计 515：琥珀项链（主角）70，胫甲（主角）95，皮靴（阿塔兰忒）65，回复药 40
       level: 2
-      mods: {atalanta: {hp: 3}, hero: {def: 1}, iphicles: {str: 1}}
+      mods: {hero: {hp: 5, def: 2}, atalanta: {jump: 1}}
       items: {hero: [item_potion]}
-    - at: "1-4"                     # 累计 560：琥珀项链（主角）70，皮靴（阿塔兰忒）65。喀戎入队
+    - at: "1-4"                     # 累计 630：祭酒杯（阿塔兰忒）75，回复药 40。喀戎入队，但名额只有一个，留守
       level: 3
       hire: [{id: chiron, def: chiron}]
-      party: [chiron, iphicles]
       picks:
         hero: [iron_arm, shield_wall]
         atalanta: [vital_shot, patience]
         chiron: [purify_arrow, weak_point]
-        phalerus: [pha_steady]
-      mods: {hero: {hp: 5}, atalanta: {jump: 1}}
-    - at: "1-5"                     # 累计 845：安开俄斯 150，胫甲（主角）95，回复药 40
+      mods: {atalanta: {hp: 3, wil: 1}}
+      items: {hero: [item_potion], atalanta: [item_potion]}
+    - at: "1-5"                     # 累计 718：铁臂甲（主角，换下皮手套，卖回 27）115
       level: 4
-      hire: [{id: ancaeus, def: bandit_chief, name: 安开俄斯, skills: [heavy_cut], tree: ancaeus}]
-      party: [chiron, ancaeus]
       picks:
         hero: [iron_arm, stagger_fist]
         atalanta: [vital_shot, patience, skirmish]
         chiron: [purify_arrow, weak_point, mentor_stagger]
-      mods: {hero: {def: 2}}
-      items: {hero: [item_potion], chiron: [item_potion]}
-    - at: "2-1"                     # 累计 1070：旅人斗篷（喀戎）100，宽皮带（安开俄斯）75，解毒药 50
+      mods: {hero: {str: 2, jump: -1}}
+    - at: "2-1"                     # 累计 1073：旅人斗篷 100、胫甲 95、猫头鹰小像 110（都给喀戎），解毒药 50。多一个名额，喀戎上场
       level: 4
+      party: [chiron]
       relics: [lion_pelt]
       boon: moon_hunt
-      picks: {ancaeus: [anc_split]}
-      mods: {chiron: {wil: 2, hp: 3}, ancaeus: {hp: 2, str: 1}}
+      mods: {chiron: {wil: 4, hp: 3, def: 2, div: 1}}
       items: {hero: [item_potion], chiron: [item_antidote]}
-    - at: "2-2"                     # 累计 1215：青金坠（美狄亚）95，解毒药 50。美狄亚入队
+    - at: "2-2"                     # 累计 1263：青金坠（美狄亚）95，短衣（美狄亚）45，解毒药 50
       level: 5
       hire: [{id: medea, def: medea}]
-      party: [chiron, medea]
+      party: [medea]                # 美狄亚入队，换下喀戎
       picks: {hero: [iron_arm, stagger_fist, shield_wall], medea: [frailty, kindling]}
-      mods: {medea: {div: 2}}
-      items: {hero: [item_potion], chiron: [item_antidote], medea: [item_antidote]}
-    - at: "2-3"                     # 累计 1400：誓约指环（美狄亚）95，皮甲（喀戎）90
+      mods: {medea: {div: 2, hp: 3}}
+      items: {hero: [item_potion], medea: [item_antidote]}
+    - at: "2-3"                     # 累计 1443：誓约指环（美狄亚）95，鳞甲（主角，换下皮甲，卖回 45）130
       level: 6
       picks:
         hero: [iron_arm, stagger_fist, heel_strike]
         atalanta: [vital_shot, patience, skirmish, leap_shot]
         chiron: [purify_arrow, weak_point, mentor_stagger, field_medicine]
-      mods: {medea: {wil: 3}, chiron: {def: 2}}
-    - at: "2-4"                     # 累计 1670：青铜胸甲（主角，换下皮甲，卖回 45）225，火油罐 90
+      mods: {medea: {wil: 3}, hero: {def: 2, move: -1}}
+    - at: "2-4"                     # 累计 1681：飞翼凉鞋（阿塔兰忒，换下皮靴，卖回 32）180，火油罐 90
       level: 7
       picks:
         hero: [iron_arm, stagger_fist, heel_strike, shield_wall]
         medea: [frailty, kindling, solar_flame]
-      mods: {hero: {def: 3, hp: 4, move: -1}}
-      items: {hero: [item_potion], chiron: [item_antidote], medea: [item_firepot]}
+      mods: {atalanta: {move: 1}}
+      items: {hero: [item_potion], medea: [item_firepot]}
 
   rich:
-    - at: "1-1"                     # 累计 60：伊菲克勒斯 60
+    - at: "1-1"
       level: 1
-      hire: [{id: iphicles, def: bandit, name: 伊菲克勒斯, skills: [heavy_cut], tree: iphicles}]
-      party: [iphicles]
       picks: {hero: [], atalanta: [vital_shot]}
-    - at: "1-2"                     # 累计 275：法勒洛斯 80，皮甲（主角）90，短衣（阿塔兰忒）45
+    - at: "1-2"                     # 累计 285：皮甲 90、皮手套 55（主角），短衣 45、拳带 55（阿塔兰忒），回复药 40
       level: 2
-      hire: [{id: phalerus, def: bandit_archer, name: 法勒洛斯, skills: [aimed_shot], tree: phalerus}]
-      party: [iphicles, phalerus]
-      picks: {hero: [iron_arm], atalanta: [vital_shot, skirmish], iphicles: [iph_stand]}
-      mods: {hero: {def: 2}, atalanta: {hp: 3}}
-    - at: "1-3"                     # 累计 610：伊达斯 240，皮手套（主角）55，回复药 40
-      level: 2
-      hire: [{id: idas, def: bandit_chief, name: 伊达斯, skills: [heavy_cut], tree: idas}]
-      party: [idas, phalerus]
-      mods: {hero: {def: 1}}
+      picks: {hero: [iron_arm], atalanta: [vital_shot, skirmish]}
+      mods: {hero: {def: 3}, atalanta: {hp: 3, str: 1}}
       items: {hero: [item_potion]}
-    - at: "1-4"                     # 累计 880：琥珀项链（主角）70，皮靴（阿塔兰忒）65，胫甲（主角）95，回复药 40。喀戎入队
+    - at: "1-3"                     # 累计 630：琥珀项链 70、胫甲 95（主角），皮靴 65、祭酒杯 75（阿塔兰忒），回复药 40
+      level: 2
+      mods: {hero: {hp: 5, def: 2}, atalanta: {jump: 1, hp: 3, wil: 1}}
+      items: {hero: [item_potion], atalanta: [item_potion]}
+    - at: "1-4"                     # 累计 718：铁臂甲（主角，换下皮手套，卖回 27）115。喀戎入队，留守
       level: 3
       hire: [{id: chiron, def: chiron}]
-      party: [chiron, idas]
       picks:
         hero: [iron_arm, shield_wall]
         atalanta: [vital_shot, patience]
         chiron: [purify_arrow, weak_point]
-        idas: [idas_frame]
-      mods: {hero: {hp: 5, def: 2}, atalanta: {jump: 1}}
-      items: {hero: [item_potion], chiron: [item_potion]}
-    - at: "1-5"                     # 累计 1150：铁臂甲（伊达斯）115，旅人斗篷（喀戎）100，拳带（阿塔兰忒）55
+      mods: {hero: {str: 2, jump: -1}}
+    - at: "1-5"                     # 累计 871：鳞甲（主角，换下皮甲，卖回 45）130，皮甲（阿塔兰忒，换下短衣，卖回 22）90
       level: 4
       picks:
         hero: [iron_arm, stagger_fist]
         atalanta: [vital_shot, patience, skirmish]
         chiron: [purify_arrow, weak_point, mentor_stagger]
-        idas: [idas_frame, idas_knee]
-      mods: {idas: {str: 2, def: 1, jump: -1}, chiron: {wil: 2, hp: 3}, atalanta: {str: 1}}
-    - at: "2-1"                     # 累计 1425：宽皮带（伊达斯）75，猫头鹰小像（喀戎）110，回复药 40，解毒药 50
+      mods: {hero: {def: 2, move: -1}, atalanta: {def: 2, hp: -3}}
+    - at: "2-1"                     # 累计 1226：旅人斗篷 100、胫甲 95、猫头鹰小像 110（喀戎），解毒药 50。喀戎上场
       level: 4
+      party: [chiron]
       relics: [lion_pelt]
       boon: moon_hunt
-      mods: {idas: {hp: 2, str: 1}, chiron: {wil: 2, div: 1}}
+      mods: {chiron: {wil: 4, hp: 3, def: 2, div: 1}}
       items: {hero: [item_potion], chiron: [item_antidote]}
-    - at: "2-2"                     # 累计 1720：青金坠 95、祭司护符 200（都给美狄亚，护符换下青金坠前先都算上）。美狄亚入队
+    - at: "2-2"                     # 累计 1616：祭司护符 200、誓约指环 95、短衣 45（美狄亚），解毒药 50
       level: 5
       hire: [{id: medea, def: medea}]
-      party: [chiron, medea]
+      party: [medea]
       picks: {hero: [iron_arm, stagger_fist, shield_wall], medea: [frailty, kindling]}
-      mods: {medea: {div: 3, wil: 2}}
-      items: {hero: [item_potion], chiron: [item_antidote], medea: [item_antidote]}
-    - at: "2-3"                     # 累计 2035：青铜胸甲（主角，换下皮甲）225，火油罐 90
+      mods: {medea: {div: 3, wil: 5, hp: 3}}
+      items: {hero: [item_potion], medea: [item_antidote]}
+    - at: "2-3"                     # 累计 1906：青铜胸甲（主角，换下鳞甲，卖回 65）225，火油罐 90，回复药 40
       level: 6
       picks:
         hero: [iron_arm, stagger_fist, heel_strike]
         atalanta: [vital_shot, patience, skirmish, leap_shot]
         chiron: [purify_arrow, weak_point, mentor_stagger, field_medicine]
         medea: [frailty, kindling, solar_flame]
-      mods: {hero: {def: 3, hp: 4, move: -1}}
-      items: {hero: [item_potion], chiron: [item_antidote], medea: [item_firepot]}
-    - at: "2-4"                     # 累计 2310：飞翼凉鞋（阿塔兰忒，换下皮靴）180，誓约指环（美狄亚）95
+      mods: {hero: {def: 1, hp: 4}}
+      items: {hero: [item_potion], atalanta: [item_potion], medea: [item_firepot]}
+    - at: "2-4"                     # 累计 2177：飞翼凉鞋（阿塔兰忒，换下皮靴，卖回 32）180，红线团（主角，换下铁臂甲，卖回 57）180
       level: 7
       picks:
         hero: [iron_arm, stagger_fist, heel_strike, shield_wall]
         medea: [frailty, kindling, solar_flame, cinder_lance]
-      mods: {atalanta: {move: 1}, medea: {wil: 3}}
+      mods: {atalanta: {move: 1}, hero: {wil: 2, move: 1, str: -2, def: -1, jump: 1}}
