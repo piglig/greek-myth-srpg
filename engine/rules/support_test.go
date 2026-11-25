@@ -59,7 +59,7 @@ func TestSupportIsFreeAndOnCooldown(t *testing.T) {
 	far.Pos = c(hero.Pos.X, hero.Pos.Y-shot.MaxRange-1)
 	check(t, Validate(state, UseSkill(hero.ID, shot.ID, far.Pos)) == "out of range", "reach is counted from the hero")
 	hero.HasActed = true
-	check(t, Validate(state, call) != "", "he must be called before the hero strikes")
+	check(t, Validate(state, call) == "", "and he may be called after the hero has struck as well as before")
 }
 
 func TestSupportMoves(t *testing.T) {
@@ -80,6 +80,10 @@ func TestSupportMoves(t *testing.T) {
 	before := boar.HP
 	check(t, Perform(state, UseSkill(hero.ID, sunder.ID, boar.Pos)).OK && boar.HP == before-sunder.Power && boar.Defense > 4,
 		"the axe ignores a boar's hide")
+	check(t, boar.HasStatus("sundered") && boar.Mitigation() == boar.Defense-SunderDefense, "and leaves it split for what follows")
+	plain := Compute(state, hero, boar, 1.0, Physical, false, NoPos).Amount
+	boar.EraseStatus("sundered")
+	check(t, Compute(state, hero, boar, 1.0, Physical, false, NoPos).Amount < plain, "a spear bites deeper while the hide is split")
 
 	state, hero, breaker := musterWith(t, "1-5", "idas")
 	nextRound(state)
@@ -95,14 +99,21 @@ func TestSupportAidAndCharge(t *testing.T) {
 	nextRound(state)
 	ally := state.Unit("atalanta")
 	ally.Pos = c(hero.Pos.X+1, hero.Pos.Y)
-	check(t, Validate(state, UseSkill(hero.ID, aid.ID, ally.Pos)) != "", "nothing to help with")
+	check(t, Validate(state, UseSkill(hero.ID, aid.ID, ally.Pos)) == "need landing", "he asks where to set her down")
 	ally.HP -= 15
 	ally.SetStatus("poisoned", 2)
-	ally.HasMoved = true
 	hp := ally.HP
-	out := Perform(state, UseSkill(hero.ID, aid.ID, ally.Pos))
-	check(t, out.OK && ally.HP == hp+aid.Power && !ally.HasStatus("poisoned") && !ally.HasMoved,
-		"wine, a clean wound, and a ride: "+out.Error)
+	down := c(hero.Pos.X, hero.Pos.Y-4)
+	for _, u := range state.Units {
+		if u.Pos == down {
+			u.Pos = c(11, 13)
+		}
+	}
+	check(t, Validate(state, LeapSkill(hero.ID, aid.ID, ally.Pos, c(hero.Pos.X, hero.Pos.Y-aid.Carry-1))) != "", "not farther than he carries")
+	check(t, Validate(state, LeapSkill(hero.ID, aid.ID, ally.Pos, hero.Pos)) != "", "not onto someone")
+	out := Perform(state, LeapSkill(hero.ID, aid.ID, ally.Pos, down))
+	check(t, out.OK && ally.Pos == down && ally.HP == hp+aid.Power && !ally.HasStatus("poisoned"),
+		"a ride, wine and a clean wound: "+out.Error)
 
 	state, hero, charge := musterWith(t, "1-4", "eurytion")
 	nextRound(state)

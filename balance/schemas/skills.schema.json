@@ -92,6 +92,7 @@
       "blink": {"type": "integer", "minimum": 1, "maximum": 6},
       "support": {"enum": ["guard", "shot", "sunder", "aid", "break", "charge"]},
       "power": {"type": "integer", "minimum": 1, "maximum": 40},
+      "carry": {"type": "integer", "minimum": 1, "maximum": 10},
       "area_shield": {"type": "integer", "minimum": 1, "maximum": 20},
       "area_status": {
         "enum": [

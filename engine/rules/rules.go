@@ -156,7 +156,7 @@ func Validate(s *BattleState, a Action) string {
 		return "not this unit's phase"
 	}
 	t := a.Type
-	needsMain := !isFree(t) && t != ActMove
+	needsMain := !isFree(t) && t != ActMove && !IsSupportCall(u, a)
 	if needsMain && u.HasActed {
 		return "already acted"
 	}
@@ -228,7 +228,7 @@ func validateSkill(s *BattleState, u *UnitState, skillID string, cell, to Cell) 
 		return "none left"
 	}
 	if sk.Support != "" {
-		return validateSupport(s, u, sk, cell)
+		return validateSupport(s, u, sk, cell, to)
 	}
 	if sk.SelfStatus != "" {
 		return ""
@@ -424,7 +424,7 @@ func doSkill(s *BattleState, u *UnitState, a Action, ev *[]Event) {
 		}
 	}
 	if sk.Support != "" {
-		doSupport(s, u, sk, a.Target, ev)
+		doSupport(s, u, sk, a, ev)
 		return
 	}
 	defer relicUse(s, u, sk)

@@ -471,8 +471,8 @@
   },
   "sup_iphicles": {"name": "并肩", "support": "guard", "power": 8, "max_range": 4, "cooldown": 3},
   "sup_phalerus": {"name": "远射", "support": "shot", "power": 14, "max_range": 6, "cooldown": 3},
-  "sup_ancaeus": {"name": "劈盾", "support": "sunder", "power": 12, "max_range": 3, "cooldown": 4},
-  "sup_pholus": {"name": "驮行", "support": "aid", "power": 10, "max_range": 3, "cooldown": 4},
+  "sup_ancaeus": {"name": "劈盾", "support": "sunder", "power": 12, "rounds": 2, "max_range": 3, "cooldown": 4},
+  "sup_pholus": {"name": "驮行", "support": "aid", "power": 10, "carry": 6, "max_range": 3, "cooldown": 4},
   "sup_idas": {"name": "碎阵", "support": "break", "power": 12, "stagger_bonus": 30, "max_range": 3, "cooldown": 5},
   "sup_eurytion": {"name": "冲锋", "support": "charge", "power": 12, "knockback": 1, "max_range": 4, "cooldown": 5}
 }

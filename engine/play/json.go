@@ -254,6 +254,13 @@ func (s *Server) dataJSON() obj {
 		}
 		if sk.Support != "" {
 			m["support"], m["power"] = sk.Support, sk.Power
+			if sk.Rounds > 0 && sk.Support == "sunder" {
+				m["rounds"] = sk.Rounds
+			}
+		}
+		if sk.Carry > 0 {
+			// 界面按"先选落点、再选目标"的招式来处理它，和跳跃的招式同一套。
+			m["carry"], m["leap"] = sk.Carry, sk.Carry
 		}
 		for k, v := range map[string]int{"heal": sk.Heal, "cleanse": sk.Cleanse} {
 			if v != 0 {

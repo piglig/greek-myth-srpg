@@ -317,6 +317,13 @@ func (s *Server) dispatch(req *request) obj {
 		if sk == nil {
 			sk = s.data.Skill(req.Skill)
 		}
+		if sk != nil && sk.Carry > 0 {
+			var to rules.Cell
+			if req.Cell != nil {
+				to = toCell(req.Cell)
+			}
+			return obj{"error": rules.CarryLandingError(st, u, to, sk)}
+		}
 		if sk == nil || !sk.HasLeap {
 			return obj{"error": "bad landing"}
 		}
@@ -372,6 +379,14 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 				}
 			}
 		}
+	case act.Type == rules.ActSkill && sk != nil && sk.Carry > 0 && !act.HasTo:
+		for y := 0; y < g.Depth; y++ {
+			for x := 0; x < g.Width; x++ {
+				if c := (rules.Cell{X: x, Y: y}); rules.CarryLandingError(st, u, c, sk) == "" {
+					landings = append(landings, c)
+				}
+			}
+		}
 	case act.Type == rules.ActSkill && sk != nil && sk.HasLeap && !act.HasTo:
 		for y := 0; y < g.Depth; y++ {
 			for x := 0; x < g.Width; x++ {
@@ -382,8 +397,8 @@ func targeting(st *rules.BattleState, pending *actionJSON) obj {
 		}
 	default:
 		origin := u.Pos
-		if act.HasTo {
-			origin = act.To
+		if act.HasTo && (sk == nil || sk.Carry == 0) {
+			origin = act.To // 驮行的落点是同伴去的地方，够不够得着仍然从主角算
 		}
 		if act.Type == rules.ActSkill && sk != nil && sk.HasMaxRange {
 			minR := max(sk.MinRange, 1)

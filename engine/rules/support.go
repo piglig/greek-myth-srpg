@@ -4,14 +4,14 @@ import "fmt"
 
 // 支援：招募来的英雄不上场，不占出战名额。带上一位，主角就多一个"召援"的招式——
 // 英雄登场、出手一次、离场。它不占用主角的行动（用完主角照常移动和出手），但要在主角
-// 这回合出手之前用；每位英雄各有冷却，开战第一回合用不了。（2026-11-25 定）
+// 这回合的任何时候用，出手之前之后都行；每位英雄各有冷却，开战第一回合用不了。（2026-11-25 定）
 //
 // 招式表里 support 字段写的是哪一种：
 //
 //	guard   并肩：把 max_range 格内一名同伴的护盾补到 power 点（不叠加）
 //	shot    远射：max_range 格内的一个敌人受 power 点物理伤害，不看掩护和视线
-//	sunder  劈盾：max_range 格内的一个敌人受 power 点伤害，不计算防御
-//	aid     驮行：max_range 格内的一名同伴回复 power 点生命、解一种异常，还没出手的话可以再走一次
+//	sunder  劈盾：max_range 格内的一个敌人受 power 点伤害，不计算防御；之后 rounds 回合内它的防御少 SunderDefense
+//	aid     驮行：把 max_range 格内的一名同伴带到主角 carry 格内的一块空地（行动里的 To），回复 power 点生命、解一种异常
 //	break   碎阵：max_range 格内的一个敌人受 power 点物理伤害，外加 stagger_bonus 点破势
 //	charge  冲锋：从主角身边起沿直线冲 max_range 格，路上每个敌人受 power 点物理伤害并被击退 knockback 格
 //
@@ -19,6 +19,43 @@ import "fmt"
 
 // SupportFirstRound 是开战后要等到第几回合才能第一次召援。
 const SupportFirstRound = 2
+
+// SunderDefense 是"破甲"状态下少掉的防御。
+const SunderDefense = 4
+
+// Mitigation 是这个单位现在能抵掉的物理伤害：防御，破甲时少 SunderDefense。
+func (u *UnitState) Mitigation() int {
+	if u.HasStatus("sundered") {
+		return max(0, u.Defense-SunderDefense)
+	}
+	return u.Defense
+}
+
+// IsSupportCall 表示这个行动是召援：它不算主角的出手。
+func IsSupportCall(u *UnitState, a Action) bool {
+	if a.Type != ActSkill || u == nil {
+		return false
+	}
+	sk := u.Skill(a.Skill)
+	return sk != nil && sk.Support != ""
+}
+
+// CarryLandingError 检查驮行的落点：主角 carry 格以内、站得下一个人的空地。
+func CarryLandingError(s *BattleState, u *UnitState, to Cell, sk *Skill) string {
+	if !s.Grid.InBounds(to) {
+		return "bad landing"
+	}
+	if d := CellDistance(u, to); d < 1 || d > sk.Carry {
+		return "bad landing"
+	}
+	if t := s.Grid.TerrainAt(to); t == Deep || t == Burning {
+		return "bad landing"
+	}
+	if s.UnitAt(to) != nil || s.BoulderIn(to, 1) {
+		return "bad landing"
+	}
+	return ""
+}
 
 // SupportMove 是这位英雄学了 picks 这些节点之后的那一手：表里的招式加上各节点给的数值。
 func (d *Data) SupportMove(who string, picks []string) (*Skill, error) {
@@ -89,7 +126,7 @@ func supportHit(target *UnitState, power int, pierce bool) int {
 	if pierce {
 		return power
 	}
-	return max(1, power-target.Defense, FloorInt(float64(power)*MinDamageShare))
+	return max(1, power-target.Mitigation(), FloorInt(float64(power)*MinDamageShare))
 }
 
 // chargeLane 列出冲锋经过的格子：从 u 身边沿 dir 方向数 n 格，出了地图或撞上高墙、深水就停。
@@ -126,7 +163,7 @@ func SupportTargets(s *BattleState, u *UnitState, sk *Skill, cell Cell) []*UnitS
 	return hit
 }
 
-func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell) string {
+func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell, to Cell) string {
 	if s.Round < SupportFirstRound {
 		return "support not here yet"
 	}
@@ -165,8 +202,17 @@ func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell) string 
 		if target.ID == "wounded_chiron" || target.DefID == "refugee" {
 			return "cannot be helped"
 		}
+		if sk.Carry > 0 {
+			if target.Size != 1 {
+				return "too big to carry"
+			}
+			if to == NoPos {
+				return "need landing"
+			}
+			return CarryLandingError(s, u, to, sk)
+		}
 		heals := target.HP < target.MaxHP && !target.HasStatus("blighted") && !(vessel(target) && s.Tier() >= TierInhuman)
-		if !heals && cleanseTarget(target) == "" && !(target.HasMoved && !target.HasActed) {
+		if !heals && cleanseTarget(target) == "" {
 			return "nothing to help"
 		}
 	default:
@@ -177,7 +223,8 @@ func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell) string 
 	return ""
 }
 
-func doSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell, ev *[]Event) {
+func doSupport(s *BattleState, u *UnitState, sk *Skill, a Action, ev *[]Event) {
+	cell := a.Target
 	// 不占主角的行动：HasActed、HasMoved 都不动。
 	u.SetCooldown(sk.ID, sk.Cooldown)
 	u.undoOK = false
@@ -191,6 +238,11 @@ func doSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell, ev *[]Event) 
 		emit(ev, Event{Type: EvWard, Target: t.ID, Amount: gain})
 	case "aid":
 		t := s.UnitAt(cell)
+		if sk.Carry > 0 && a.HasTo {
+			emit(ev, Event{Type: EvLeap, Unit: t.ID, From: t.Pos, To: a.To})
+			t.Pos = a.To
+			t.undoOK = false
+		}
 		if t.HP < t.MaxHP && !t.HasStatus("blighted") && !(vessel(t) && s.Tier() >= TierInhuman) {
 			gain := min(sk.Power, t.MaxHP-t.HP)
 			t.HP += gain
@@ -199,10 +251,6 @@ func doSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell, ev *[]Event) 
 		if st := cleanseTarget(t); st != "" {
 			t.EraseStatus(st)
 			emit(ev, Event{Type: EvStatusEnd, Target: t.ID, Status: st})
-		}
-		if !t.HasActed {
-			t.HasMoved = false
-			t.undoOK = false
 		}
 	case "charge":
 		dir := cell.Sub(u.Pos)
@@ -220,6 +268,9 @@ func doSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell, ev *[]Event) 
 		Deal(s, t, supportHit(t, sk.Power, sk.Support == "sunder"), Physical, sk.ID, ev, false)
 		if t.Alive && sk.StaggerBonus > 0 {
 			AddStagger(t, sk.StaggerBonus, ev)
+		}
+		if t.Alive && sk.Support == "sunder" {
+			AddStatus(s, t, "sundered", max(1, sk.Rounds), ev, false)
 		}
 	}
 }

@@ -72,6 +72,8 @@ type Skill struct {
 	// 固定伤害、护盾或回复量。
 	Support string
 	Power   int
+	// Carry 大于 0 表示驮行：把目标带到主角这么多格内的一块空地。
+	Carry int
 	// Blink 大于 0 表示瞬移到这么多格内的任意一格，不看地形和高度。
 	Blink int
 	// AreaShield 大于 0 表示给自己和 Radius 格内的同伴各加这么多护盾。
@@ -464,6 +466,7 @@ func (d *Data) loadSkills() error {
 		sk.Blink = raw.int("blink", 0)
 		sk.Support = raw.str("support", "")
 		sk.Power = raw.int("power", 0)
+		sk.Carry = raw.int("carry", 0)
 		sk.AreaShield = raw.int("area_shield", 0)
 		for _, given := range []string{sk.Status, sk.AreaStatus} {
 			if given != "" && !IsAilment(given) {

@@ -90,7 +90,7 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 	mitigation := 0
 	if dmgType == Physical {
 		if !pierce {
-			mitigation = target.Defense
+			mitigation = target.Mitigation()
 		}
 	} else if dmgType == Divine {
 		mitigation = target.Will

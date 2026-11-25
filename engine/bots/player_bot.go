@@ -268,7 +268,7 @@ func (b *Bot) afterReply(s *rules.BattleState) float64 {
 			break
 		}
 	}
-	return b.Eval.Material(c)
+	return b.Eval.Score(c)
 }
 
 func hasSupport(skills []*rules.Skill) bool {
@@ -283,7 +283,7 @@ func hasSupport(skills []*rules.Skill) bool {
 // callSupport 在主角走完、出手之前看一眼要不要召援：把够得着的每个目标各试一遍，哪一手
 // 让局面好得最多就用哪一手；都不值就留着。只在真正落子时做，搜索打分时不做。
 func (b *Bot) callSupport(s *rules.BattleState, u *rules.UnitState, ev *[]rules.Event) {
-	if u.ID != "hero" || !u.Alive || u.HasActed {
+	if u.ID != "hero" || !u.Alive {
 		return
 	}
 	for _, sk := range u.Skills {
@@ -304,20 +304,38 @@ func (b *Bot) callSupport(s *rules.BattleState, u *rules.UnitState, ev *[]rules.
 		}
 		best, gain := rules.NoPos, 1.0 // 至少要好出这么多才值得用掉
 		base := b.Eval.Score(s)
-		for _, c := range cells {
-			act := rules.UseSkill(u.ID, sk.ID, c)
+		pick := rules.Action{}
+		try := func(act rules.Action) {
 			if rules.Validate(s, act) != "" {
-				continue
+				return
 			}
 			trial := b.copyState(s)
 			rules.Do(trial, act, nil)
 			if d := b.Eval.Score(trial) - base; d > gain {
-				best, gain = c, d
+				best, gain, pick = act.Target, d, act
 			}
 			b.pool = append(b.pool, trial)
 		}
+		for _, c := range cells {
+			if sk.Carry == 0 {
+				try(rules.UseSkill(u.ID, sk.ID, c))
+				continue
+			}
+			// 驮行：这个同伴可以放到主角周围的每一块空地，各试一遍。
+			if o := s.UnitAt(c); o == nil || o.Team != u.Team || o == u {
+				continue
+			}
+			for dy := -sk.Carry; dy <= sk.Carry; dy++ {
+				for dx := -sk.Carry; dx <= sk.Carry; dx++ {
+					to := rules.Cell{X: u.Pos.X + dx, Y: u.Pos.Y + dy}
+					if rules.CarryLandingError(s, u, to, sk) == "" {
+						try(rules.LeapSkill(u.ID, sk.ID, c, to))
+					}
+				}
+			}
+		}
 		if best != rules.NoPos {
-			rules.Do(s, rules.UseSkill(u.ID, sk.ID, best), ev)
+			rules.Do(s, pick, ev)
 		}
 	}
 }

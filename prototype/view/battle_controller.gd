@@ -2520,6 +2520,8 @@ func _refresh() -> void:
 	var prompt := "选择行动"
 	if _mode == Mode.TARGET:
 		prompt = "选择落点" if _needs_landing() else "选择目标"
+		if SkillCatalog.get_skill(str(_pending.get("skill",""))).has("carry"):
+			prompt = "选择把同伴送到哪里" if _needs_landing() else "选择要送过去的同伴"
 		for action in _actions:
 			if action.get("active",false):
 				prompt = "%s　·　%s" % [action["label"],prompt]
@@ -2622,6 +2624,11 @@ func _actions_for(u: UnitState) -> Array:
 		if carried:
 			entry.count = int(u.items.get(sk,0))
 			entry.brief += "　·　剩 %d 件" % entry.count
+		if def.has("support"):
+			# Calling a hired hero is not the protagonist's own action: it stays open after
+			# he has struck, from the second round on.
+			entry.enabled = my_phase and cd == 0 and state.round_number >= 2
+			if state.round_number < 2: entry.brief += "　·　第二回合起"
 		if def.has("self_status") or def.has("area_shield"):
 			entry.kind = "do"
 			entry.enabled = can_act and cd == 0
@@ -2936,16 +2943,25 @@ func _run_capture() -> void:
 				await get_tree().create_timer(1.0).timeout
 				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 				await get_tree().create_timer(.6).timeout
-		"support", "support_hold":
+		"support", "support_hold", "support_late":
 			# Round two: the protagonist calls whoever came with him on the first target offered.
 			# Run with --support=phalerus.
 			_end_turn()
 			await get_tree().create_timer(1.0).timeout
 			while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 			var move := str(Checkpoint.RECRUITS[str(_campaign_reward.get("support",""))].support)
-			var calls: Dictionary = Rules.targeting(state,{"type":"skill","unit":"hero","skill":move})
+			if _demo == "support_late":
+				# After the protagonist has spent his own action.
+				await _perform({"type":"wait","unit":"hero"})
+			var call := {"type":"skill","unit":"hero","skill":move}
+			var calls: Dictionary = Rules.targeting(state,call)
+			if not calls.landings.is_empty():
+				# A carry: first where to set the companion down, then whom.
+				call["to"] = calls.landings[0]
+				calls = Rules.targeting(state,call)
 			if not calls.valid.is_empty():
-				await _perform({"type":"skill","unit":"hero","skill":move,"target":calls.valid[0]})
+				call["target"] = calls.valid[0]
+				await _perform(call)
 			_select("hero")
 		"fire":
 			# A fire pot thrown at empty forest, then two rounds for it to spread and burn out.

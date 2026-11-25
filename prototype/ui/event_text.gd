@@ -5,7 +5,7 @@ extends RefCounted
 const Checkpoint := preload("res://core/campaign_checkpoint.gd")
 
 const STATUS_NAMES := {
-	"impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
+	"sundered":"破甲（防御 −4）","impervious_hide":"不坏之皮","blighted":"蛇毒（无法治疗）","thunder_body":"雷躯","guard": "防御姿态", "dodge": "闪避", "stunned": "眩晕", "staggered": "破势",
 	"rooted": "束缚", "burning": "灼烧", "poisoned": "中毒",
 	"petrified": "石化", "control_immune": "控制免疫",
 }

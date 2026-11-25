@@ -1438,7 +1438,7 @@ func _support_page(rows: Array, leaves: Array, at: Vector2, wide: float) -> void
 	var does := Save.support_words(hand,learnt)
 	Px.text(body,does,Rect2(x,y,wide,0),Px.BODY,Px.IVORY)
 	y += 12+Px.measure(does,Px.BODY,wide)
-	Px.text(body,"他不上战场，不占出战名额，不穿装备。出征时在「支援」一栏选一位同行；战斗第二回合起，主角可以在自己出手之前召他。",Rect2(x,y,wide,0),Px.SMALL,Px.MUTED)
+	Px.text(body,"他不上战场，不占出战名额，不穿装备。出征时在「支援」一栏选一位同行；战斗第二回合起，主角随时可以召他。",Rect2(x,y,wide,0),Px.SMALL,Px.MUTED)
 	y += 44
 	Px.rule(body,Vector2(x,y),wide,Color(Px.OCHRE,.2))
 	y += 12

@@ -222,12 +222,12 @@ static func support_words(id: String, learnt: Array = []) -> String:
 	match str(sk.get("support","")):
 		"guard": words = "主角 %d 格内的一名同伴得到 %d 点护盾。" % [far,much]
 		"shot": words = "主角 %d 格内的一个敌人受 %d 点物理伤害，不看掩护和视线。" % [far,much]
-		"sunder": words = "主角 %d 格内的一个敌人受 %d 点伤害，不计算防御。" % [far,much]
-		"aid": words = "主角 %d 格内的一名同伴回复 %d 点生命、解一种异常；还没出手的话可以再走一次。" % [far,much]
+		"sunder": words = "主角 %d 格内的一个敌人受 %d 点伤害，不计算防御；之后 %d 回合它的防御 −4。" % [far,much,int(sk.get("rounds",2))]
+		"aid": words = "把主角 %d 格内的一名同伴带到主角 %d 格内的一块空地，回复 %d 点生命、解一种异常。" % [far,int(sk.get("carry",0)),much]
 		"break": words = "主角 %d 格内的一个敌人受 %d 点物理伤害，破势 +%d。" % [far,much,int(sk.get("stagger_bonus",0))]
 		"charge": words = "从主角身边沿直线冲 %d 格，路上每个敌人受 %d 点物理伤害并被击退 %d 格。" % [far,much,int(sk.get("knockback",0))]
 		_: return ""
-	return words+"冷却 %d 回合，不占用主角的行动。" % int(sk.get("cooldown",0))
+	return words+"冷却 %d 回合，不占用主角的行动，他出手前后都能召。" % int(sk.get("cooldown",0))
 
 ## The hired heroes in camp, by their names in recruits.json.
 static func hired(entry: Dictionary) -> Array:

@@ -225,7 +225,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 #### [ ] 福洛斯「驮行」 `merc_lancer/support.png`
 
-冲进来把一个同伴接上背、带走。第二格背上要留出一个人的位置，同伴由游戏另外叠上去，不要画进图里。参考图：`art/originals/merc_lancer.png`。
+冲进来把一个同伴接上背，驮到几格外放下。第二格背上要留出一个人的位置，同伴由游戏另外叠上去，不要画进图里。参考图：`art/originals/merc_lancer.png`。
 
 ```
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same gentle middle-aged centaur, dark bay horse body with black mane and tail, sun-browned lean human torso, short dark brown beard streaked with grey, dark curly hair bound with a vine wreath, a wine-red sash and a wineskin slung at his side, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns galloping in with one arm reaching forward and down to offer a hand, standing braced with the horse back level and empty and the human torso twisted round holding the wineskin out behind him, cantering away with the lance tucked under one arm. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
