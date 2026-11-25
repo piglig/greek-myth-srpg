@@ -1,4 +1,4 @@
-// Typed client for the Balance Studio API (balance/src/balance/studio/server.py).
+// Typed client for the Balance Studio API (engine/studio/server.go).
 
 export type Team = 'player' | 'enemy' | 'neutral'
 export type Facing = 'N' | 'E' | 'S' | 'W'

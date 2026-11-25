@@ -25,7 +25,7 @@ go test ./...
 | `splat` | 从关卡数据生成像素风格的高斯泼溅沙盘，并渲染成像素画 |
 | `cmd/srpg` | 命令行；每组命令在自己的 `cmd_*.go` 里注册 |
 
-数据表仍在 `prototype/data/tables/`；设计目标、静态规格、表结构在 `balance/targets/`、`balance/specs/`、`balance/schemas/`；模拟结果和变体在 `balance/out/`、`balance/workspace/`。
+数据表仍在 `prototype/data/tables/`；难度目标在 `balance/difficulty.yaml`，出战配置在 `balance/kits.yaml`，各关的玩法目标、静态规格、表结构在 `balance/targets/`、`balance/specs/`、`balance/schemas/`；模拟结果和变体在 `balance/out/`、`balance/workspace/`。
 
 ## 常用命令
 
@@ -55,7 +55,7 @@ go test ./...
 
 Go 的规则是从 GDScript 版逐行移植的，移植时用 Godot 4.7.2 的输出做了对拍：1-4、1-5、test 三个关卡 × 两种机器人，加上变体目录、`--set` 覆盖、不同技能选择等情况，共 1940 场，每场的结果行逐字节相同（只排除耗时字段）。为此照搬了 Godot 的随机数发生器和排序算法，见 `rules/rng.go`、`rules/sort.go`。
 
-对拍用的参考数据在 `testdata/parity/`，`go test ./sim/...` 每次都会检查。**以后改规则，这些参考数据要跟着删除或换成 Go 自己的快照**：GDScript 版已从工程里删除（存档在 `testdata/parity/gdscript_engine.zip`），这些数据只证明"移植时两边一致"。
+`testdata/parity/` 里的参考数据，`go test ./sim/...` 每次都会检查。**它们现在是 Go 自己的回归快照，不再是 Godot 的输出**：移植完成之后规则、敌人的行为、机器人都有意改过多次（保底伤害、敌人不再绕开高防御的目标、熟练机器人推演对面的回合等），每次都用 `SRPG_REBASE=1 go test ./sim` 重写。文件名里的 `godot_` 是历史遗留。所以这些快照只能发现"行为和上次不一样了"，不能证明规则是对的；规则对不对由 `rules/` 下各自的测试负责。GDScript 版已从工程里删除（存档在 `testdata/parity/gdscript_engine.zip`）。
 
 统计部分同样对拍过：30 组已有结果的 540 条判定和 Python 版一致，区间相差不超过 1e-9。
 

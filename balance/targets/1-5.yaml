@@ -1,15 +1,12 @@
-# 设计目标：1-5 双口洞穴（docs/09 §3）。每个指标：[下限, 上限]。
+# 1-5 双口洞穴的玩法目标（09-chapter-1 §3）：这一关要教会的东西有没有真的发生。
+#
+# 胜率不在这里，见 balance/difficulty.yaml（说明同 1-4.yaml）。
 battle: "1-5"
-runs_min: 50           # fewer battles than this: every verdict is INCONCLUSIVE
+runs_min: 50
 bots:
-  skilled:
-    win_rate: [0.55, 0.85]              # 第 1 章 Boss：熟练玩家大多能过，但会输
-    hero_ko_rate: [0.00, 0.35]
+  casual:
     timeout_rate: [0.00, 0.03]
-    rounds_p50: [8, 14]                 # docs/09：目标回合数 10–13
-    party_hp_left_p50: [0.25, 0.70]
+    rounds_p50: [8, 14]                 # 目标回合数 10–13
     battles_with_break: [0.80, 1.00]    # 破势是本战要教的核心
     phase2_reached: [0.60, 1.00]        # 大多数胜局应该打到洞穴阶段
-    battles_with_throw: [0.50, 1.00]   # 过肩摔取代了擒抱（2026-11-25），区间沿用，未重新论证
-  novice:
-    win_rate: [0.15, 0.50]
+    # 过肩摔不在这里：狮子占四格，摔不动（2026-11-25 去掉，原来的目标是擒抱时代留下的）。

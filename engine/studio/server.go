@@ -435,7 +435,7 @@ func (s *Server) routes() {
 				return nil, err
 			}
 		}
-		bots := []string{"skilled", "novice"}
+		bots := []string{"casual", "skilled"}
 		if b.Has("bots") {
 			arr, isList := b.Get("bots").([]any)
 			if !isList {
@@ -550,7 +550,7 @@ func (s *Server) routes() {
 		if err != nil {
 			return nil, err
 		}
-		bot := "skilled"
+		bot := "casual"
 		if r.URL.Query().Has("bot") {
 			bot = r.URL.Query().Get("bot")
 		}

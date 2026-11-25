@@ -86,7 +86,7 @@ func TestTargetFilesLoadAndDumpLikePyYAML(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(spec.BotNames(), []string{"skilled", "novice"}) || spec.RunsMin != 50 || spec.Raw.Str("battle", "") != "1-4" {
+	if !reflect.DeepEqual(spec.BotNames(), []string{"casual"}) || spec.RunsMin != 50 || spec.Raw.Str("battle", "") != "1-4" {
 		t.Fatalf("1-4.yaml 读成了 %+v", spec)
 	}
 	body := oj.Obj("battle", "1-4", "runs_min", 50, "bots", oj.Obj("skilled", oj.Obj(

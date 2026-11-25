@@ -48,7 +48,7 @@ export const useStore = create<State>((set, get) => ({
   placeTeam: 'enemy',
   selectedUnit: null,
   heat: (['kills', 'falls', 'dmg'].includes(url.get('heat') ?? '') ? url.get('heat') : 'none') as HeatLayer,
-  bot: url.get('bot') || 'skilled',
+  bot: url.get('bot') || 'casual',
   replaySeed: url.get('seed') !== null ? Number(url.get('seed')) : null,
   draft: null,
   draftKey: '',

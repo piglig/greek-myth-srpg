@@ -14,7 +14,7 @@ export function CompareMode({ data }: { data: StudioData }) {
   for (const c of cols) for (const v of c.verdicts) if (!rows.some((r) => r.bot === v.bot && r.metric === v.metric)) rows.push(v)
   const cell = (variant: string, r: Verdict) => cols.find((c) => c.variant === variant)?.verdicts.find((v) => v.bot === r.bot && v.metric === r.metric)
   const base = cols.find((c) => c.variant === 'baseline')
-  const botLabel: Record<string, string> = { skilled: '熟练', novice: '新手' }
+  const botLabel: Record<string, string> = { casual: '普通', skilled: '熟练', novice: '新手' }
   if (!battle) return null
   return (
     <main className="wide">

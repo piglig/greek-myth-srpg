@@ -15,7 +15,7 @@ import (
 
 var (
 	// Bots 是工坊认识的机器人。
-	Bots = oj.Obj("skilled", "熟练机器人", "novice", "新手机器人")
+	Bots = oj.Obj("casual", "普通机器人", "skilled", "熟练机器人", "novice", "新手机器人")
 	// Results 是结局的中文名。
 	Results = oj.Obj("win", "胜利", "loss_hero", "主角倒下", "loss_wipe", "全灭", "timeout", "超时")
 	sources = map[string]string{"fall": "坠落", "collision": "撞击", "edge": "坠出边缘", "assist": "援护"}

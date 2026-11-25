@@ -429,8 +429,11 @@ func TestSimulationJobResultsAndEvents(t *testing.T) {
 	}
 
 	_, v, raw = call(t, ts, "GET", "/api/compare?battle=1-4", "")
-	if rows := v.([]any); len(rows) != 1 || oj.Dump(rows[0].(*oj.Object).Get("bots"), oj.Compact) != `{"skilled":{"status":"fresh","runs":50},"novice":{"status":"fresh","runs":120}}` {
+	if rows := v.([]any); len(rows) != 1 {
 		t.Fatalf("/api/compare = %.300s", raw)
+	} else if got := rows[0].(*oj.Object).Object("bots"); oj.Dump(got.Get("skilled"), oj.Compact) != `{"status":"fresh","runs":50}` ||
+		oj.Dump(got.Get("novice"), oj.Compact) != `{"status":"fresh","runs":120}` {
+		t.Fatalf("/api/compare 的 bots = %s", oj.Dump(got, oj.Compact))
 	}
 
 	// 改了数据，结果就过期

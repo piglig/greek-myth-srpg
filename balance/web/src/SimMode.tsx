@@ -152,7 +152,7 @@ export function SimMode({ data }: { data: StudioData }) {
   const battle = data.battles[s.battleId]
   const results = useQuery({ queryKey: ['results', s.battleId, s.variant], queryFn: () => api.results(s.battleId, s.variant), enabled: !!battle })
   const jobs = useQuery({ queryKey: ['jobs'], queryFn: api.jobs })
-  const [bots, setBots] = useState<string[]>(['skilled', 'novice'])
+  const [bots, setBots] = useState<string[]>(['casual', 'skilled'])
   const [runs, setRuns] = useState('400')
   const job = jobs.data?.find((j) => (j.status === 'running' || j.status === 'queued') && j.battle === s.battleId && j.variant === s.variant)
   const other = !job && jobs.data?.find((j) => j.status === 'running' || j.status === 'queued')
@@ -195,6 +195,7 @@ export function SimMode({ data }: { data: StudioData }) {
           <h3>运行模拟</h3>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Chip.Group multiple value={bots} onChange={setBots}>
+              <Chip size="xs" value="casual">普通机器人</Chip>
               <Chip size="xs" value="skilled">熟练机器人</Chip>
               <Chip size="xs" value="novice">新手机器人</Chip>
             </Chip.Group>
