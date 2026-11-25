@@ -95,7 +95,9 @@ func ComputeHit(s *BattleState, attacker, target *UnitState, skillMult float64, 
 	} else if dmgType == Divine {
 		mitigation = target.Will
 	}
-	base := max(1, raw-mitigation)
+	// 防御和意志挡得住的有限：任何一击至少留下原始伤害的 MinDamageShare（2026-11-25）。
+	// 没有这一条，防御堆过对方的攻击力之后每一下都只掉 1 点，装备齐的主角近乎无敌。
+	base := max(1, raw-mitigation, FloorInt(float64(raw)*MinDamageShare))
 
 	var notes Notes
 	m := relationMult(rel)

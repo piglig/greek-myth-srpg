@@ -18,7 +18,7 @@ func TestKitsFitTheirMoment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	order, err := campaignOrder(data)
+	order, err := CampaignOrder(data)
 	if err != nil {
 		t.Fatal(err)
 	}

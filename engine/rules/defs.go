@@ -79,6 +79,7 @@ const (
 	HighGroundRangeLevel = 2
 	CoverMult            = 0.75
 	BlockMult            = 0.5
+	MinDamageShare       = 0.4 // 减去防御或意志之后，一击至少造成原始伤害的这么多
 	GuardMult            = 0.7
 	MarkMult             = 1.15
 	MarkRangeBonus       = 2

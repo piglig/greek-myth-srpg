@@ -1,7 +1,7 @@
 # 出战配置：玩家打到每一关时大概带着什么。
 #
 # 模拟器不知道营地里发生过什么。这份文件替它记着，分三档：
-#   frugal   只拿酬金、不卖东西、不打可选战。没有装备。
+#   frugal   只花通关酬金、不卖战利品、不打可选战。每隔一两关给主角添一件装备。
 #   typical  卖材料、一半的可选目标、打可选战。上场的人各有三四件装备，带一两瓶药。
 #   rich     全拿全卖。主力装备齐全。
 #
@@ -39,27 +39,45 @@
 
 tiers:
   frugal:
+    # 只花通关酬金，不卖战利品，不打可选战。买得起什么就给主角买什么，一件一件攒。
     earns: {asides: 0, spoils: none, optional: false}
     steps:
       - at: "1-1"
         picks: {hero: [], atalanta: [vital_shot]}
       - at: "1-2"
+        buy: [leather]
+        wear: {hero: [leather]}
         picks: {hero: [iron_arm], atalanta: [vital_shot, skirmish]}
       - at: "1-5"                   # 没打可选的 1-3，经验少一场，喀戎也没入队
+        buy: [glove_hide, tunic]
+        wear: {hero: [leather, glove_hide], atalanta: [tunic]}
         picks: {hero: [iron_arm, shield_wall], atalanta: [vital_shot, patience]}
       - at: "2-1"
         relics: [lion_pelt]
         boon: moon_hunt
+        buy: [greaves]
+        wear: {hero: [leather, glove_hide, greaves]}
         picks: {hero: [iron_arm, stagger_fist], atalanta: [vital_shot, patience, skirmish]}
       - at: "2-2"
         joins: [medea]
         party: [medea]
+        buy: [necklace]
+        wear: {hero: [leather, glove_hide, greaves, necklace]}
         picks: {hero: [iron_arm, stagger_fist, shield_wall], medea: [frailty, kindling]}
+      - at: "2-3"
+        buy: [fist_wrap, item_potion]
+        wear: {atalanta: [tunic, fist_wrap]}
+        items: {hero: [item_potion]}
       - at: "2-4"
+        buy: [boots]
+        wear: {atalanta: [tunic, fist_wrap, boots]}
         picks:
           hero: [iron_arm, stagger_fist, heel_strike]
           atalanta: [vital_shot, patience, skirmish, leap_shot]
           medea: [frailty, kindling, solar_flame]
+      - at: "2-5"
+        buy: [pendant]
+        wear: {medea: [pendant]}
 
   typical:
     earns: {asides: 0.5, spoils: materials, optional: true}

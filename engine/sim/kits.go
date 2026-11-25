@@ -94,8 +94,8 @@ func (k *Kits) Names() []string {
 	return names
 }
 
-// campaignOrder 是战役里的关卡，按先后。测试图和工坊变体不算。
-func campaignOrder(data *rules.Data) ([]string, error) {
+// CampaignOrder 是战役里的关卡，按先后。测试图和工坊变体不算。
+func CampaignOrder(data *rules.Data) ([]string, error) {
 	all, err := data.BattleIDs()
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (k *Kits) Resolve(data *rules.Data, tier, battle string) (*rules.Muster, *L
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	order, err := campaignOrder(data)
+	order, err := CampaignOrder(data)
 	if err != nil {
 		return nil, nil, nil, err
 	}

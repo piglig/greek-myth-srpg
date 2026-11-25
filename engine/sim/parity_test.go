@@ -267,6 +267,13 @@ func TestMetricsMatchGodot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// 伤害规则或原始单位的数值是有意改的时候（比如 2026-11-25 的保底伤害），用 SRPG_REBASE 重写这份表。
+	if os.Getenv("SRPG_REBASE") != "" {
+		if err := os.WriteFile(parityDir+"godot_metrics.json", append(text, 10), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
 	var a, b any
 	if err := json.Unmarshal(want, &a); err != nil {
 		t.Fatal(err)

@@ -135,6 +135,36 @@
         0
       ],
       "facing": "S"
+    },
+    {
+      "id": "wolf_6",
+      "def": "wolf",
+      "team": "enemy",
+      "pos": [
+        3,
+        5
+      ],
+      "facing": "S"
+    },
+    {
+      "id": "wolf_7",
+      "def": "wolf",
+      "team": "enemy",
+      "pos": [
+        8,
+        3
+      ],
+      "facing": "S"
+    },
+    {
+      "id": "wolf_8",
+      "def": "wolf",
+      "team": "enemy",
+      "pos": [
+        4,
+        1
+      ],
+      "facing": "S"
     }
   ]
 }

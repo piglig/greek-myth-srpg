@@ -176,6 +176,46 @@
         7
       ],
       "facing": "W"
+    },
+    {
+      "id": "snake_9",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_10",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        11,
+        4
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_11",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        11,
+        6
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_12",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        5,
+        3
+      ],
+      "facing": "W"
     }
   ]
 }

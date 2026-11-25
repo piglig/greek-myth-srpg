@@ -178,6 +178,28 @@
       ],
       "facing": "W",
       "round": 6
+    },
+    {
+      "id": "extra_a",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        10,
+        4
+      ],
+      "facing": "W",
+      "round": 4
+    },
+    {
+      "id": "extra_b",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        6,
+        10
+      ],
+      "facing": "N",
+      "round": 5
     }
   ]
 }

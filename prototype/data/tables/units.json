@@ -1,8 +1,8 @@
 {
   "hydra_head": {"name": "许德拉之首", "hp": 38, "str": 14, "div": 8, "def": 4, "wil": 5, "move": 0, "jump": 0, "skills": ["hydra_bite", "hydra_spit"], "traits": {"anchored": true, "regrows": true}},
-  "hera_priestess": {"name": "赫拉的女祭司", "hp": 18, "str": 4, "div": 9, "def": 1, "wil": 6, "move": 3, "jump": 1, "skills": ["sacred_staff", "hera_blessing"]},
-  "giant_crab": {"name": "巨蟹", "hp": 28, "str": 11, "def": 4, "wil": 2, "move": 3, "jump": 1, "skills": ["claw_grip"], "traits": {"block": true, "marsh_stride": true}},
-  "marsh_snake": {"name": "沼蛇", "hp": 20, "str": 9, "def": 2, "wil": 2, "move": 4, "jump": 1, "skills": ["venom_bite"], "traits": {"marsh_stride": true}},
+  "hera_priestess": {"name": "赫拉的女祭司", "hp": 22, "str": 4, "div": 9, "def": 1, "wil": 6, "move": 3, "jump": 1, "skills": ["sacred_staff", "hera_blessing"]},
+  "giant_crab": {"name": "巨蟹", "hp": 34, "str": 15, "def": 4, "wil": 2, "move": 3, "jump": 1, "skills": ["claw_grip"], "traits": {"block": true, "marsh_stride": true}},
+  "marsh_snake": {"name": "沼蛇", "hp": 24, "str": 11, "def": 2, "wil": 2, "move": 4, "jump": 1, "skills": ["venom_bite"], "traits": {"marsh_stride": true}},
   "medea": {"name": "美狄亚", "hp": 30, "str": 5, "div": 13, "def": 3, "wil": 9, "move": 4, "jump": 2, "skills": ["witch_fire"]},
   "hero": {
     "name": "主角",
@@ -131,8 +131,8 @@
   },
   "lion": {
     "name": "涅墨亚狮子",
-    "hp": 60,
-    "str": 16,
+    "hp": 74,
+    "str": 18,
     "def": 4,
     "wil": 6,
     "move": 5,

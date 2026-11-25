@@ -74,7 +74,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 3,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -83,7 +83,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 3,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -92,7 +92,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -101,7 +101,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -326,7 +326,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -335,7 +335,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -344,7 +344,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -353,7 +353,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -398,7 +398,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -407,7 +407,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -416,7 +416,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -425,7 +425,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -578,7 +578,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -587,7 +587,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -596,7 +596,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -605,7 +605,7 @@
     },
     {
       "attacker": "hero",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -722,7 +722,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 2,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -731,7 +731,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 2,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -740,7 +740,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -749,7 +749,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -902,7 +902,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -911,7 +911,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -920,7 +920,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -929,7 +929,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -1298,7 +1298,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 2,
+      "damage": 3,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -1307,7 +1307,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 2,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -1316,7 +1316,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 4,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -1325,7 +1325,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 3,
+      "damage": 4,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -1370,7 +1370,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -1379,7 +1379,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -1388,7 +1388,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -1397,7 +1397,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -1550,7 +1550,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -1559,7 +1559,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -1568,7 +1568,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -1577,7 +1577,7 @@
     },
     {
       "attacker": "atalanta",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2270,7 +2270,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2279,7 +2279,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -2288,7 +2288,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -2297,7 +2297,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2342,7 +2342,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2351,7 +2351,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -2360,7 +2360,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -2369,7 +2369,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2522,7 +2522,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2531,7 +2531,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 2,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -2540,7 +2540,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -2549,7 +2549,7 @@
     },
     {
       "attacker": "wolf",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2666,7 +2666,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2675,7 +2675,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 1,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -2684,7 +2684,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 1,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -2693,7 +2693,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 1,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2846,7 +2846,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 2,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2855,7 +2855,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 2,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -2864,7 +2864,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 3,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -2873,7 +2873,7 @@
     },
     {
       "attacker": "bandit",
-      "damage": 3,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -2990,7 +2990,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -2999,7 +2999,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -3008,7 +3008,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -3017,7 +3017,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -3170,7 +3170,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -3179,7 +3179,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 3,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -3188,7 +3188,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -3197,7 +3197,7 @@
     },
     {
       "attacker": "bandit_archer",
-      "damage": 1,
+      "damage": 4,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -3314,7 +3314,7 @@
     },
     {
       "attacker": "bandit_chief",
-      "damage": 3,
+      "damage": 4,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -3323,7 +3323,7 @@
     },
     {
       "attacker": "bandit_chief",
-      "damage": 3,
+      "damage": 5,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -3332,7 +3332,7 @@
     },
     {
       "attacker": "bandit_chief",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -3341,7 +3341,7 @@
     },
     {
       "attacker": "bandit_chief",
-      "damage": 4,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -3638,7 +3638,7 @@
     },
     {
       "attacker": "boar",
-      "damage": 4,
+      "damage": 5,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -3647,7 +3647,7 @@
     },
     {
       "attacker": "boar",
-      "damage": 5,
+      "damage": 6,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -3656,7 +3656,7 @@
     },
     {
       "attacker": "boar",
-      "damage": 6,
+      "damage": 7,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -3665,7 +3665,7 @@
     },
     {
       "attacker": "boar",
-      "damage": 6,
+      "damage": 7,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -3890,28 +3890,10 @@
     },
     {
       "attacker": "lion",
-      "damage": 10,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "bite",
-      "target": "hero"
-    },
-    {
-      "attacker": "lion",
       "damage": 12,
       "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "bite",
-      "target": "hero"
-    },
-    {
-      "attacker": "lion",
-      "damage": 15,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
+      "relation": 0,
+      "scenario": "front",
       "skill": "bite",
       "target": "hero"
     },
@@ -3920,81 +3902,27 @@
       "damage": 15,
       "immune": false,
       "relation": 1,
-      "scenario": "broken_side",
+      "scenario": "side",
       "skill": "bite",
       "target": "hero"
     },
     {
       "attacker": "lion",
-      "damage": 13,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "bite",
-      "target": "atalanta"
-    },
-    {
-      "attacker": "lion",
-      "damage": 16,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "bite",
-      "target": "atalanta"
-    },
-    {
-      "attacker": "lion",
-      "damage": 19,
+      "damage": 18,
       "immune": false,
       "relation": 2,
       "scenario": "back",
       "skill": "bite",
-      "target": "atalanta"
+      "target": "hero"
     },
     {
       "attacker": "lion",
-      "damage": 20,
+      "damage": 18,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
       "skill": "bite",
-      "target": "atalanta"
-    },
-    {
-      "attacker": "lion",
-      "damage": 7,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "bite",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 8,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "bite",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 10,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "bite",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 10,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "bite",
-      "target": "heracles"
+      "target": "hero"
     },
     {
       "attacker": "lion",
@@ -4003,7 +3931,7 @@
       "relation": 0,
       "scenario": "front",
       "skill": "bite",
-      "target": "wolf"
+      "target": "atalanta"
     },
     {
       "attacker": "lion",
@@ -4012,7 +3940,7 @@
       "relation": 1,
       "scenario": "side",
       "skill": "bite",
-      "target": "wolf"
+      "target": "atalanta"
     },
     {
       "attacker": "lion",
@@ -4021,7 +3949,7 @@
       "relation": 2,
       "scenario": "back",
       "skill": "bite",
-      "target": "wolf"
+      "target": "atalanta"
     },
     {
       "attacker": "lion",
@@ -4030,11 +3958,83 @@
       "relation": 1,
       "scenario": "broken_side",
       "skill": "bite",
-      "target": "wolf"
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 9,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 11,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "heracles"
     },
     {
       "attacker": "lion",
       "damage": 13,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 14,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 17,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 21,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 25,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 26,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
       "immune": false,
       "relation": 0,
       "scenario": "front",
@@ -4043,7 +4043,7 @@
     },
     {
       "attacker": "lion",
-      "damage": 16,
+      "damage": 18,
       "immune": false,
       "relation": 1,
       "scenario": "side",
@@ -4052,7 +4052,7 @@
     },
     {
       "attacker": "lion",
-      "damage": 19,
+      "damage": 22,
       "immune": false,
       "relation": 2,
       "scenario": "back",
@@ -4061,7 +4061,7 @@
     },
     {
       "attacker": "lion",
-      "damage": 20,
+      "damage": 23,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -4070,12 +4070,48 @@
     },
     {
       "attacker": "lion",
-      "damage": 14,
+      "damage": 16,
       "immune": false,
       "relation": 0,
       "scenario": "front",
       "skill": "bite",
       "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 24,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 25,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "bite",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 7,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "bandit_chief"
     },
     {
       "attacker": "lion",
@@ -4084,7 +4120,7 @@
       "relation": 1,
       "scenario": "side",
       "skill": "bite",
-      "target": "bandit_archer"
+      "target": "bandit_chief"
     },
     {
       "attacker": "lion",
@@ -4093,7 +4129,7 @@
       "relation": 2,
       "scenario": "back",
       "skill": "bite",
-      "target": "bandit_archer"
+      "target": "bandit_chief"
     },
     {
       "attacker": "lion",
@@ -4102,43 +4138,79 @@
       "relation": 1,
       "scenario": "broken_side",
       "skill": "bite",
-      "target": "bandit_archer"
+      "target": "bandit_chief"
     },
     {
       "attacker": "lion",
-      "damage": 6,
+      "damage": 10,
       "immune": false,
       "relation": 0,
       "scenario": "front",
       "skill": "bite",
-      "target": "bandit_chief"
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "boar"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "bite",
+      "target": "boar"
     },
     {
       "attacker": "lion",
       "damage": 15,
       "immune": false,
       "relation": 1,
-      "scenario": "side",
+      "scenario": "broken_side",
       "skill": "bite",
-      "target": "bandit_chief"
+      "target": "boar"
     },
     {
       "attacker": "lion",
-      "damage": 18,
-      "immune": false,
+      "damage": 0,
+      "immune": true,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "bite",
+      "target": "lion"
+    },
+    {
+      "attacker": "lion",
+      "damage": 0,
+      "immune": true,
       "relation": 2,
       "scenario": "back",
       "skill": "bite",
-      "target": "bandit_chief"
+      "target": "lion"
     },
     {
       "attacker": "lion",
-      "damage": 18,
+      "damage": 21,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
       "skill": "bite",
-      "target": "bandit_chief"
+      "target": "lion"
     },
     {
       "attacker": "lion",
@@ -4146,8 +4218,8 @@
       "immune": false,
       "relation": 0,
       "scenario": "front",
-      "skill": "bite",
-      "target": "boar"
+      "skill": "pounce",
+      "target": "hero"
     },
     {
       "attacker": "lion",
@@ -4155,8 +4227,8 @@
       "immune": false,
       "relation": 1,
       "scenario": "side",
-      "skill": "bite",
-      "target": "boar"
+      "skill": "pounce",
+      "target": "hero"
     },
     {
       "attacker": "lion",
@@ -4164,8 +4236,8 @@
       "immune": false,
       "relation": 2,
       "scenario": "back",
-      "skill": "bite",
-      "target": "boar"
+      "skill": "pounce",
+      "target": "hero"
     },
     {
       "attacker": "lion",
@@ -4173,35 +4245,179 @@
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
-      "skill": "bite",
-      "target": "boar"
+      "skill": "pounce",
+      "target": "hero"
     },
     {
       "attacker": "lion",
-      "damage": 0,
-      "immune": true,
+      "damage": 11,
+      "immune": false,
       "relation": 0,
       "scenario": "front",
-      "skill": "bite",
-      "target": "lion"
+      "skill": "pounce",
+      "target": "atalanta"
     },
     {
       "attacker": "lion",
-      "damage": 0,
-      "immune": true,
+      "damage": 13,
+      "immune": false,
       "relation": 1,
       "scenario": "side",
-      "skill": "bite",
-      "target": "lion"
+      "skill": "pounce",
+      "target": "atalanta"
     },
     {
       "attacker": "lion",
-      "damage": 0,
-      "immune": true,
+      "damage": 16,
+      "immune": false,
       "relation": 2,
       "scenario": "back",
-      "skill": "bite",
-      "target": "lion"
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "atalanta"
+    },
+    {
+      "attacker": "lion",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 6,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 7,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 7,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "heracles"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 16,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 19,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 20,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "wolf"
+    },
+    {
+      "attacker": "lion",
+      "damage": 11,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 13,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 16,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 17,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "bandit"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 18,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit_archer"
     },
     {
       "attacker": "lion",
@@ -4209,8 +4425,44 @@
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
-      "skill": "bite",
-      "target": "lion"
+      "skill": "pounce",
+      "target": "bandit_archer"
+    },
+    {
+      "attacker": "lion",
+      "damage": 5,
+      "immune": false,
+      "relation": 0,
+      "scenario": "front",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 12,
+      "immune": false,
+      "relation": 1,
+      "scenario": "side",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 2,
+      "scenario": "back",
+      "skill": "pounce",
+      "target": "bandit_chief"
+    },
+    {
+      "attacker": "lion",
+      "damage": 15,
+      "immune": false,
+      "relation": 1,
+      "scenario": "broken_side",
+      "skill": "pounce",
+      "target": "bandit_chief"
     },
     {
       "attacker": "lion",
@@ -4219,7 +4471,7 @@
       "relation": 0,
       "scenario": "front",
       "skill": "pounce",
-      "target": "hero"
+      "target": "boar"
     },
     {
       "attacker": "lion",
@@ -4228,7 +4480,7 @@
       "relation": 1,
       "scenario": "side",
       "skill": "pounce",
-      "target": "hero"
+      "target": "boar"
     },
     {
       "attacker": "lion",
@@ -4237,7 +4489,7 @@
       "relation": 2,
       "scenario": "back",
       "skill": "pounce",
-      "target": "hero"
+      "target": "boar"
     },
     {
       "attacker": "lion",
@@ -4246,290 +4498,38 @@
       "relation": 1,
       "scenario": "broken_side",
       "skill": "pounce",
-      "target": "hero"
+      "target": "boar"
     },
     {
       "attacker": "lion",
-      "damage": 9,
-      "immune": false,
+      "damage": 0,
+      "immune": true,
       "relation": 0,
       "scenario": "front",
       "skill": "pounce",
-      "target": "atalanta"
+      "target": "lion"
     },
     {
       "attacker": "lion",
-      "damage": 11,
-      "immune": false,
+      "damage": 0,
+      "immune": true,
       "relation": 1,
       "scenario": "side",
       "skill": "pounce",
-      "target": "atalanta"
+      "target": "lion"
     },
     {
       "attacker": "lion",
-      "damage": 13,
-      "immune": false,
+      "damage": 0,
+      "immune": true,
       "relation": 2,
       "scenario": "back",
       "skill": "pounce",
-      "target": "atalanta"
-    },
-    {
-      "attacker": "lion",
-      "damage": 14,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "atalanta"
-    },
-    {
-      "attacker": "lion",
-      "damage": 3,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 3,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 4,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 4,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "heracles"
-    },
-    {
-      "attacker": "lion",
-      "damage": 11,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "wolf"
-    },
-    {
-      "attacker": "lion",
-      "damage": 13,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "wolf"
-    },
-    {
-      "attacker": "lion",
-      "damage": 16,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "wolf"
-    },
-    {
-      "attacker": "lion",
-      "damage": 17,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "wolf"
-    },
-    {
-      "attacker": "lion",
-      "damage": 9,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "bandit"
-    },
-    {
-      "attacker": "lion",
-      "damage": 11,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "bandit"
-    },
-    {
-      "attacker": "lion",
-      "damage": 13,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "bandit"
-    },
-    {
-      "attacker": "lion",
-      "damage": 14,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "bandit"
-    },
-    {
-      "attacker": "lion",
-      "damage": 10,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "bandit_archer"
-    },
-    {
-      "attacker": "lion",
-      "damage": 12,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "bandit_archer"
+      "target": "lion"
     },
     {
       "attacker": "lion",
       "damage": 15,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "bandit_archer"
-    },
-    {
-      "attacker": "lion",
-      "damage": 15,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "bandit_archer"
-    },
-    {
-      "attacker": "lion",
-      "damage": 4,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "bandit_chief"
-    },
-    {
-      "attacker": "lion",
-      "damage": 10,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "bandit_chief"
-    },
-    {
-      "attacker": "lion",
-      "damage": 12,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "bandit_chief"
-    },
-    {
-      "attacker": "lion",
-      "damage": 12,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "bandit_chief"
-    },
-    {
-      "attacker": "lion",
-      "damage": 4,
-      "immune": false,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "boar"
-    },
-    {
-      "attacker": "lion",
-      "damage": 5,
-      "immune": false,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "boar"
-    },
-    {
-      "attacker": "lion",
-      "damage": 6,
-      "immune": false,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "boar"
-    },
-    {
-      "attacker": "lion",
-      "damage": 6,
-      "immune": false,
-      "relation": 1,
-      "scenario": "broken_side",
-      "skill": "pounce",
-      "target": "boar"
-    },
-    {
-      "attacker": "lion",
-      "damage": 0,
-      "immune": true,
-      "relation": 0,
-      "scenario": "front",
-      "skill": "pounce",
-      "target": "lion"
-    },
-    {
-      "attacker": "lion",
-      "damage": 0,
-      "immune": true,
-      "relation": 1,
-      "scenario": "side",
-      "skill": "pounce",
-      "target": "lion"
-    },
-    {
-      "attacker": "lion",
-      "damage": 0,
-      "immune": true,
-      "relation": 2,
-      "scenario": "back",
-      "skill": "pounce",
-      "target": "lion"
-    },
-    {
-      "attacker": "lion",
-      "damage": 12,
       "immune": false,
       "relation": 1,
       "scenario": "broken_side",
@@ -4574,8 +4574,8 @@
       "size": 1
     },
     "lion": {
-      "hp": 60,
-      "max_hp": 60,
+      "hp": 74,
+      "max_hp": 74,
       "size": 2
     },
     "wolf": {

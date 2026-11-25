@@ -51,5 +51,12 @@ func TestHydra(t *testing.T) {
 	SettleRound(state, &ev)
 	SettleRound(state, &ev)
 	check(t, !head.Alive, "sealed, it stays down")
+	// 沼泽里还会游来一条蛇（第三回合到）；它也得倒下。
+	for _, u := range state.Units {
+		if u.Team == TeamEnemy && !u.Traits.Has("regrows") {
+			u.Arrival, u.Hidden = 0, false
+			KnockOut(state, u, &ev)
+		}
+	}
 	eq(t, state.Outcome(), "win", "every neck sealed")
 }

@@ -96,6 +96,36 @@
         5
       ],
       "facing": "W"
+    },
+    {
+      "id": "guard_a",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        7,
+        5
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "guard_b",
+      "def": "bandit",
+      "team": "enemy",
+      "pos": [
+        9,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "bow_b",
+      "def": "bandit_archer",
+      "team": "enemy",
+      "pos": [
+        10,
+        7
+      ],
+      "facing": "W"
     }
   ]
 }
