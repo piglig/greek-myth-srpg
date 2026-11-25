@@ -58,7 +58,8 @@ tiers:
         boon: moon_hunt
         hire: [iphicles]
         support: iphicles
-        picks: {hero: [iron_arm, stagger_fist], atalanta: [vital_shot, patience, skirmish]}
+        # 雇来的人有主角一半的经验，够学前两步
+        picks: {hero: [iron_arm, stagger_fist], atalanta: [vital_shot, patience, skirmish], iphicles: [iph_thick, iph_stride]}
       - at: "2-2"
         joins: [medea]
         party: [medea]
@@ -115,6 +116,7 @@ tiers:
         boon: moon_hunt
         hire: [phalerus]
         support: phalerus
+        picks: {phalerus: [pha_steady, pha_far]}
         buy: [cloak_travel, greaves, owl, item_antidote]
         party: [chiron]
         wear: {chiron: [cloak_travel, greaves, owl]}
@@ -179,6 +181,7 @@ tiers:
         boon: moon_hunt
         hire: [ancaeus, phalerus]
         support: ancaeus
+        picks: {ancaeus: [anc_heavy, anc_step]}
         buy: [cloak_travel, greaves, owl, item_antidote]
         party: [chiron]
         wear: {chiron: [cloak_travel, greaves, owl]}

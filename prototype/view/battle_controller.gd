@@ -162,7 +162,9 @@ func _ready() -> void:
 		if entry.has("equipped_relic"):
 			for key in ["equipped_relic","boon","divinity","powers","relics_worn"]:
 				if entry.has(key): _campaign_reward[key]=entry[key]
-		if str(entry.get("support","")) != "": _campaign_reward["support"] = str(entry.support)
+		if str(entry.get("support","")) != "":
+			_campaign_reward["support"] = str(entry.support)
+			_campaign_reward["support_picks"] = entry.get("support_picks",[])
 		_saved_orders=entry.get("orders",[])
 		_resume=str(entry.get("resume",""))
 		_chiron_joined = entry.get("chiron_joined",false)
@@ -1076,12 +1078,7 @@ func _play(events: Array, from_round := -1) -> void:
 				if not events.any(func(ev): return ev.get("skill","")=="sky_dome"):
 					BattleFX.spawn(_units_root,BLESS,unit_views[e.target].position+Vector3.UP*.08,.3)
 			"support":
-				# A hired hero answers the call: his name over the place he strikes.
-				var who := str(Checkpoint.RECRUITS.get(str(e.source),{}).get("name","援军"))
-				Soundscape.cue("warning")
-				hud.banner("%s · %s" % [who,EventText.skill_name(e.skill)])
-				BattleFX.spawn(_units_root,ROAR,map_view.anchor_world(state,Vector2i(int(e.to[0]),int(e.to[1])),1)+Vector3.UP*.3,.3)
-				await get_tree().create_timer(0.3).timeout
+				await _support_arrives(e)
 			"area":
 				if Checkpoint.power_words(e.skill) != "":
 					await _divine(e,events)
@@ -1618,6 +1615,57 @@ func _recover_cover(hero: PixelUnit, home: Vector3, contact: bool) -> void:
 	await recover.finished
 	hero.release_intercept()
 
+
+## A hired hero answers the call: he steps in beside the protagonist, on the side nearest
+## where he is needed, strikes once and is gone. He is a figure only: the rules never had
+## him on the field. Drawn from the sheets he already has until his own arrival is painted
+## (28-art-backlog §0.4).
+func _support_arrives(e: Dictionary) -> void:
+	var kind := str(e.source)
+	var record: Dictionary = Checkpoint.RECRUITS.get(kind,{})
+	var aim := Vector2i(int(e.to[0]),int(e.to[1]))
+	Soundscape.cue("warning")
+	hud.banner("%s · %s" % [str(record.get("name","援军")),EventText.skill_name(e.skill)])
+	var hero := state.unit(str(e.unit))
+	if record.is_empty() or hero == null:
+		await get_tree().create_timer(.3).timeout
+		return
+	# The free cell beside the protagonist nearest the aim; his own cell if he is hemmed in.
+	var stand := hero.pos
+	var nearest := 9999
+	for step: Vector2i in [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT]:
+		var cell := hero.pos+step
+		if not state.grid.in_bounds(cell) or state.unit_at(cell) != null or cell == aim: continue
+		var far := absi(cell.x-aim.x)+absi(cell.y-aim.y)
+		if far < nearest:
+			nearest = far
+			stand = cell
+	var ghost := UnitState.new()
+	ghost.id = "support:"+kind
+	ghost.def_id = str(record.def)
+	ghost.display_name = str(record.name)
+	ghost.pos = stand
+	UnitState.looks[ghost.id] = str(record.get("look",record.def))
+	var figure := PixelUnit.new()
+	_units_root.add_child(figure)
+	figure.setup(ghost,null,null)
+	figure.position = map_view.anchor_world(state,stand,1)
+	var mark := map_view.anchor_world(state,aim,1)
+	figure.face_point(mark)
+	figure.scale = Vector3.ONE*.6
+	var entrance := figure.create_tween()
+	entrance.tween_property(figure,"scale",Vector3.ONE,.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await entrance.finished
+	figure.play_attack()
+	await get_tree().create_timer(.22).timeout
+	BattleFX.spawn(_units_root,ROAR,mark+Vector3.UP*.3,.3)
+	await get_tree().create_timer(.3).timeout
+	if _demo == "support_hold": return  # for a capture: leave him standing where he struck
+	var leaving := figure.create_tween()
+	leaving.tween_property(figure,"scale",Vector3.ONE*.01,.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	await leaving.finished
+	figure.queue_free()
+	UnitState.looks.erase(ghost.id)
 
 func _epic_strike(actor: PixelUnit, target: UnitView, look: String) -> Tween:
 	await actor.turn_to_strike(target.position)
@@ -2888,7 +2936,7 @@ func _run_capture() -> void:
 				await get_tree().create_timer(1.0).timeout
 				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 				await get_tree().create_timer(.6).timeout
-		"support":
+		"support", "support_hold":
 			# Round two: the protagonist calls whoever came with him on the first target offered.
 			# Run with --support=phalerus.
 			_end_turn()

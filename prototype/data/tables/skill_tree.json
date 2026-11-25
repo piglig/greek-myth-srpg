@@ -363,215 +363,143 @@
     ],
     "idas": [
       {
-        "branch": "蛮力",
+        "branch": "支援",
         "nodes": [
           {
-            "id": "idas_frame",
-            "name": "厚实筋骨",
+            "id": "idas_might",
+            "name": "蛮力",
             "cost": 1,
-            "trait": "wrestler",
-            "desc": "永久增加 8 点生命上限。"
+            "support": {
+              "power": 4
+            },
+            "desc": "伤害多 4 点。"
           },
           {
-            "id": "idas_knee",
-            "name": "扫膝",
+            "id": "idas_quake",
+            "name": "震地",
             "cost": 2,
-            "skill": "heel_strike",
-            "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
-            "parent": "idas_frame"
-          },
-          {
-            "id": "idas_hide",
-            "name": "铁石之躯",
-            "cost": 2,
-            "trait": "bulwark",
-            "desc": "永久增加 3 点防御。",
-            "parent": "idas_frame"
-          },
-          {
-            "id": "idas_break",
-            "name": "碎阵重击",
-            "cost": 4,
-            "skill": "breaker",
-            "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
-            "parent": "idas_knee"
+            "support": {
+              "stagger_bonus": 15
+            },
+            "desc": "破势再多 15。",
+            "parent": "idas_might"
           },
           {
             "id": "idas_pride",
-            "name": "不服神意",
-            "cost": 3,
-            "trait": "hex_ward",
-            "desc": "永久增加 4 点意志。",
-            "parent": "idas_hide"
-          }
-        ]
-      },
-      {
-        "branch": "劫掠",
-        "nodes": [
-          {
-            "id": "idas_stride",
-            "name": "大步",
-            "cost": 1,
-            "trait": "fleet",
-            "desc": "永久增加 1 点移动。"
-          },
-          {
-            "id": "idas_shove",
-            "name": "蛮撞",
+            "name": "不服",
             "cost": 2,
-            "skill": "brute_shove",
-            "desc": "撞开相邻敌人 2 格，0.6 倍物理伤害，冷却 3。",
-            "parent": "idas_stride"
-          },
-          {
-            "id": "idas_leap",
-            "name": "攀越",
-            "cost": 2,
-            "trait": "high_jump",
-            "desc": "永久增加 2 点跳跃。",
-            "parent": "idas_stride"
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
+            "parent": "idas_quake"
           }
         ]
       }
     ],
     "eurytion": [
       {
-        "branch": "冲锋",
+        "branch": "支援",
         "nodes": [
           {
-            "id": "eury_gallop",
-            "name": "疾蹄",
+            "id": "eury_long",
+            "name": "长驱",
             "cost": 1,
-            "trait": "fleet",
-            "desc": "永久增加 1 点移动。"
+            "support": {
+              "max_range": 2
+            },
+            "desc": "多冲 2 格。"
           },
           {
-            "id": "eury_lance",
-            "name": "冲锋贯刺",
-            "cost": 3,
-            "skill": "lance_charge",
-            "desc": "沿直线 1–3 格刺出 1.55 倍物理伤害，冷却 3。",
-            "parent": "eury_gallop"
-          },
-          {
-            "id": "eury_vault",
-            "name": "跃涧",
+            "id": "eury_hoof",
+            "name": "重蹄",
             "cost": 2,
-            "trait": "high_jump",
-            "desc": "永久增加 2 点跳跃。",
-            "parent": "eury_gallop"
-          }
-        ]
-      },
-      {
-        "branch": "狂野",
-        "nodes": [
-          {
-            "id": "eury_bulk",
-            "name": "马身",
-            "cost": 1,
-            "trait": "wrestler",
-            "desc": "永久增加 8 点生命上限。"
+            "support": {
+              "power": 4
+            },
+            "desc": "伤害多 4 点。",
+            "parent": "eury_long"
           },
           {
-            "id": "eury_stomp",
-            "name": "蹄踏",
+            "id": "eury_again",
+            "name": "再冲",
             "cost": 2,
-            "skill": "hoof_stomp",
-            "desc": "近身打击，1.1 倍物理伤害，额外破势 18，冷却 2。",
-            "parent": "eury_bulk"
-          },
-          {
-            "id": "eury_hide",
-            "name": "粗皮",
-            "cost": 2,
-            "trait": "bulwark",
-            "desc": "永久增加 3 点防御。",
-            "parent": "eury_bulk"
-          },
-          {
-            "id": "eury_break",
-            "name": "碎阵重击",
-            "cost": 4,
-            "skill": "breaker",
-            "desc": "1.65 倍近身打击，击退 1 格，额外破势 25，冷却 4。",
-            "parent": "eury_stomp"
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
+            "parent": "eury_hoof"
           }
         ]
       }
     ],
     "iphicles": [
       {
-        "branch": "并肩",
+        "branch": "支援",
         "nodes": [
           {
-            "id": "iph_stand",
-            "name": "并肩而立",
+            "id": "iph_thick",
+            "name": "厚盾",
             "cost": 1,
-            "trait": "shield_wall",
-            "desc": "处于防御姿态时，相邻同伴受到的伤害 −15%。"
+            "support": {
+              "power": 4
+            },
+            "desc": "护盾多 4 点。"
           },
           {
-            "id": "iph_cover",
-            "name": "以身相护",
+            "id": "iph_stride",
+            "name": "快步",
             "cost": 2,
-            "trait": "intercept",
-            "desc": "相邻同伴被攻击时，伊菲克勒斯代为承受（每回合 1 次）。",
-            "parent": "iph_stand"
+            "support": {
+              "max_range": 2
+            },
+            "desc": "够得着的范围多 2 格。",
+            "parent": "iph_thick"
           },
           {
-            "id": "iph_grit",
-            "name": "凡人筋骨",
+            "id": "iph_ready",
+            "name": "常备",
             "cost": 2,
-            "trait": "wrestler",
-            "desc": "永久增加 8 点生命上限。",
-            "parent": "iph_stand"
-          },
-          {
-            "id": "iph_cleave",
-            "name": "断矛斩",
-            "cost": 3,
-            "skill": "spear_breaker",
-            "desc": "近身打击，1.5 倍物理伤害，额外破势 15，冷却 3。",
-            "parent": "iph_cover"
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
+            "parent": "iph_stride"
           }
         ]
       }
     ],
     "phalerus": [
       {
-        "branch": "雅典射术",
+        "branch": "支援",
         "nodes": [
           {
             "id": "pha_steady",
             "name": "稳弓",
             "cost": 1,
-            "trait": "patience",
-            "desc": "本回合没有移动时，伤害 +25%。"
-          },
-          {
-            "id": "pha_snare",
-            "name": "绊足箭",
-            "cost": 2,
-            "skill": "snare_arrow",
-            "desc": "射程 2–4。0.8 倍射击，命中后束缚 1 回合，冷却 2。",
-            "parent": "pha_steady"
+            "support": {
+              "power": 3
+            },
+            "desc": "伤害多 3 点。"
           },
           {
             "id": "pha_far",
-            "name": "远射",
+            "name": "鹰眼",
             "cost": 2,
-            "skill": "long_shot",
-            "desc": "射程 3–6。1.0 倍射击，冷却 2。",
+            "support": {
+              "max_range": 2
+            },
+            "desc": "射程多 2 格。",
             "parent": "pha_steady"
           },
           {
-            "id": "pha_bodkin",
-            "name": "破甲箭",
-            "cost": 3,
-            "skill": "bodkin_arrow",
-            "desc": "射程 2–4。0.9 倍射击，这一箭不计算目标的物理防御，冷却 3。",
+            "id": "pha_quick",
+            "name": "连珠",
+            "cost": 2,
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
             "parent": "pha_far"
           }
         ]
@@ -579,116 +507,72 @@
     ],
     "ancaeus": [
       {
-        "branch": "熊皮",
+        "branch": "支援",
         "nodes": [
           {
-            "id": "anc_hide",
-            "name": "熊皮",
+            "id": "anc_heavy",
+            "name": "沉斧",
             "cost": 1,
-            "trait": "bulwark",
-            "desc": "永久增加 3 点防御。"
+            "support": {
+              "power": 4
+            },
+            "desc": "伤害多 4 点。"
           },
           {
-            "id": "anc_bulk",
-            "name": "阿卡迪亚筋骨",
+            "id": "anc_step",
+            "name": "跨步",
             "cost": 2,
-            "trait": "wrestler",
-            "desc": "永久增加 8 点生命上限。",
-            "parent": "anc_hide"
+            "support": {
+              "max_range": 1
+            },
+            "desc": "够得着的范围多 1 格。",
+            "parent": "anc_heavy"
           },
           {
-            "id": "anc_defy",
-            "name": "不信预言",
-            "cost": 3,
-            "trait": "hex_ward",
-            "desc": "永久增加 4 点意志。",
-            "parent": "anc_bulk"
-          }
-        ]
-      },
-      {
-        "branch": "双刃斧",
-        "nodes": [
-          {
-            "id": "anc_split",
-            "name": "劈盾",
-            "cost": 1,
-            "skill": "shield_split",
-            "desc": "近身打击，1.1 倍物理伤害，这一斧不计算目标的物理防御，冷却 3。"
-          },
-          {
-            "id": "anc_sweep",
-            "name": "回旋斧",
+            "id": "anc_tireless",
+            "name": "不歇",
             "cost": 2,
-            "skill": "axe_sweep",
-            "desc": "近身打击，0.9 倍物理伤害，击退 2 格，冷却 3。",
-            "parent": "anc_split"
-          },
-          {
-            "id": "anc_fell",
-            "name": "伐木式",
-            "cost": 4,
-            "skill": "felling_blow",
-            "desc": "近身打击，1.8 倍物理伤害，额外破势 20，冷却 4。",
-            "parent": "anc_sweep"
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
+            "parent": "anc_step"
           }
         ]
       }
     ],
     "pholus": [
       {
-        "branch": "待客",
+        "branch": "支援",
         "nodes": [
           {
             "id": "pho_wine",
             "name": "陈酒",
             "cost": 1,
-            "skill": "old_wine",
-            "desc": "相邻的同伴恢复 8 点生命，冷却 3。"
+            "support": {
+              "power": 4
+            },
+            "desc": "多回复 4 点生命。"
           },
           {
-            "id": "pho_shelter",
-            "name": "洞口相迎",
+            "id": "pho_paths",
+            "name": "熟路",
             "cost": 2,
-            "trait": "shield_wall",
-            "desc": "处于防御姿态时，相邻同伴受到的伤害 −15%。",
+            "support": {
+              "max_range": 2
+            },
+            "desc": "够得着的范围多 2 格。",
             "parent": "pho_wine"
           },
           {
-            "id": "pho_calm",
-            "name": "好客之心",
-            "cost": 3,
-            "trait": "hex_ward",
-            "desc": "永久增加 4 点意志。",
-            "parent": "pho_shelter"
-          }
-        ]
-      },
-      {
-        "branch": "山行",
-        "nodes": [
-          {
-            "id": "pho_gallop",
-            "name": "熟路",
-            "cost": 1,
-            "trait": "fleet",
-            "desc": "永久增加 1 点移动。"
-          },
-          {
-            "id": "pho_vault",
-            "name": "跃涧",
+            "id": "pho_host",
+            "name": "常来",
             "cost": 2,
-            "trait": "high_jump",
-            "desc": "永久增加 2 点跳跃。",
-            "parent": "pho_gallop"
-          },
-          {
-            "id": "pho_kick",
-            "name": "后蹄",
-            "cost": 2,
-            "skill": "hind_kick",
-            "desc": "近身打击，0.7 倍物理伤害，击退 2 格，冷却 3。",
-            "parent": "pho_gallop"
+            "support": {
+              "cooldown": -1
+            },
+            "desc": "冷却少 1 回合。",
+            "parent": "pho_paths"
           }
         ]
       }

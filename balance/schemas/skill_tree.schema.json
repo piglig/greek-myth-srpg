@@ -59,6 +59,19 @@
                     "type": "string"
                   },
                   "parent": {"type": "string"},
+                  "support": {
+                    "type": "object",
+                    "description": "a hired hero's tree: how much this step adds to his one move",
+                    "minProperties": 1,
+                    "additionalProperties": false,
+                    "properties": {
+                      "power": {"type": "integer"},
+                      "max_range": {"type": "integer"},
+                      "cooldown": {"type": "integer"},
+                      "stagger_bonus": {"type": "integer"},
+                      "knockback": {"type": "integer"}
+                    }
+                  },
                   "desc": {
                     "type": "string"
                   }
@@ -73,7 +86,8 @@
                     "required": [
                       "skill"
                     ]
-                  }
+                  },
+                  {"required": ["support"]}
                 ]
               }
             }

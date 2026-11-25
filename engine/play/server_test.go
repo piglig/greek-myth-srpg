@@ -244,38 +244,27 @@ func TestBenchLeavesHeroesBehind(t *testing.T) {
 	}
 }
 
-// 招募来的英雄各有各的技能树：出战名单里的 tree 说是哪一棵，加点以名单里的 id 为键。
-func TestPartyLearnsItsOwnTree(t *testing.T) {
+// 招募来的英雄来支援：不上场，主角多一个招式；他学了的节点写在 picks 里他自己的名字下面。
+func TestSupportComesOverTheWire(t *testing.T) {
 	s := newServer(t)
-	plain := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r2","def":"bandit_chief","tree":"idas","name":"伊达斯"}]}`)["state"].(map[string]any)
-	trained := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r2","def":"bandit_chief","tree":"idas","name":"伊达斯"}],"picks":{"r2":["idas_frame","idas_knee"]}}`)["state"].(map[string]any)
-	before, after := unitOf(plain, "r2"), unitOf(trained, "r2")
-	if after["max_hp"].(float64) != before["max_hp"].(float64)+8 {
-		t.Errorf("厚实筋骨应该加 8 点生命上限: %v -> %v", before["max_hp"], after["max_hp"])
+	st := ask(t, s, `{"op":"build","battle":"1-4","support":"idas","picks":{"idas":["idas_might"]}}`)["state"].(map[string]any)
+	if unitOf(st, "idas") != nil {
+		t.Errorf("支援的英雄不该上场")
 	}
-	if len(after["skills"].([]any)) != len(before["skills"].([]any))+1 {
-		t.Errorf("扫膝应该多出一个招式: %v -> %v", before["skills"], after["skills"])
-	}
-	if after["tree"] != "idas" {
-		t.Errorf("单位应该带着自己那棵树的名字: %v", after["tree"])
-	}
-	// 同一个单位定义的两个人学的是两棵树：安开俄斯学不了伊达斯的招。
-	other := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r3","def":"bandit_chief","tree":"ancaeus"}],"picks":{"r3":["idas_frame","anc_hide"]}}`)["state"].(map[string]any)
-	base := unitOf(ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r3","def":"bandit_chief","tree":"ancaeus"}]}`)["state"].(map[string]any), "r3")
-	if got := unitOf(other, "r3"); got["max_hp"] != base["max_hp"] || got["defense"].(float64) != base["defense"].(float64)+3 {
-		t.Errorf("安开俄斯只该学到熊皮（防御 +3）: 生命 %v -> %v，防御 %v -> %v", base["max_hp"], got["max_hp"], base["defense"], got["defense"])
+	if skills := fmt.Sprint(unitOf(st, "hero")["skills"]); !strings.Contains(skills, "sup_idas") {
+		t.Errorf("主角应该多出召援的招式: %v", skills)
 	}
 	var bad map[string]any
-	json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","party":[{"id":"r4","def":"bandit","tree":"nobody"}]}`)), &bad)
+	json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","support":"nobody"}`)), &bad)
 	if bad["fail"] == nil {
-		t.Errorf("不存在的技能树应该报错")
+		t.Errorf("不存在的英雄应该报错")
 	}
-	// 新招式：福洛斯的陈酒给相邻的同伴回血。
-	wine := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r5","def":"centaur","tree":"pholus"}],"picks":{"r5":["pho_wine"]}}`)["state"].(map[string]any)
-	if skills := fmt.Sprint(unitOf(wine, "r5")["skills"]); !strings.Contains(skills, "old_wine") {
-		t.Errorf("福洛斯应该学会陈酒: %v", skills)
+	bad = nil
+	json.Unmarshal(s.Handle([]byte(`{"op":"build","battle":"1-4","support":"idas","picks":{"idas":["idas_quake"]}}`)), &bad)
+	if bad["fail"] == nil {
+		t.Errorf("没学前置就学的节点应该报错")
 	}
-	check := ask(t, s, `{"op":"picks_check","def":"idas","nodes":["idas_knee"]}`)
+	check := ask(t, s, `{"op":"picks_check","def":"idas","nodes":["idas_quake"]}`)
 	if check["error"] == "" {
 		t.Errorf("没学前置就学扫膝应该不合法")
 	}

@@ -121,3 +121,25 @@ func TestSupportAidAndCharge(t *testing.T) {
 	check(t, out.OK && a.HP < ah && b.HP < bh, "everyone in the lane is ridden down: "+out.Error)
 	check(t, a.Pos == c(5, 7) && b.Pos == c(5, 5), "and thrown back a step")
 }
+
+// 支援英雄的技能树只强化他那一手。
+func TestSupportGrows(t *testing.T) {
+	plain, err := testData.SupportMove("phalerus", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	grown, err := testData.SupportMove("phalerus", []string{"pha_steady", "pha_far", "pha_quick"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	check(t, grown.Power == plain.Power+3 && grown.MaxRange == plain.MaxRange+2 && grown.Cooldown == plain.Cooldown-1,
+		"three steps: harder, farther, sooner")
+	check(t, testData.Skill("sup_phalerus").Power == plain.Power, "the table's own move is left as it was")
+	_, err = testData.SupportMove("phalerus", []string{"pha_far"})
+	check(t, err != nil, "a step cannot be taken before the one it grows from")
+	state, err := testData.Muster("1-4", Muster{Support: "phalerus", Picks: map[string][]string{"phalerus": {"pha_steady"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	check(t, state.Unit("hero").Skill("sup_phalerus").Power == plain.Power+3, "what he learnt comes with him")
+}

@@ -295,6 +295,13 @@ func (s *Server) dataJSON() obj {
 				if n.Skill != "" {
 					node["skill"] = n.Skill
 				}
+				if len(n.Support) > 0 {
+					mods := obj{}
+					for _, kv := range n.Support {
+						mods[kv.Key] = kv.Val
+					}
+					node["support"] = mods
+				}
 				nodes = append(nodes, node)
 			}
 			branches = append(branches, obj{"branch": br.Name, "nodes": nodes})

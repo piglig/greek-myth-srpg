@@ -110,6 +110,8 @@ type UnitDef struct {
 type TreeNode struct {
 	ID, Name, Trait, Skill, Desc, Parent string
 	Cost                                 int
+	// Support 是支援英雄的技能树节点给他那一手加的数值（power、max_range、cooldown……）。
+	Support []KV
 }
 
 type TreeBranch struct {
@@ -586,6 +588,16 @@ func (d *Data) loadTree() error {
 					}
 					node := TreeNode{ID: no.str("id", ""), Name: no.str("name", ""), Trait: no.str("trait", ""),
 						Skill: no.str("skill", ""), Desc: no.str("desc", ""), Parent: no.str("parent", ""), Cost: no.int("cost", 0)}
+					if mods, ok := no.m["support"].(*jobj); ok {
+						for _, k := range mods.keys {
+							switch k {
+							case "power", "max_range", "cooldown", "stagger_bonus", "knockback":
+								node.Support = append(node.Support, KV{k, asInt(mods.m[k])})
+							default:
+								return fmt.Errorf("技能树节点 %s 的 support 里有不认识的数值 %s", node.ID, k)
+							}
+						}
+					}
 					if node.Skill != "" && d.skills[node.Skill] == nil {
 						return fmt.Errorf("技能树节点 %s 用到了不存在的技能 %s", node.ID, node.Skill)
 					}

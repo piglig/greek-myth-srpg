@@ -8,7 +8,7 @@ import "fmt"
 //
 // 招式表里 support 字段写的是哪一种：
 //
-//	guard   并肩：给 max_range 格内的一名同伴 power 点护盾
+//	guard   并肩：把 max_range 格内一名同伴的护盾补到 power 点（不叠加）
 //	shot    远射：max_range 格内的一个敌人受 power 点物理伤害，不看掩护和视线
 //	sunder  劈盾：max_range 格内的一个敌人受 power 点伤害，不计算防御
 //	aid     驮行：max_range 格内的一名同伴回复 power 点生命、解一种异常，还没出手的话可以再走一次
@@ -20,24 +20,61 @@ import "fmt"
 // SupportFirstRound 是开战后要等到第几回合才能第一次召援。
 const SupportFirstRound = 2
 
-// GrantSupport 让主角带上一位支援英雄。
-func (s *BattleState) GrantSupport(d *Data, who string) error {
-	if who == "" {
-		return nil
-	}
+// SupportMove 是这位英雄学了 picks 这些节点之后的那一手：表里的招式加上各节点给的数值。
+func (d *Data) SupportMove(who string, picks []string) (*Skill, error) {
 	market, err := d.Market()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hire := market.Recruits[who]
 	if hire == nil || hire.Support == "" {
-		return fmt.Errorf("%s 不是能来支援的英雄", who)
+		return nil, fmt.Errorf("%s 不是能来支援的英雄", who)
+	}
+	if msg := d.ValidateTraining(who, picks, 99); msg != "" {
+		return nil, fmt.Errorf("%s 的加点不成立：%s", who, msg)
+	}
+	move := *d.Skill(hire.Support)
+	for _, br := range d.Trees(who) {
+		for _, n := range br.Nodes {
+			learnt := false
+			for _, id := range picks {
+				learnt = learnt || id == n.ID
+			}
+			if !learnt {
+				continue
+			}
+			for _, kv := range n.Support {
+				switch kv.Key {
+				case "power":
+					move.Power += kv.Val
+				case "max_range":
+					move.MaxRange += kv.Val
+				case "cooldown":
+					move.Cooldown = max(1, move.Cooldown+kv.Val)
+				case "stagger_bonus":
+					move.StaggerBonus += kv.Val
+				case "knockback":
+					move.Knockback += kv.Val
+				}
+			}
+		}
+	}
+	return &move, nil
+}
+
+// GrantSupport 让主角带上一位支援英雄；picks 是这位英雄学了的节点。
+func (s *BattleState) GrantSupport(d *Data, who string, picks []string) error {
+	if who == "" {
+		return nil
+	}
+	sk, err := d.SupportMove(who, picks)
+	if err != nil {
+		return err
 	}
 	hero := s.Unit("hero")
 	if hero == nil {
 		return nil
 	}
-	sk := d.Skill(hire.Support)
 	hero.AddSkill(sk)
 	hero.SetCooldown(sk.ID, SupportFirstRound-1)
 	s.Support = who
@@ -118,6 +155,9 @@ func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell) string 
 		if target.Team != u.Team {
 			return "need an ally"
 		}
+		if target.Shield >= sk.Power {
+			return "already shielded"
+		}
 	case "aid":
 		if target.Team != u.Team || target == u {
 			return "need an ally"
@@ -145,8 +185,10 @@ func doSupport(s *BattleState, u *UnitState, sk *Skill, cell Cell, ev *[]Event) 
 	switch sk.Support {
 	case "guard":
 		t := s.UnitAt(cell)
-		t.Shield += sk.Power
-		emit(ev, Event{Type: EvWard, Target: t.ID, Amount: sk.Power})
+		// 护盾不叠：把他身上的补到 power 点。不然每隔几回合叠一层，越打越厚。
+		gain := max(0, sk.Power-t.Shield)
+		t.Shield += gain
+		emit(ev, Event{Type: EvWard, Target: t.ID, Amount: gain})
 	case "aid":
 		t := s.UnitAt(cell)
 		if t.HP < t.MaxHP && !t.HasStatus("blighted") && !(vessel(t) && s.Tier() >= TierInhuman) {

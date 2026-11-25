@@ -196,7 +196,7 @@ A small ruined Greek shrine on a low stone platform of two worn steps: four slim
 - 文件放在各自的形象目录下，叫 `support.png`，例如 `prototype/art/pixel/merc_sword/support.png`。
 - **把这个人现有的原画当参考图一起给**（下面每条都写了是哪一张），衣服、配色、武器要和原画是同一个人。
 - 现有的待机、行走、攻击、倒地几张图不用重做。它们以后只在营地和招募页里用得上。
-- 在这些图到位之前，游戏里先用一行横幅和一个光效顶替登场。
+- 在这些图到位之前，游戏里用他现有的图顶替：英雄出现在主角身边，面朝目标做一次平时的攻击动作再消失。
 - 福洛斯的原画还在返工（见 0.1），他这一张等新原画定了再出。
 
 #### [ ] 伊菲克勒斯「并肩」 `merc_sword/support.png`

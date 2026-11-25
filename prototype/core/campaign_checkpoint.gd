@@ -205,9 +205,17 @@ static func for_hire(kind: String, entry: Dictionary) -> bool:
 
 ## What a hired hero does when called, in a sentence. `id` is his move in skills.json or
 ## his own name in recruits.json.
-static func support_words(id: String) -> String:
+static func support_words(id: String, learnt: Array = []) -> String:
 	var move := str(RECRUITS[id].get("support","")) if RECRUITS.has(id) else id
-	var sk: Dictionary = SkillCatalog.get_skill(move)
+	var sk: Dictionary = SkillCatalog.get_skill(move).duplicate()
+	# Each step of his tree adds to the move's numbers.
+	if RECRUITS.has(id):
+		for branch: Dictionary in SkillTree.trees().get(id,[]):
+			for node: Dictionary in branch.nodes:
+				if not learnt.has(node.id): continue
+				var adds: Dictionary = node.get("support",{})
+				for key: String in adds: sk[key] = int(sk.get(key,0))+int(adds[key])
+		sk["cooldown"] = maxi(1,int(sk.get("cooldown",1)))
 	var far := int(sk.get("max_range",1))
 	var much := int(sk.get("power",0))
 	var words := ""
