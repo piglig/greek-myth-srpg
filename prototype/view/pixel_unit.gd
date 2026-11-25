@@ -93,6 +93,11 @@ func react_to_hit(force: Vector3,severity: float):
 
 func _process(dt: float):
 	super._process(dt)
+	if kind == "stymphalian_bird" or kind == "marsh_flock":
+		# The larger bird rides higher; the flock skims the reed tops.
+		var lift := 17. + 2.7*sin(_time*3.1) if kind == "stymphalian_bird" else 1.8*sin(_time*4.2)
+		_sprite.offset.y = 112.*_art_scale + lift
+		reaction.offset.y = 52. + lift
 	if falling or balance_motion!=null:
 		return
 	var cam=get_viewport().get_camera_3d()

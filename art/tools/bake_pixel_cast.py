@@ -109,6 +109,12 @@ def bake(kind, look=None):
             delta=(3,4,5)
         elif kind=="boar" and min(r,g,b)>131:
             delta=(6,4,0)
+        elif kind=="giant_crab":
+            # Separate the cool, mud-flecked shell from its warm crusher claw at map scale.
+            if abs(r-g)<16 and g-b>12:
+                delta=(-13,12,9)
+            elif r>110 and r-g>27:
+                delta=(12,1,-3)
         display_palette[i]=np.clip(color.astype(int)+delta,0,255)
     def pixelize(pic):
         a=np.array(pic)

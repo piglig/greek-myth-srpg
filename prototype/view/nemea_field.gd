@@ -236,15 +236,8 @@ func _axis(length: int) -> PackedFloat32Array:
 	return coords
 
 
-func build(battle_grid: BattleGrid, layer_height: float, village: bool = false, woodland: bool = false) -> void:
-	grid = battle_grid
-	map_layer_height = layer_height
-	if village:
-		_add_site(Vector2(-2.15,6.65),3.1,3.10,false)
-		_add_site(Vector2(3.8,grid.depth+1.95),2.2,5.20,false)
-		_add_site(Vector2(-2.20,3.36),2.9,.12,true)
-		_add_site(Vector2(grid.width+2.45,5.8),3.2,1.76,true)
-		_add_site(Vector2(1.6,-2.10),2.6,-.39,false)
+## Mesh, height samples and picking surface shared by the painted battlefields.
+func _build_surface() -> MeshInstance3D:
 	var xs := _axis(grid.width)
 	var zs := _axis(grid.depth)
 	origin_index = xs.find(0.0)
@@ -272,6 +265,19 @@ func build(battle_grid: BattleGrid, layer_height: float, village: bool = false, 
 	picking_surface = mesh.generate_triangle_mesh()
 	var world_mesh := MeshInstance3D.new()
 	world_mesh.mesh = mesh
+	return world_mesh
+
+
+func build(battle_grid: BattleGrid, layer_height: float, village: bool = false, woodland: bool = false) -> void:
+	grid = battle_grid
+	map_layer_height = layer_height
+	if village:
+		_add_site(Vector2(-2.15,6.65),3.1,3.10,false)
+		_add_site(Vector2(3.8,grid.depth+1.95),2.2,5.20,false)
+		_add_site(Vector2(-2.20,3.36),2.9,.12,true)
+		_add_site(Vector2(grid.width+2.45,5.8),3.2,1.76,true)
+		_add_site(Vector2(1.6,-2.10),2.6,-.39,false)
+	var world_mesh := _build_surface()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://view/nemea_ground.gdshader")
 	mat.set_shader_parameter("village_lane",village)

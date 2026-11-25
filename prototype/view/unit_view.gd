@@ -120,13 +120,13 @@ func setup(u: UnitState, tex: Texture2D, motion: Texture2D) -> void:
 
 	var caster := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
-	var quadruped := u.def_id in ["wolf","boar","lion","chiron","centaur"]
-	capsule.radius = sprite_height * (0.16 if u.def_id == "wolf" else (0.2 if quadruped else 0.105))
-	capsule.height = sprite_height * (.88 if u.def_id == "wolf" else (1.12 if quadruped else 0.91))
+	var horizontal_body := u.def_id in ["wolf","boar","lion","chiron","centaur","marsh_snake","giant_crab"]
+	capsule.radius = sprite_height * (0.16 if u.def_id == "wolf" else (0.2 if horizontal_body else 0.105))
+	capsule.height = sprite_height * (.88 if u.def_id == "wolf" else (1.12 if horizontal_body else 0.91))
 	caster.mesh = capsule
 	caster.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	caster.position.y = sprite_height * (0.30 if u.def_id == "wolf" else 0.49)
-	if quadruped:
+	if horizontal_body:
 		caster.rotation.x = PI/2
 	caster.name = "Caster"
 	add_child(caster)
@@ -158,7 +158,9 @@ func _setup_base(u: UnitState, draw_ground_shadow := true) -> void:
 		shadow.name="GroundShadow"
 		add_child(shadow)
 
-	sprite_height = {"wolf":1.18,"boar":1.16,"lion":1.75,"heracles":2.18,"centaur":2.28,"chiron":2.28}.get(u.def_id,1.88)
+	sprite_height = {"wolf":1.18,"boar":1.16,"lion":1.75,"heracles":2.18,"centaur":2.28,"chiron":2.28,
+		"marsh_snake":1.15,"giant_crab":1.04,
+		"stymphalian_bird":1.55,"marsh_flock":1.34}.get(u.def_id,1.88)
 
 
 func set_pose(pose: int, seconds: float) -> void:

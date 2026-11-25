@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64">
+  <g fill="white">
+    <g transform="rotate(-36 31 44)">
+    <path fill-rule="evenodd" d="M30 4l-5 12h4v38l-2 5h7l-1-6V16h4Z"/>
+    </g>
+    <g transform="rotate(-18 31 44)">
+    <path fill-rule="evenodd" d="M30 4l-5 12h4v38l-2 5h7l-1-6V16h4Z"/>
+    </g>
+    <path fill-rule="evenodd" d="M30 4l-5 12h4v38l-2 5h7l-1-6V16h4Z"/>
+    <g transform="rotate(18 31 44)">
+    <path fill-rule="evenodd" d="M30 4l-5 12h4v38l-2 5h7l-1-6V16h4Z"/>
+    </g>
+    <g transform="rotate(36 31 44)">
+    <path fill-rule="evenodd" d="M30 4l-5 12h4v38l-2 5h7l-1-6V16h4Z"/>
+    </g>
+    <path fill-rule="evenodd" d="M22 38l18 3-1 5-17-3Z"/>
+  </g>
+</svg>

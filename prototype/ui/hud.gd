@@ -16,11 +16,11 @@ const ACTION_MARK := {"spear":0,"slash":0,"shield_bash":1,"shoulder_throw":13,"w
 	"mark":7,"club":13,"push_boulder":17}
 ## The stamp for each command, from the same set the camp uses. A technique with a drawing
 ## of its own (the tree's) uses that; these cover the rest.
-const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash","heavy_cut":"act_slash","shield_bash":"act_shield",
+const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash","shield_bash":"act_shield",
 	"shoulder_throw":"act_grapple","wait":"act_wait",
 	"facing":"act_facing","face":"act_facing","undo_move":"act_undo","move":"boot","leap":"jump","mark":"act_mark",
-	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","aimed_shot":"act_shoot","witch_fire":"act_fire",
-	"push_boulder":"act_push","trample":"heel_strike","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}
+	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","witch_fire":"act_fire",
+	"push_boulder":"act_push","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}
 var enemy_numbers := {}
 var _round_numbers := {}
 var _queue_round := -1
@@ -152,7 +152,7 @@ func _ready() -> void:
 	menu_button.focus_mode = Control.FOCUS_NONE
 	menu_button.pressed.connect(func(): menu_pressed.emit())
 	# Every tool carries its stamp and its word.
-	var tool_art := { _threat:"ui_threat", _tactical:"ui_terrain", _journal:"ui_log", _help:"ui_keys", menu_button:"ui_menu" }
+	var tool_art := { _threat:"ui_threat", _tactical:"ui_terrain", _journal:"ui_log", _help:"ui_keys", menu_button:"system" }
 	for button: Button in tool_art:
 		button.icon = Px.icon(tool_art[button],32)
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -395,7 +395,7 @@ func _has_context() -> bool:
 
 ## The drawing for a command, tinted by whoever draws it.
 static func _art(kind: String, size := 32) -> Texture2D:
-	var name: String = ACTION_ART.get(kind,kind)
+	var name := Px.technique_stamp(ACTION_ART.get(kind,kind))
 	if not ResourceLoader.exists(Px.icon_path(name)): name = "skills"
 	return Px.icon(name,size)
 
@@ -743,7 +743,9 @@ func _stat_group(parent: Container, title: String, items: Array) -> void:
 		measure.add_theme_constant_override("separation",roundi(4*ui_scale))
 		field.add_child(measure)
 		var icon := TextureRect.new()
-		icon.texture = _mark(item[1])
+		icon.texture = Px.icon(item[1],24)
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.modulate = Px.OCHRE
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.custom_minimum_size = Vector2.ONE*23*ui_scale
@@ -763,8 +765,8 @@ func _add_attributes(parent: VBoxContainer, u: UnitState, height: int, compact: 
 	var groups: BoxContainer = VBoxContainer.new() if compact else HBoxContainer.new()
 	parent.add_child(groups)
 	var facing: String = {Defs.NORTH:"北",Defs.EAST:"东",Defs.SOUTH:"南",Defs.WEST:"西"}.get(u.facing,"—")
-	_stat_group(groups,"战斗属性",[["力量",0,u.strength],["防御",1,u.defense],["意志",19,u.will]])
-	_stat_group(groups,"机动与站位",[["移动",18,u.move],["跳跃",20,u.jump],["高度",9,height],["朝向",21,facing]])
+	_stat_group(groups,"战斗属性",[["力量","strength",u.strength],["防御","armor",u.defense],["意志","will",u.will]])
+	_stat_group(groups,"机动与站位",[["移动","boot",u.move],["跳跃","jump",u.jump],["高度","ui_terrain",height],["朝向","act_facing",facing]])
 	_add_tags(parent,u)
 
 

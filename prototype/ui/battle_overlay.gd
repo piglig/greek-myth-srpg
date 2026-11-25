@@ -38,13 +38,13 @@ func _ready() -> void:
 
 
 ## `icon` is drawn before the words when given (a thing picked up, say), in the same colour.
-func add_popup(world: Vector3, text: String, color: Color, icon: Texture2D = null) -> void:
+func add_popup(world: Vector3, text: String, color: Color, icon: Texture2D = null, row := 0) -> void:
 	# Stack popups that land on the same spot.
 	var stacked := 0
 	for p in popups:
-		if (p["world"] as Vector3).distance_to(world) < 0.1 and p["age"] < 0.4:
+		if p.row == row and (p["world"] as Vector3).distance_to(world) < 0.1 and p["age"] < 0.4:
 			stacked += 1
-	popups.append({"world": world, "text": text, "color": color, "age": -0.18 * stacked, "icon": icon})
+	popups.append({"world": world, "text": text, "color": color, "age": -0.18 * stacked, "icon": icon, "row":row})
 
 
 func set_health_forecast(row: Dictionary) -> void:
@@ -323,7 +323,7 @@ func _draw() -> void:
 		col.a = clampf(1.5 - age / POPUP_LIFE * 1.5, 0, 1)
 		var size := int(22 * s)
 		var tw := font.get_string_size(p["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-		var at := sp + Vector2(-tw / 2, -age * 40 * s)
+		var at := sp + Vector2(-tw / 2, -(age * 40 + int(p.row) * 32) * s)
 		if p.get("icon") != null:
 			# The drawing leads the words, on a dark disc so it reads over any ground.
 			var side := 22.0*s

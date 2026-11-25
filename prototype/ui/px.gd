@@ -325,6 +325,13 @@ static func clear(parent: Control) -> void:
 		child.queue_free()
 
 
+## A technique can share a drawing, or share its ID with a different status badge.
+static func technique_stamp(id: String) -> String:
+	const STAMPS := {"pho_gallop":"eury_gallop","pho_vault":"eury_vault",
+		"kindling":"medea_kindling","bind_hex":"medea_bind_hex"}
+	return STAMPS.get(id,id)
+
+
 static func icon_path(name: String) -> String:
 	var original := "res://art/original/icons/%s.svg" % name
 	if ResourceLoader.exists(original):

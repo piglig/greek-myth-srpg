@@ -29,7 +29,7 @@ const NUMERALS := ["一","二","三","四","五","六","七","八"]
 ## and the screen they open.
 const PEOPLE := [
 	{"key":"trader","name":"阿齐尔","role":"行商","service":"买护符","icon":"shop","def":"refugee","look":"npc_trader","cell":Vector2(10.85,6.15),"turn":Vector2i(0,1)},
-	{"key":"recruit","name":"达蒙","role":"教习","service":"招募 · 操练","icon":"helmet","def":"bandit_chief","look":"npc_drill","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
+	{"key":"recruit","name":"达蒙","role":"教习","service":"招募 · 操练","icon":"talk","def":"bandit_chief","look":"npc_drill","cell":Vector2(3.4,5.6),"turn":Vector2i(1,0)},
 	{"key":"march","name":"伊俄","role":"领路人","service":"出征","icon":"march","def":"bandit_archer","look":"npc_guide","cell":Vector2(11.4,8.2),"turn":Vector2i(-1,0)}]
 const GREETINGS := {"trader":"坐。我这秤称过腓尼基的银子，也称过阿卡迪亚最后一袋麦子。",
 	"recruit":"把盾放低些。你看得见我的肩，才看得见我什么时候出手。",
@@ -1274,14 +1274,18 @@ func _sheet(rows: Array) -> void:
 	leaves.append(Px.tab(body,"信息",Rect2(x,y,64,24),page == "info",_pick_page.bind("info")))
 	leaves.append(Px.tab(body,"技能树",Rect2(x+68,y,64,24),page == "tree",_pick_page.bind("tree")))
 	Px.chain(leaves,false)
-	if page == "tree" and member == "hero":
-		var innate: Array = UnitCatalog.unit_def(_def(member)).get("skills",[])
+	if page == "tree":
+		var sources := {"随身":UnitCatalog.unit_def(_def(member)).get("skills",[])}
+		var recruit := _kind(member)
+		if not recruit.is_empty():
+			sources["随身"] = [_basic(member),recruit.skill]
+		if member == "hero" and entry.get("equipped_relic","") == "lion_pelt":
+			sources["狮皮"] = ["impervious_hide"]
 		var offset := x+140
-		for source: String in ["随身","狮皮"]:
-			if source == "狮皮" and entry.get("equipped_relic","") != "lion_pelt": continue
+		for source: String in sources:
 			Px.text(body,source,Rect2(offset,y+7,26,0),Px.SMALL,Px.MUTED)
 			offset += 26
-			for id: String in (innate if source == "随身" else ["impervious_hide"]):
+			for id: String in sources[source]:
 				var icon := Px.picture(body,_skill_mark(member,id,24),Rect2(offset,y,24,24))
 				icon.modulate = Px.IVORY
 				icon.mouse_filter = MOUSE_FILTER_PASS
@@ -1652,7 +1656,7 @@ func _pick_technique(id: String) -> void:
 
 ## The stamp for a technique: its own drawing if it has one, else the one for what it grants.
 func _mark(node: Dictionary, size: int) -> Texture2D:
-	for key: String in [str(node.id),str(node.get("skill","")),str(node.get("trait",""))]:
+	for key: String in [Px.technique_stamp(node.id),str(node.get("skill","")),str(node.get("trait",""))]:
 		if key != "" and ResourceLoader.exists(Px.icon_path(key)): return Px.icon(key,size)
 	return Px.icon("skills",size)
 
@@ -1708,7 +1712,7 @@ func _grid(key: String, area: Rect2, things: Array, chosen: String, pick: Callab
 			ring.size = Vector2(48,48)
 			ring.mouse_filter = MOUSE_FILTER_IGNORE
 			inner.add_child(ring)
-		Px.picture(inner,Px.icon(Save.art(item),24),Rect2(hub-Vector2(12,12),Vector2(24,24))).modulate = tint if open else tint.darkened(.15)
+		Px.picture(inner,Px.icon(Save.art(item),24),Rect2(hub-Vector2(12,12),Vector2(24,24))).modulate = Px.IVORY
 		var corner := str(mark.call(item))
 		if corner != "": Px.text(inner,corner,Rect2(at+Vector2(0,0),Vector2(cell.x-6,0)),Px.SMALL,Px.IVORY,HORIZONTAL_ALIGNMENT_RIGHT)
 		var price := int(cost.call(item))
@@ -1734,7 +1738,7 @@ func _thing(item: String, side: Rect2) -> float:
 	var goods: Dictionary = Save.GOODS[item]
 	var x := side.position.x+16
 	var wide := side.size.x-32
-	Px.picture(body,Px.icon(Save.art(item),48),Rect2(x,side.position.y+14,48,48)).modulate = _tint(item)
+	Px.picture(body,Px.icon(Save.art(item),48),Rect2(x,side.position.y+14,48,48)).modulate = Px.IVORY
 	var kind: String = {"material":"材料","item":"物品"}.get(goods.slot,Save.slot_name(goods.slot))
 	Px.text(body,"%s · %s" % [kind,_rarity_word(item)],Rect2(x+58,side.position.y+16,wide-58,0),Px.SMALL,Px.OCHRE)
 	Px.text(body,goods.name,Rect2(x+58,side.position.y+32,wide-58,0),Px.BODY,_tint(item))
@@ -2251,7 +2255,7 @@ func _modal(width: float, height: float, stamp := "", tone := Px.OCHRE) -> Rect2
 	return rect
 
 func _ask_boon() -> void:
-	var rect := _modal(520,296,"relic")
+	var rect := _modal(520,296,"boon")
 	var x := rect.position.x+28
 	var y := rect.position.y+22
 	Px.text(body,"第一章 · 涅墨亚",Rect2(x+56,y-6,300,0),Px.SMALL,Px.OCHRE)

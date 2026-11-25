@@ -56,3 +56,25 @@
 第八批神力招式图标。雷矢、天火、雷行、天穹、天罚、雷躯均为本项目原创的陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
 
 第八批持盾主角的 14 枚招式与特性图标为本项目原创陶绘剪影，矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批六位招募英雄的 22 枚招式与特性图标为本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批装备图标。手部、身体、足部和饰品共 26 枚，为本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批随身物品。六枚陶绘剪影及投石弹丸由本项目原创绘制，矢量稿位于 `prototype/art/original/icons/`。六枚物品图标的 256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批战利品材料。狼皮、野猪獠牙、箭束、狮鬃等 14 枚黑绘陶器风格剪影为本项目原创。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批界面图标。德拉克马、七项人物属性及七个营地与菜单标识，均为本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批阿塔兰忒图标。六种射术与五项特性均为本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批喀戎图标。四种箭术与六项医者、导师特性均为本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第八批美狄亚图标。六种巫火、咒术招式和五项特性使用本项目原创陶绘剪影。矢量稿位于 `prototype/art/original/icons/`，256 像素透明 PNG 位于 `art/originals/icons/`。
+
+第二章勒拿沼泽敌军。沼蛇、巨蟹和赫拉的女祭司各六格原画均为本项目 AI 生成的原创素材，位于 `art/originals/`。游戏使用由原画转制的二维像素帧。
+
+勒拿沼泽地表与气氛图为本项目 AI 生成的原创水粉素材。地表位于 `art/originals/lerna-mud.png`，战场概念图位于 `art/direction/lerna-marsh.png`。
+
+第三章斯廷法利斯湖的湖岸地表、气氛图及铜羽鸟、五鸟群的两张六姿势原画，均为本项目 AI 生成的原创水粉素材。两种单位的游戏帧沿用项目的二维像素转制流程。

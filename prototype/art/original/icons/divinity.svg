@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64">
+  <g fill="white">
+    <circle cx="32" cy="32" r="13"/>
+    <g transform="rotate(0 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(45 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(90 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(135 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(180 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(225 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(270 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+    <g transform="rotate(315 32 32)">
+    <path fill-rule="evenodd" d="M29 4h6l-1 10h-4Z"/>
+    </g>
+  </g>
+</svg>

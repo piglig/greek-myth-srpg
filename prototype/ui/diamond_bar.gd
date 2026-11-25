@@ -317,9 +317,7 @@ func _draw() -> void:
 
 
 func _stamp(name: String) -> Texture2D:
-	var art: String = Hud.ACTION_ART.get(name,name)
-	if not ResourceLoader.exists(Px.icon_path(art)): art = "skills"
-	return Px.icon(art,32)
+	return Hud._art(name,32)
 
 
 ## Sized for the window: `scale` is the battle interface's own.

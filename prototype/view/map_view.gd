@@ -16,6 +16,8 @@ const TERRAIN_COLORS := {
 	Defs.Terrain.STYX: Color(0.34, 0.24, 0.45),
 }
 
+enum Wetland { NONE, LERNA, STYMPHALUS }
+var wetland := Wetland.NONE
 var nemea := false
 var village_sites := false
 var woodland := false
@@ -31,8 +33,13 @@ func build(g: BattleGrid) -> void:
 	for child in get_children():
 		child.queue_free()
 	field = null
-	if nemea and not tactical:
-		field = NemeaField.new()
+	if (wetland != Wetland.NONE or nemea) and not tactical:
+		if wetland == Wetland.NONE:
+			field = NemeaField.new()
+		else:
+			var shore := preload("res://view/lerna_field.gd").new()
+			shore.pale_lake = wetland == Wetland.STYMPHALUS
+			field = shore
 		field.grid_lines = grid_lines
 		add_child(field)
 		field.build(g, LEVEL_HEIGHT, village_sites, woodland)

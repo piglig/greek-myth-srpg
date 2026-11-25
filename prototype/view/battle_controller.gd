@@ -1262,12 +1262,14 @@ func _drop_spoils(id: String, shown := true) -> void:
 	dice.randomize()
 	var left := Checkpoint.roll_loot([fallen.def_id],dice)
 	var view: UnitView = unit_views.get(id)
+	var row := 0
 	for thing: String in left:
 		_haul[thing] = int(_haul.get(thing,0))+int(left[thing])
 		if shown and view != null:
 			var rare: String = Checkpoint.GOODS[thing].get("rarity","common")
 			var words: String = Checkpoint.GOODS[thing].name+(" ×%d" % int(left[thing]) if int(left[thing]) > 1 else "")
-			hud.overlay.add_popup(view.position+Vector3.UP*.9,words,Color(str(Checkpoint.RARITY[rare].tint)),Px.icon(Checkpoint.art(thing),32))
+			hud.overlay.add_popup(view.position+Vector3.UP*.9,words,Color(str(Checkpoint.RARITY[rare].tint)),Px.icon(Checkpoint.art(thing),32),row)
+			row += 1
 	if shown and not left.is_empty(): Soundscape.cue("confirm")
 
 
@@ -1293,7 +1295,9 @@ func _throw_thing(thrower: UnitView, target: UnitView, thing: String) -> void:
 	var hand := thrower.position+Vector3.UP*thrower.sprite_height*.72
 	var mark := _effect_origin(target)
 	var fiery := thing == "item_firepot"
-	var card := _thing_card(thing,hand,Color("#ffb066") if fiery else Color("#f1e3c4"))
+	# The kit stamp shows the loaded sling. Only its stone leaves the hand.
+	var projectile := "sling_stone" if thing == "item_stone" else thing
+	var card := _thing_card(projectile,hand,Color("#ffb066") if fiery else Color("#f1e3c4"))
 	var flight := clampf(hand.distance_to(mark)/9.0,.26,.5)
 	var lift := 1.1+hand.distance_to(mark)*.12
 	Soundscape.cue("swing")

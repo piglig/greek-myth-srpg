@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64">
+  <g fill="white">
+    <path fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M8 55Q33 36 52 9"/>
+    <path fill-rule="evenodd" d="M16 47Q4 39 7 24q11 4 9 23Z M24 39q-8-14-4-24 10 6 4 24Z M36 26Q30 12 37 5q8 12-1 21Z M39 28q4-15 20-15-3 12-20 15Z M21 44q12-13 28-9-8 12-28 9Z"/>
+    <ellipse cx="32" cy="47" rx="5" ry="7" transform="rotate(-24 32 47)"/>
+    <circle cx="48" cy="29" r="4.5"/>
+  </g>
+</svg>

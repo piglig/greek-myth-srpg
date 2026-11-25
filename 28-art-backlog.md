@@ -190,7 +190,7 @@ The Greek hero Heracles as a weary man in his forties, massive bare shoulders, h
 
 ### 2.1 图标
 
-现有图标来自 game-icons（CC BY 3.0）。界面已经改成陶瓶画风格，图标本来就是单色剪影，方向是合的；换成专门画的会更统一。规格见 6.3。
+本节 162 项已完成，采用项目原创的希腊陶绘单色剪影，尺寸规格见 6.3。
 
 **图标模板**（所有图标共用，把 `{主体}` 换成表里的英文）：
 
@@ -289,75 +289,83 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 射击 | `act_shoot` | `a drawn bow with an arrow nocked` |
-| [ ] | 要害射击 | `vital_shot` | `an arrow buried in the centre of a small heart` |
-| [ ] | 跃射 | `leap_shot` | `an archer in mid-leap loosing an arrow downward` |
-| [ ] | 钉足箭 | `pin_shot` | `an arrow pinning a foot to the ground` |
-| [ ] | 卡吕冬之矢 | `calydon` | `an arrow piercing a boar's head` |
-| [ ] | 越岭射 | `ridge_shot` | `an arrow arcing over a mountain ridge` |
-| [ ] | 猎人耐心 | `patience` | `a kneeling archer holding a drawn bow perfectly still` |
-| [ ] | 巨兽克星 | `beast_hunter` | `a pair of boar tusks crossed` |
-| [ ] | 游击 | `skirmish` | `a running figure looking back over the shoulder` |
-| [ ] | 越林步 | `fleet` | `a bare foot stepping between two tree trunks` |
-| [ ] | 羚跃 | `high_jump` | `a leaping deer` |
+| [x] | 射击 | `act_shoot` | `a drawn bow with an arrow nocked` |
+| [x] | 要害射击 | `vital_shot` | `an arrow buried in the centre of a small heart` |
+| [x] | 跃射 | `leap_shot` | `an archer in mid-leap loosing an arrow downward` |
+| [x] | 钉足箭 | `pin_shot` | `an arrow pinning a foot to the ground` |
+| [x] | 卡吕冬之矢 | `calydon` | `an arrow piercing a boar's head` |
+| [x] | 越岭射 | `ridge_shot` | `an arrow arcing over a mountain ridge` |
+| [x] | 猎人耐心 | `patience` | `a kneeling archer holding a drawn bow perfectly still` |
+| [x] | 巨兽克星 | `beast_hunter` | `a pair of boar tusks crossed` |
+| [x] | 游击 | `skirmish` | `a running figure looking back over the shoulder` |
+| [x] | 越林步 | `fleet` | `a bare foot stepping between two tree trunks` |
+| [x] | 羚跃 | `high_jump` | `a leaping deer` |
+
+达蒙的操练页在「随身」栏显示射击，两条技能树显示五种进阶射术与五项特性。战斗指令与悬停说明使用同一套射术图标。
 
 #### 喀戎（10 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 净化箭 | `purify_arrow` | `an arrow with a sprig of herb bound to its shaft` |
-| [ ] | 指隙箭 | `weak_point` | `an arrow slipping through the gap between two armour plates` |
-| [ ] | 退敌箭 | `repel_arrow` | `an arrow knocking a figure backward` |
-| [ ] | 射手座之矢 | `centaur_volley` | `a centaur drawing a bow, rearing` |
-| [ ] | 战地医术 | `field_medicine` | `a staff with a single serpent twined round it` |
-| [ ] | 药囊 | `herb_pouch` | `a small pouch with leaves spilling from its mouth` |
-| [ ] | 止血包扎 | `triage` | `a forearm wrapped in a bandage` |
-| [ ] | 复方解毒 | `antidote` | `a mortar and pestle` |
-| [ ] | 识破架势 | `mentor_stagger` | `an open eye above a tilted shield` |
-| [ ] | 观隙 | `keen_eye` | `an eye with a single arrow as its pupil` |
+| [x] | 净化箭 | `purify_arrow` | `an arrow with a sprig of herb bound to its shaft` |
+| [x] | 指隙箭 | `weak_point` | `an arrow slipping through the gap between two armour plates` |
+| [x] | 退敌箭 | `repel_arrow` | `an arrow knocking a figure backward` |
+| [x] | 射手座之矢 | `centaur_volley` | `a centaur drawing a bow, rearing` |
+| [x] | 战地医术 | `field_medicine` | `a staff with a single serpent twined round it` |
+| [x] | 药囊 | `herb_pouch` | `a small pouch with leaves spilling from its mouth` |
+| [x] | 止血包扎 | `triage` | `a forearm wrapped in a bandage` |
+| [x] | 复方解毒 | `antidote` | `a mortar and pestle` |
+| [x] | 识破架势 | `mentor_stagger` | `an open eye above a tilted shield` |
+| [x] | 观隙 | `keen_eye` | `an eye with a single arrow as its pupil` |
+
+达蒙的「医者」与「导师」两条技能树共显示四种箭术和六项特性。四种箭术可同时携带，战斗指令与悬停说明使用对应剪影。
 
 #### 美狄亚（11 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 巫火 | `act_fire` | `a flame rising from an open palm` |
-| [ ] | 日轮焰 | `solar_flame` | `a sun disc with long wavy rays` |
-| [ ] | 烬火长矛 | `cinder_lance` | `a spear made of flame` |
-| [ ] | 蚀骨咒 | `frailty` | `a cracked thigh bone` |
-| [ ] | 缚足咒 | `bind_hex` | `two feet bound together by a knotted cord` |
-| [ ] | 长夜咒 | `night_hex` | `a crescent moon with a closed eye inside it` |
-| [ ] | 助燃 | `kindling` | `a small flame fed by a drop of oil` |
-| [ ] | 焚尽 | `long_flame` | `a pile of embers with a thin flame still rising` |
-| [ ] | 日神血脉 | `solar_blood` | `a drop of blood with a small sun inside it` |
-| [ ] | 缠身咒 | `lingering_hex` | `a heart wrapped in a chain` |
-| [ ] | 赫卡忒的庇护 | `hex_ward` | `two crossed torches behind a small shield` |
+| [x] | 巫火 | `act_fire` | `a flame rising from an open palm` |
+| [x] | 日轮焰 | `solar_flame` | `a sun disc with long wavy rays` |
+| [x] | 烬火长矛 | `cinder_lance` | `a spear made of flame` |
+| [x] | 蚀骨咒 | `frailty` | `a cracked thigh bone` |
+| [x] | 缚足咒 | `bind_hex` | `two feet bound together by a knotted cord` |
+| [x] | 长夜咒 | `night_hex` | `a crescent moon with a closed eye inside it` |
+| [x] | 助燃 | `kindling` | `a small flame fed by a drop of oil` |
+| [x] | 焚尽 | `long_flame` | `a pile of embers with a thin flame still rising` |
+| [x] | 日神血脉 | `solar_blood` | `a drop of blood with a small sun inside it` |
+| [x] | 缠身咒 | `lingering_hex` | `a heart wrapped in a chain` |
+| [x] | 赫卡忒的庇护 | `hex_ward` | `two crossed torches behind a small shield` |
+
+达蒙的技能树显示随身巫火，以及「烈焰」「诅咒」两支的十个节点。六种主动招式在指令盘与悬停说明中沿用同一剪影。「助燃」「缚足咒」的素材分别为 `medea_kindling` 和 `medea_bind_hex`，血条旁的灼烧与束缚保留各自的状态徽章。
 
 #### 六位英雄（22 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 劈砍 / 重劈 | `heavy_cut` | `a short sword in a downward diagonal cut` |
-| [ ] | 断矛斩 | `spear_breaker` | `a sword cutting a spear shaft in two` |
-| [ ] | 并肩而立 | `iph_stand` | `two warriors standing shoulder to shoulder` |
-| [ ] | 以身相护 | `iph_cover` | `a warrior with arms spread in front of a fallen comrade` |
-| [ ] | 瞄准射击 | `aimed_shot` | `a bow at full draw with a sighting line to a small dot` |
-| [ ] | 远射 | `long_shot` | `an arrow in a long high arc` |
-| [ ] | 绊足箭 | `snare_arrow` | `an arrow trailing a looped cord` |
-| [ ] | 破甲箭 | `bodkin_arrow` | `a narrow needle-pointed arrowhead piercing a metal plate` |
-| [ ] | 稳弓 | `pha_steady` | `a bow held level on a steady extended arm` |
-| [ ] | 劈盾 | `shield_split` | `a double-headed axe splitting a round shield` |
-| [ ] | 回旋斧 | `axe_sweep` | `a double-headed axe with a circular motion line round it` |
-| [ ] | 伐木式 | `felling_blow` | `an axe sunk into a tree trunk` |
-| [ ] | 熊皮 | `anc_hide` | `a bear's head worn as a hood` |
-| [ ] | 不信预言 | `anc_defy` | `a wine cup knocked over on its side` |
-| [ ] | 践踏 | `trample` | `two horse hooves coming down on a small shield` |
-| [ ] | 后蹄 | `hind_kick` | `a horse's hind legs kicking backward` |
-| [ ] | 陈酒 | `old_wine` | `a wineskin pouring into a shallow cup` |
-| [ ] | 洞口相迎 | `pho_shelter` | `a cave mouth with a small fire inside` |
-| [ ] | 疾蹄 / 熟路 | `eury_gallop` | `a galloping centaur at full stretch` |
-| [ ] | 跃涧 | `eury_vault` | `a centaur leaping across a gap` |
-| [ ] | 厚实筋骨 | `idas_frame` | `a broad bare torso with thick arms held out from the sides` |
-| [ ] | 不服神意 | `idas_pride` | `a raised fist shaken at a thundercloud` |
+| [x] | 劈砍 / 重劈 | `heavy_cut` | `a short sword in a downward diagonal cut` |
+| [x] | 断矛斩 | `spear_breaker` | `a sword cutting a spear shaft in two` |
+| [x] | 并肩而立 | `iph_stand` | `two warriors standing shoulder to shoulder` |
+| [x] | 以身相护 | `iph_cover` | `a warrior with arms spread in front of a fallen comrade` |
+| [x] | 瞄准射击 | `aimed_shot` | `a bow at full draw with a sighting line to a small dot` |
+| [x] | 远射 | `long_shot` | `an arrow in a long high arc` |
+| [x] | 绊足箭 | `snare_arrow` | `an arrow trailing a looped cord` |
+| [x] | 破甲箭 | `bodkin_arrow` | `a narrow needle-pointed arrowhead piercing a metal plate` |
+| [x] | 稳弓 | `pha_steady` | `a bow held level on a steady extended arm` |
+| [x] | 劈盾 | `shield_split` | `a double-headed axe splitting a round shield` |
+| [x] | 回旋斧 | `axe_sweep` | `a double-headed axe with a circular motion line round it` |
+| [x] | 伐木式 | `felling_blow` | `an axe sunk into a tree trunk` |
+| [x] | 熊皮 | `anc_hide` | `a bear's head worn as a hood` |
+| [x] | 不信预言 | `anc_defy` | `a wine cup knocked over on its side` |
+| [x] | 践踏 | `trample` | `two horse hooves coming down on a small shield` |
+| [x] | 后蹄 | `hind_kick` | `a horse's hind legs kicking backward` |
+| [x] | 陈酒 | `old_wine` | `a wineskin pouring into a shallow cup` |
+| [x] | 洞口相迎 | `pho_shelter` | `a cave mouth with a small fire inside` |
+| [x] | 疾蹄 / 熟路 | `eury_gallop` | `a galloping centaur at full stretch` |
+| [x] | 跃涧 | `eury_vault` | `a centaur leaping across a gap` |
+| [x] | 厚实筋骨 | `idas_frame` | `a broad bare torso with thick arms held out from the sides` |
+| [x] | 不服神意 | `idas_pride` | `a raised fist shaken at a thundercloud` |
+
+达蒙的技能树按 24 像素显示这套剪影。「随身」栏显示各英雄自带的基础攻击与招式，重劈、瞄准射击和践踏也能在这里辨认。战斗指令与说明卡沿用同一图标。福洛斯的熟路与欧律提翁的疾蹄共用疾驰剪影，两人的跃涧共用跨涧剪影。
 
 #### 装备（26 个）
 
@@ -365,82 +373,82 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 橄榄枝 | `olive` | `an olive branch with five leaves and two olives` |
-| [ ] | 皮手套 | `glove_hide` | `a single leather glove` |
-| [ ] | 拳带 | `fist_wrap` | `a fist wrapped in leather thongs` |
-| [ ] | 青铜护腕 | `bracer_bronze` | `a bronze forearm guard` |
-| [ ] | 誓约指环 | `ring_oath` | `a plain ring with an engraved bezel` |
-| [ ] | 铁臂甲 | `gauntlet` | `an armoured forearm and hand` |
-| [ ] | 红线团 | `red_thread` | `a small tight ball of thread` |
-| [ ] | 亚麻短衣 | `tunic` | `a short sleeveless Greek tunic` |
-| [ ] | 宽皮带 | `belt_wide` | `a broad leather belt with a round buckle` |
-| [ ] | 皮甲 | `leather` | `a leather cuirass with shoulder straps` |
-| [ ] | 旅人斗篷 | `cloak_travel` | `a hooded travelling cloak` |
-| [ ] | 鳞甲 | `scale` | `a cuirass covered in overlapping scales` |
-| [ ] | 青铜胸甲 | `cuirass` | `a muscled bronze breastplate` |
-| [ ] | 狼皮披肩 | `wolf_cape` | `a wolf pelt worn as a shoulder cape, the head on one shoulder` |
-| [ ] | 草鞋 | `sandal` | `a single strapped sandal` |
-| [ ] | 牧人皮靴 | `boots` | `a soft ankle boot with a turned-down cuff` |
-| [ ] | 胫甲 | `greaves` | `a pair of bronze shin guards` |
-| [ ] | 山行绑腿 | `trail_wraps` | `a lower leg wrapped in crossed cloth bindings` |
-| [ ] | 飞翼凉鞋 | `wingfoot` | `a sandal with a small wing at the ankle` |
-| [ ] | 鹰羽 | `feather` | `a single broad eagle feather` |
-| [ ] | 狼牙坠 | `fang_charm` | `a wolf's fang hung on a cord` |
-| [ ] | 祭酒杯 | `cup` | `a shallow two-handled libation cup` |
-| [ ] | 琥珀项链 | `necklace` | `a necklace of round beads with one large central stone` |
-| [ ] | 青金坠 | `pendant` | `a teardrop pendant on a chain` |
-| [ ] | 猫头鹰小像 | `owl` | `a small owl figurine seen from the front` |
-| [ ] | 祭司护符 | `amulet` | `an amulet shaped like an eye inside a triangle of cord` |
+| [x] | 橄榄枝 | `olive` | `an olive branch with five leaves and two olives` |
+| [x] | 皮手套 | `glove_hide` | `a single leather glove` |
+| [x] | 拳带 | `fist_wrap` | `a fist wrapped in leather thongs` |
+| [x] | 青铜护腕 | `bracer_bronze` | `a bronze forearm guard` |
+| [x] | 誓约指环 | `ring_oath` | `a plain ring with an engraved bezel` |
+| [x] | 铁臂甲 | `gauntlet` | `an armoured forearm and hand` |
+| [x] | 红线团 | `red_thread` | `a small tight ball of thread` |
+| [x] | 亚麻短衣 | `tunic` | `a short sleeveless Greek tunic` |
+| [x] | 宽皮带 | `belt_wide` | `a broad leather belt with a round buckle` |
+| [x] | 皮甲 | `leather` | `a leather cuirass with shoulder straps` |
+| [x] | 旅人斗篷 | `cloak_travel` | `a hooded travelling cloak` |
+| [x] | 鳞甲 | `scale` | `a cuirass covered in overlapping scales` |
+| [x] | 青铜胸甲 | `cuirass` | `a muscled bronze breastplate` |
+| [x] | 狼皮披肩 | `wolf_cape` | `a wolf pelt worn as a shoulder cape, the head on one shoulder` |
+| [x] | 草鞋 | `sandal` | `a single strapped sandal` |
+| [x] | 牧人皮靴 | `boots` | `a soft ankle boot with a turned-down cuff` |
+| [x] | 胫甲 | `greaves` | `a pair of bronze shin guards` |
+| [x] | 山行绑腿 | `trail_wraps` | `a lower leg wrapped in crossed cloth bindings` |
+| [x] | 飞翼凉鞋 | `wingfoot` | `a sandal with a small wing at the ankle` |
+| [x] | 鹰羽 | `feather` | `a single broad eagle feather` |
+| [x] | 狼牙坠 | `fang_charm` | `a wolf's fang hung on a cord` |
+| [x] | 祭酒杯 | `cup` | `a shallow two-handled libation cup` |
+| [x] | 琥珀项链 | `necklace` | `a necklace of round beads with one large central stone` |
+| [x] | 青金坠 | `pendant` | `a teardrop pendant on a chain` |
+| [x] | 猫头鹰小像 | `owl` | `a small owl figurine seen from the front` |
+| [x] | 祭司护符 | `amulet` | `an amulet shaped like an eye inside a triangle of cord` |
 
 #### 随身物品（6 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 回复药 | `item_potion` | `a round-bellied potion flask with a stopper` |
-| [ ] | 解毒药 | `item_antidote` | `a narrow-necked flask with a leaf tied to it` |
-| [ ] | 投石 | `item_stone` | `a sling with a stone in its pouch` |
-| [ ] | 标枪 | `item_javelin` | `a short javelin with a throwing loop` |
-| [ ] | 火油罐 | `item_firepot` | `a small clay pot with a burning rag in its mouth` |
-| [ ] | 捕网 | `item_net` | `a weighted throwing net spread open` |
+| [x] | 回复药 | `item_potion` | `a round-bellied potion flask with a stopper` |
+| [x] | 解毒药 | `item_antidote` | `a narrow-necked flask with a leaf tied to it` |
+| [x] | 投石 | `item_stone` | `a sling with a stone in its pouch` |
+| [x] | 标枪 | `item_javelin` | `a short javelin with a throwing loop` |
+| [x] | 火油罐 | `item_firepot` | `a small clay pot with a burning rag in its mouth` |
+| [x] | 捕网 | `item_net` | `a weighted throwing net spread open` |
 
 #### 材料（14 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 狼皮 | `wolf_hide` | `a wolf pelt spread flat` |
-| [ ] | 狼牙 | `wolf_fang` | `two wolf fangs side by side` |
-| [ ] | 兽骨 | `bone` | `a long bone` |
-| [ ] | 兽爪 | `claw` | `three curved claws` |
-| [ ] | 野猪獠牙 | `boar_tusk` | `a single curved boar tusk` |
-| [ ] | 野猪皮 | `boar_hide` | `a bristly boar hide spread flat` |
-| [ ] | 钱袋 | `coin_pouch` | `a small coin purse with two coins beside it` |
-| [ ] | 青铜碎片 | `bronze_scrap` | `three jagged fragments of metal plate` |
-| [ ] | 破盾 | `broken_shield` | `a round shield with a large piece broken out of it` |
-| [ ] | 箭束 | `arrows` | `a bundle of five arrows tied with cord` |
-| [ ] | 麻绳 | `rope` | `a coil of rope` |
-| [ ] | 酒囊 | `wine_skin` | `a wineskin with a stopper and a carrying strap` |
-| [ ] | 马鬃 | `horsehair` | `a tied hank of horsehair` |
-| [ ] | 狮鬃 | `lion_mane` | `a tuft of lion's mane` |
+| [x] | 狼皮 | `wolf_hide` | `a wolf pelt spread flat` |
+| [x] | 狼牙 | `wolf_fang` | `two wolf fangs side by side` |
+| [x] | 兽骨 | `bone` | `a long bone` |
+| [x] | 兽爪 | `claw` | `three curved claws` |
+| [x] | 野猪獠牙 | `boar_tusk` | `a single curved boar tusk` |
+| [x] | 野猪皮 | `boar_hide` | `a bristly boar hide spread flat` |
+| [x] | 钱袋 | `coin_pouch` | `a small coin purse with two coins beside it` |
+| [x] | 青铜碎片 | `bronze_scrap` | `three jagged fragments of metal plate` |
+| [x] | 破盾 | `broken_shield` | `a round shield with a large piece broken out of it` |
+| [x] | 箭束 | `arrows` | `a bundle of five arrows tied with cord` |
+| [x] | 麻绳 | `rope` | `a coil of rope` |
+| [x] | 酒囊 | `wine_skin` | `a wineskin with a stopper and a carrying strap` |
+| [x] | 马鬃 | `horsehair` | `a tied hank of horsehair` |
+| [x] | 狮鬃 | `lion_mane` | `a tuft of lion's mane` |
 
 #### 界面（15 个）
 
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
-| [ ] | 德拉克马 | `coins` | `two stacked coins, the top one stamped with an owl` |
-| [ ] | 生命 | `heart` | `a heart` |
-| [ ] | 力量 | `strength` | `a flexed upper arm` |
-| [ ] | 防御 | `armor` | `a breastplate seen from the front` |
-| [ ] | 意志 | `will` | `a head in profile with a small flame at the brow` |
-| [ ] | 神性 | `divinity` | `a sun disc with straight rays` |
-| [ ] | 移动 | `boot` | `a walking boot` |
-| [ ] | 跳跃 | `jump` | `a figure leaping across a gap` |
-| [ ] | 营地 | `campfire` | `a campfire of three crossed logs` |
-| [ ] | 队伍 | `party` | `three standing figures side by side` |
-| [ ] | 行商 | `shop` | `a hanging hand scale with two pans` |
-| [ ] | 招募 | `talk` | `two figures clasping forearms` |
-| [ ] | 出征 | `march` | `a pennant on a spear` |
-| [ ] | 神赐 | `boon` | `a laurel wreath` |
-| [ ] | 系统 | `system` | `a Greek key meander folded into a square` |
+| [x] | 德拉克马 | `coins` | `two stacked coins, the top one stamped with an owl` |
+| [x] | 生命 | `heart` | `a heart` |
+| [x] | 力量 | `strength` | `a flexed upper arm` |
+| [x] | 防御 | `armor` | `a breastplate seen from the front` |
+| [x] | 意志 | `will` | `a head in profile with a small flame at the brow` |
+| [x] | 神性 | `divinity` | `a sun disc with straight rays` |
+| [x] | 移动 | `boot` | `a walking boot` |
+| [x] | 跳跃 | `jump` | `a figure leaping across a gap` |
+| [x] | 营地 | `campfire` | `a campfire of three crossed logs` |
+| [x] | 队伍 | `party` | `three standing figures side by side` |
+| [x] | 行商 | `shop` | `a hanging hand scale with two pans` |
+| [x] | 招募 | `talk` | `two figures clasping forearms` |
+| [x] | 出征 | `march` | `a pennant on a spear` |
+| [x] | 神赐 | `boon` | `a laurel wreath` |
+| [x] | 系统 | `system` | `a Greek key meander folded into a square` |
 
 ### 2.2 特效
 
@@ -571,11 +579,11 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 | 完成 | 章 | 敌人 | 填在 `Same … in all six cells` 中间 |
 |---|---|---|---|
-| [ ] | 2 | 沼蛇 | `large marsh water snake, thick mottled olive body, head raised to strike, half coiled` |
-| [ ] | 2 | 巨蟹 | `giant marsh crab the size of a shield wall, dark green shell crusted with mud, one oversized claw` |
-| [ ] | 2 | 赫拉的女祭司 | `priestess of Hera, stern woman in a white robe with a peacock-blue stole, tall diadem, a staff topped with a pomegranate` |
-| [ ] | 3 | 铜羽鸟 | `Stymphalian bird, a crane-sized bird of prey with bronze-edged feathers and a long sharp bronze beak, wings half raised` |
-| [ ] | 3 | 鸟群 | `tight flock of five small dark marsh birds flying as one cluster` |
+| [x] | 2 | 沼蛇 | `large marsh water snake, thick mottled olive body, head raised to strike, half coiled` |
+| [x] | 2 | 巨蟹 | `giant marsh crab the size of a shield wall, dark green shell crusted with mud, one oversized claw` |
+| [x] | 2 | 赫拉的女祭司 | `priestess of Hera, stern woman in a white robe with a peacock-blue stole, tall diadem, a staff topped with a pomegranate` |
+| [x] | 3 | 铜羽鸟 | `Stymphalian bird, a crane-sized bird of prey with bronze-edged feathers and a long sharp bronze beak, wings half raised` |
+| [x] | 3 | 鸟群 | `tight flock of five small dark marsh birds flying as one cluster` |
 | [ ] | 3 | 沼地佣兵 | `Greek mercenary spearman in mud-stained grey cloak, wicker shield, wide-brimmed felt hat` |
 | [ ] | 4 | 克里特卫兵 | `Minoan palace guard, bare chest, tight waist belt, kilt with a blue wave pattern, tall figure-eight shield and short spear` |
 | [ ] | 4 | 青铜牛像 | `animated bronze statue of a bull, greenish patina, glowing seams at the joints` |
@@ -590,6 +598,10 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 | [ ] | 7 | 狱卒 | `gaoler of Tartarus, a hulking figure in blackened iron plates, a ring of huge keys, a hooked chain` |
 | [ ] | 8 | 龙牙武士 | `sown warrior sprung from dragon's teeth, bone-white skin, bronze armour grown onto the body like bark, featureless helmet` |
 
+第二章三名普通敌人的六格透明原画位于 `art/originals/`，标识分别为 `marsh_snake`、`giant_crab`、`hera_priestess`。沼蛇从盘身到伸颈探咬，巨蟹横移时收钳、出手时张钳，女祭司始终用右手持石榴杖、左手施福。运行时像素帧位于同名的 `prototype/art/pixel/` 子目录。已在 2-1 地形上用正常游戏镜头核对相邻格占位和转镜后的背面。本项勾选范围为角色美术，正式沼泽遭遇与战斗规则另行实现。
+
+第三章的[铜羽鸟](art/originals/stymphalian_bird.png)和[鸟群](art/originals/marsh_flock.png)各有正面斜视、侧后方两排，每排依次为待机、飞行、攻击。前者以长铜喙和整片翼缘辨认，后者在六个姿势中都保留五只独立的小鸟，整群共占一格。游戏像素帧位于同名的 `prototype/art/pixel/` 子目录。
+
 首领的体型和部位各不相同，做到那一章时单独写规格。下面是先出概念图用的提示词（单张立绘，不是六格）：
 
 **首领概念图共用的后半段**：
@@ -598,14 +610,14 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 | 完成 | 章 | 首领 | 前半段 |
 |---|---|---|---|
-| [ ] | 2 | 许德拉 | `The Hydra of Lerna: a massive serpent body half sunk in a marsh pool with five long necks and heads, each head clearly separate so it can be struck off on its own; one neck stump is a wet glistening open wound, another is a seared matte black ring.` |
-| [ ] | 3 | 阿瑞斯的铜鹫 | `The bronze vulture of Ares: an enormous bird in flight, every feather a sharpened bronze blade, a thin bright line of light along the leading edge of its wings.` |
-| [ ] | 5 | 美杜莎的两位姐妹 | `Stheno and Euryale, the two immortal Gorgon sisters: broad-shouldered winged women with tusked faces, snake hair, bronze hands, standing back to back.` |
-| [ ] | 6 | 刻耳柏洛斯 | `Cerberus: a hound the size of a house with three distinct heads on three necks, a mane of small snakes, a serpent for a tail, standing before a dark gate.` |
-| [ ] | 7 | 伊阿珀托斯 | `The Titan Iapetus chained in Tartarus: a colossal kneeling figure of dark stone and iron, each limb held by a chain whose links grow larger toward the wall; a separate notch in the silhouette at each shoulder, wrist and knee marks a place that can be attacked.` |
-| [ ] | 8 | 阿瑞斯 | `The god Ares: a towering warrior in crested bronze armour the red of dried blood, advancing straight ahead with spear levelled, shield rim catching the light.` |
-| [ ] | 8 | 阿波罗 | `The god Apollo: a slender radiant archer in white, a silver bow drawn, a single thin perfectly straight line of light running from the arrowhead.` |
-| [ ] | 8 | 宙斯 | `The god Zeus enthroned: a vast bearded figure in ivory and gold, one hand raised holding a thunderbolt, storm cloud for a cloak, the columns behind him casting almost no shadow.` |
+| [x] | 2 | [许德拉](art/direction/lerna-hydra.png) | `The Hydra of Lerna: a massive serpent body half sunk in a marsh pool with five long necks and heads, each head clearly separate so it can be struck off on its own; one neck stump is a wet glistening open wound, another is a seared matte black ring.` |
+| [x] | 3 | [阿瑞斯的铜鹫](art/direction/stymphalus-bronze-vulture.png) | `The bronze vulture of Ares: an enormous bird in flight, every feather a sharpened bronze blade, a thin bright line of light along the leading edge of its wings.` |
+| [x] | 5 | [美杜莎的两位姐妹](art/direction/gorgon-sisters.png) | `Stheno and Euryale, the two immortal Gorgon sisters: broad-shouldered winged women with tusked faces, snake hair, bronze hands, standing back to back.` |
+| [x] | 6 | [刻耳柏洛斯](art/direction/cerberus.png) | `Cerberus: a hound the size of a house with three distinct heads on three necks, a mane of small snakes, a serpent for a tail, standing before a dark gate.` |
+| [x] | 7 | [伊阿珀托斯](art/direction/tartarus-iapetus.png) | `The Titan Iapetus chained in Tartarus: a colossal kneeling figure of dark stone and iron, each limb held by a chain whose links grow larger toward the wall; a separate notch in the silhouette at each shoulder, wrist and knee marks a place that can be attacked.` |
+| [x] | 8 | [阿瑞斯](art/direction/olympus-ares.png) | `The god Ares: a towering warrior in crested bronze armour the red of dried blood, advancing straight ahead with spear levelled, shield rim catching the light.` |
+| [x] | 8 | [阿波罗](art/direction/olympus-apollo.png) | `The god Apollo: a slender radiant archer in white, a silver bow drawn, a single thin perfectly straight line of light running from the arrowhead.` |
+| [x] | 8 | [宙斯](art/direction/olympus-zeus.png) | `The god Zeus enthroned: a vast bearded figure in ivory and gold, one hand raised holding a thunderbolt, storm cloud for a cloak, the columns behind him casting almost no shadow.` |
 
 米诺陶洛斯和美杜莎本人见 3.1，赫拉克勒斯已有原画。
 
@@ -623,13 +635,17 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 | 完成 | 章 | 地表材质的前半段 | 气氛图的前半段 |
 |---|---|---|---|
-| [ ] | 2 勒拿沼泽 | `Dark wet marsh mud with shallow verdigris-green pools, flattened reeds and a few drowned roots.` | `The swamp of Lerna at dusk: flat verdigris-green water in horizontal bands, vertical reeds, a few broken temple columns standing in the mire, one small bright fire the brightest point in the scene.` |
-| [ ] | 3 斯廷法利斯湖 | `Pale grey lakeshore silt with scattered pebbles, dry reed stubble and a few fallen bronze feathers.` | `Lake Stymphalia under a pearl-grey sky: a wooden jetty and a fisherman's hut on the shore, reed beds, a set of bronze clappers on a post, sky and water almost the same colour.` |
+| [x] | 2 勒拿沼泽 | `Dark wet marsh mud with shallow verdigris-green pools, flattened reeds and a few drowned roots.` | `The swamp of Lerna at dusk: flat verdigris-green water in horizontal bands, vertical reeds, a few broken temple columns standing in the mire, one small bright fire the brightest point in the scene.` |
+| [x] | 3 斯廷法利斯湖 | `Pale grey lakeshore silt with scattered pebbles, dry reed stubble and a few fallen bronze feathers.` | `Lake Stymphalia under a pearl-grey sky: a wooden jetty and a fisherman's hut on the shore, reed beds, a set of bronze clappers on a post, sky and water almost the same colour.` |
 | [ ] | 4 克里特迷宫 | `Worn dark terracotta-red floor slabs with a faint incised spiral pattern and dust in the joints.` | `The labyrinth of Crete: dark red walls folding back on themselves round a black pit, a stone doorway, a horned altar, torches in brackets, a single red thread caught at one corner.` |
 | [ ] | 5 爱琴海诸岛 | `White island limestone with wind-blown sand in the hollows and patches of dry sea thrift.` | `An Aegean island shore in hard noon light: white rock, ultramarine sea, a beached ship, a sea cave, and several figures of people turned to stone, backlit, their cloaks all blown the same way.` |
 | [ ] | 6 冥界 | `Ash-grey plain of fine dust with faint pale footprints and thin cracks.` | `The underworld: indigo-black water swallowing the far bank, a ferry with a single amber lantern, a huge dark gate, a grey plain with no horizon.` |
 | [ ] | 7 塔尔塔罗斯 | `Black slate floor split by pressure cracks, a faint glow of molten orange deep in the widest cracks.` | `The pit of Tartarus: dark iron chains crossing a deep shaft on the diagonal, each link larger than the last, a bronze wall, furnace seams glowing near white.` |
 | [ ] | 8 奥林匹斯 | `Polished ivory-white marble paving with fine grey veining and thin gold inlay lines.` | `Olympus above the clouds: endless repeating ivory colonnades, a broad stair, a throne, statues of gods, a sky with almost no shadow in it.` |
+
+第二章地表原图见 [勒拿湿泥](art/originals/lerna-mud.png)，黄昏配色与地标布局见 [战场气氛图](art/direction/lerna-marsh.png)。湿泥可四向平铺。沼泽场景按地形格混合泥岸、浅水与深水，水纹在水面移动，岸沿芦苇随风摆动。[场景试镜](art/tools/preview_lerna_marsh.gd)使用常规战斗镜头、1.2 米格距及三名敌人的正式帧，可复查它们在相邻格与转镜后的轮廓。
+
+第三章的[湖岸地表](art/originals/stymphalus-silt.png)可四向平铺，[气氛图](art/direction/stymphalus-lake.png)确定了珍珠灰湖水、渔屋、木栈桥与铜响板的配色。[湖岸试镜](art/tools/preview_stymphalus_lake.gd)中，两种单位各占相邻的一格，常规战斗镜头按默认缩放转动 90°。
 
 地标的三维模型按 1.4 的办法：先出单件参考图，再图生三维。
 
@@ -644,7 +660,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 5. [x] 六位英雄的原画和配套半身像（1.1、1.3）。已完成 6/6。
 6. [x] 主角四阶外观与配套半身像（2.4），以及六招神力使用的五张特效序列（2.2）。
 7. [x] 营地帐篷和希腊道具（1.4），10/10 已接入营地。
-8. 其余按需。已完成 2.1 的六枚神力招式图标与主角的 14 枚招式和特性图标、2.2 的捕网张开、脚踝束缚与升级特效，以及 2.3 的首页游戏标志、商店页与宣传横版主视觉。
+8. 其余按需。已完成 2.1 的六枚神力招式图标、主角的 14 枚、阿塔兰忒的 11 枚、喀戎的 10 枚、美狄亚的 11 枚及六位招募英雄的 22 枚招式和特性图标，以及 26 枚装备、6 枚随身物品、14 枚战利品材料和 15 枚界面图标，2.2 的捕网张开、脚踝束缚与升级特效，以及 2.3 的首页游戏标志、商店页与宣传横版主视觉。
 
 ## 5. 素材数量一览
 
