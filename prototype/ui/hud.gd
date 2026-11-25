@@ -17,7 +17,7 @@ const ACTION_MARK := {"spear":0,"slash":0,"shield_bash":1,"shoulder_throw":13,"w
 ## The stamp for each command, from the same set the camp uses. A technique with a drawing
 ## of its own (the tree's) uses that; these cover the rest.
 const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash","shield_bash":"act_shield",
-	"shoulder_throw":"act_grapple","wait":"act_wait",
+	"shoulder_throw":"shoulder_throw","wait":"act_wait",
 	"facing":"act_facing","face":"act_facing","undo_move":"act_undo","move":"boot","leap":"jump","mark":"act_mark",
 	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","witch_fire":"act_fire",
 	"push_boulder":"act_push","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}

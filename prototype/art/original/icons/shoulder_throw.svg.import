@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1y4jdg8popjk"
-path="res://.godot/imported/act_grapple.svg-ce172b6932eac77baf9550970c8bcbea.ctex"
+path="res://.godot/imported/shoulder_throw.svg-82468e0046b0398c1696b227d36b0ebe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/original/icons/act_grapple.svg"
-dest_files=["res://.godot/imported/act_grapple.svg-ce172b6932eac77baf9550970c8bcbea.ctex"]
+source_file="res://art/original/icons/shoulder_throw.svg"
+dest_files=["res://.godot/imported/shoulder_throw.svg-82468e0046b0398c1696b227d36b0ebe.ctex"]
 
 [params]
 

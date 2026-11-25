@@ -17,6 +17,20 @@
 
 ---
 
+## 0.1 审核返工（2026-11-25）
+
+第一批交付已审核，大部分通过。下面几项退回重做，对应条目已改回未完成，提示词已更新：
+
+| 项 | 位置 | 原因 |
+|---|---|---|
+| 福洛斯原画与半身像 | 1.1、1.3 | 和喀戎几乎一样：都是白发白须、白马身、蓝披布 |
+| 伊达斯半身像 | 1.3 | 构图和别人不同：身体撑满画面，边缘是硬切的矩形 |
+| 主角「受火」战场外观 | 2.4 | 缩到战场尺寸后和凡人阶段看不出区别；眼睛在脸上糊成蓝斑 |
+| 铜羽鸟战场小人 | 3.2 | 画成了苍鹭一样的水鸟，和青铜秃鹫概念图对不上 |
+| 五枚图标 | 2.1 | 24 像素下认不出：扫膝、指隙箭、劈盾、不信预言、青铜碎片 |
+
+重做图标时守一条：一枚图标只画一个主体，不超过三个部件。
+
 ## 1. 第一档：第一章现在就缺
 
 ### 1.1 九个借用形象的人物原画
@@ -75,12 +89,14 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same burly Arcadian Greek axeman, a brown bearskin worn over head and shoulders with the bear's muzzle as a hood, sea green tunic, thick bare arms, double-headed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with a wide axe swing. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [x] 福洛斯 `merc_lancer`（稀有）
+#### [ ] 福洛斯 `merc_lancer`（稀有）
 
 福洛厄山的半人马，好客的主人。四足。武器必须是长矛。
 
+返工：上一版和喀戎撞脸。喀戎是白发、白马身、蓝披布，福洛斯要全部避开：深色马身、深色须发、酒红披布。半身像跟着重出。
+
 ```
-Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same gentle elderly centaur, dappled grey-white horse body, lean human torso, long grey beard, a blue sash and a wineskin slung at his side, plain wooden lance, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, trotting, attacking with a lance thrust. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
+Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same gentle middle-aged centaur, dark bay horse body with black mane and tail, sun-browned lean human torso, short dark brown beard streaked with grey, dark curly hair bound with a vine wreath, a wine-red sash and a wineskin slung at his side, plain wooden lance, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, trotting, attacking with a lance thrust. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
 #### [x] 伊菲克勒斯 `merc_sword`（普通）
@@ -156,12 +172,17 @@ The Greek hero Heracles as a weary man in his forties, massive bare shoulders, h
 | [x] | 行商阿齐尔 | `npc_trader` |
 | [x] | 教习达蒙 | `npc_drill` |
 | [x] | 领路人伊俄 | `npc_guide` |
-| [x] | 伊达斯 | `idas` |
+| [ ] | 伊达斯 | `idas` |
 | [x] | 欧律提翁 | `eurytion` |
 | [x] | 安开俄斯 | `merc_captain` |
-| [x] | 福洛斯 | `merc_lancer` |
+| [ ] | 福洛斯 | `merc_lancer` |
 | [x] | 伊菲克勒斯 | `merc_sword` |
 | [x] | 法勒洛斯 | `merc_archer` |
+
+返工说明：
+
+- 伊达斯：和其他半身像用同一构图。在提示词末尾加 `Head and shoulders bust with clear empty margin on all four sides, the figure fading out softly at the chest, nothing touching the edge of the frame, the helmet crest fully inside the picture.`
+- 福洛斯：按 1.1 里改过的外貌重出（深色须发、藤叶冠、酒红披布）。
 
 ### 1.4 营地场景
 
@@ -270,7 +291,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 |---|---|---|---|
 | [x] | 矛刺 | `act_spear` | `a spear thrusting straight forward` |
 | [x] | 盾击 | `act_shield` | `a round shield pushed forward with impact lines in front of it` |
-| [x] | 过肩摔 | `act_grapple` | `one wrestler throwing another over his shoulder` |
+| [x] | 过肩摔 | `shoulder_throw` | `one wrestler throwing another over his shoulder` |
 | [x] | 盾墙 | `shield_wall` | `three overlapping round shields in a row` |
 | [x] | 截击 | `intercept` | `a shield stepping between an arrow and a standing figure` |
 | [x] | 盾缘猛推 | `shield_drive` | `a shield rim driving a falling figure backward` |
@@ -278,7 +299,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 方阵贯刺 | `phalanx_thrust` | `three parallel spears pointing the same way` |
 | [x] | 铁臂 | `iron_arm` | `a flexed forearm with a clenched fist` |
 | [x] | 破势之拳 | `stagger_fist` | `a fist striking a cracked breastplate` |
-| [x] | 扫膝 | `heel_strike` | `a foot sweeping another figure's leg from under it` |
+| [ ] | 扫膝 | `heel_strike` | `one bent leg kicking low to the side, a single short curved motion line under the foot` |
 | [x] | 角力呼吸 | `wrestler` | `a wrestler crouched in a ready stance, arms forward` |
 | [x] | 碎阵重击 | `breaker` | `a shield shattering into three pieces` |
 | [x] | 不坏之皮 | `impervious_hide` | `a man wearing a lion's head as a hood` |
@@ -308,7 +329,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
 | [x] | 净化箭 | `purify_arrow` | `an arrow with a sprig of herb bound to its shaft` |
-| [x] | 指隙箭 | `weak_point` | `an arrow slipping through the gap between two armour plates` |
+| [ ] | 指隙箭 | `weak_point` | `one arrow pointing into a V-shaped notch in the edge of a single armour plate` |
 | [x] | 退敌箭 | `repel_arrow` | `an arrow knocking a figure backward` |
 | [x] | 射手座之矢 | `centaur_volley` | `a centaur drawing a bow, rearing` |
 | [x] | 战地医术 | `field_medicine` | `a staff with a single serpent twined round it` |
@@ -351,11 +372,11 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 绊足箭 | `snare_arrow` | `an arrow trailing a looped cord` |
 | [x] | 破甲箭 | `bodkin_arrow` | `a narrow needle-pointed arrowhead piercing a metal plate` |
 | [x] | 稳弓 | `pha_steady` | `a bow held level on a steady extended arm` |
-| [x] | 劈盾 | `shield_split` | `a double-headed axe splitting a round shield` |
+| [ ] | 劈盾 | `shield_split` | `a round shield broken into two clean halves with a single axe blade between them` |
 | [x] | 回旋斧 | `axe_sweep` | `a double-headed axe with a circular motion line round it` |
 | [x] | 伐木式 | `felling_blow` | `an axe sunk into a tree trunk` |
 | [x] | 熊皮 | `anc_hide` | `a bear's head worn as a hood` |
-| [x] | 不信预言 | `anc_defy` | `a wine cup knocked over on its side` |
+| [ ] | 不信预言 | `anc_defy` | `a wide two-handled wine cup lying on its side, three large drops falling from its rim` |
 | [x] | 践踏 | `trample` | `two horse hooves coming down on a small shield` |
 | [x] | 后蹄 | `hind_kick` | `a horse's hind legs kicking backward` |
 | [x] | 陈酒 | `old_wine` | `a wineskin pouring into a shallow cup` |
@@ -422,7 +443,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 野猪獠牙 | `boar_tusk` | `a single curved boar tusk` |
 | [x] | 野猪皮 | `boar_hide` | `a bristly boar hide spread flat` |
 | [x] | 钱袋 | `coin_pouch` | `a small coin purse with two coins beside it` |
-| [x] | 青铜碎片 | `bronze_scrap` | `three jagged fragments of metal plate` |
+| [ ] | 青铜碎片 | `bronze_scrap` | `one bent rectangular metal plate with a torn corner and a single rivet hole` |
 | [x] | 破盾 | `broken_shield` | `a round shield with a large piece broken out of it` |
 | [x] | 箭束 | `arrows` | `a bundle of five arrows tied with cord` |
 | [x] | 麻绳 | `rope` | `a coil of rope` |
@@ -517,11 +538,13 @@ ImageGen 参考图依次为 `portraits/hero.png`、`figures.png`、`pholoe-centa
 | 完成 | 阶 | 文件名 | 接在共用前半段后面 |
 |---|---|---|---|
 | [x] | 凡人 | 现有原画 | 不用改 |
-| [x] | 受火 | `hero-tier1.png` | `the irises of his eyes become pale blue, and the ochre cloak gains a single narrow edging of bright blue along its hem. Everything else stays earthy and human.` |
+| [ ] | 受火 | `hero-tier1.png` | `the ochre cloak gains a broad band of bright blue along its whole hem, about a quarter of the cloak's width, and the spearhead turns pale blue-white as if faintly glowing. Do not change the face or the eyes. Everything else stays earthy and human.` |
 | [x] | 半神 | `hero-tier2.png` | `the cloak becomes deep blue with a gold border, the spearhead and shield rim become polished gold, and a thin rim of pale light outlines his whole figure. His skin is still warm and human.` |
 | [x] | 僭神 | `hero-tier3.png` | `nearly everything he wears and carries becomes blue and gold, his skin loses its warmth and turns pale as marble, his eyes glow faintly white, and thin threads of lightning cling to the spear. The red cord on his wrist remains the only warm colour left on him.` |
 
 半身像同样四个版本，文件名 `portraits/hero-tier1.png` 等，提示词用 1.3 里主角的那一条加上表里对应的一句。
+
+返工：「受火」上一版只有一条细蓝边，战场上看不出来，所以蓝边加宽、矛尖带蓝光。淡蓝的眼睛只留在半身像里（半身像已通过，不用重出），战场原画不要动脸。
 
 ---
 
@@ -582,7 +605,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 | [x] | 2 | 沼蛇 | `large marsh water snake, thick mottled olive body, head raised to strike, half coiled` |
 | [x] | 2 | 巨蟹 | `giant marsh crab the size of a shield wall, dark green shell crusted with mud, one oversized claw` |
 | [x] | 2 | 赫拉的女祭司 | `priestess of Hera, stern woman in a white robe with a peacock-blue stole, tall diadem, a staff topped with a pomegranate` |
-| [x] | 3 | 铜羽鸟 | `Stymphalian bird, a crane-sized bird of prey with bronze-edged feathers and a long sharp bronze beak, wings half raised` |
+| [ ] | 3 | 铜羽鸟 | `Stymphalian bird, a heavy vulture-like bird of prey as tall as a man, short thick neck with a pale ruff, hooked bronze beak, every feather a plate of polished bronze with sharp edges, bronze talons, wings half raised. Not a heron, not a crane, no long legs, no long neck` |
 | [x] | 3 | 鸟群 | `tight flock of five small dark marsh birds flying as one cluster` |
 | [ ] | 3 | 沼地佣兵 | `Greek mercenary spearman in mud-stained grey cloak, wicker shield, wide-brimmed felt hat` |
 | [ ] | 4 | 克里特卫兵 | `Minoan palace guard, bare chest, tight waist belt, kilt with a blue wave pattern, tall figure-eight shield and short spear` |
@@ -599,6 +622,8 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 | [ ] | 8 | 龙牙武士 | `sown warrior sprung from dragon's teeth, bone-white skin, bronze armour grown onto the body like bark, featureless helmet` |
 
 第二章三名普通敌人的六格透明原画位于 `art/originals/`，标识分别为 `marsh_snake`、`giant_crab`、`hera_priestess`。沼蛇从盘身到伸颈探咬，巨蟹横移时收钳、出手时张钳，女祭司始终用右手持石榴杖、左手施福。运行时像素帧位于同名的 `prototype/art/pixel/` 子目录。已在 2-1 地形上用正常游戏镜头核对相邻格占位和转镜后的背面。本项勾选范围为角色美术，正式沼泽遭遇与战斗规则另行实现。
+
+返工：铜羽鸟上一版照旧提示词里的「鹤一样大、长喙」画成了水鸟，和概念图 `art/direction/stymphalus-bronze-vulture.png` 对不上。重出时把这张概念图当参考图一起给。鸟群已通过。
 
 第三章的[铜羽鸟](art/originals/stymphalian_bird.png)和[鸟群](art/originals/marsh_flock.png)各有正面斜视、侧后方两排，每排依次为待机、飞行、攻击。前者以长铜喙和整片翼缘辨认，后者在六个姿势中都保留五只独立的小鸟，整群共占一格。游戏像素帧位于同名的 `prototype/art/pixel/` 子目录。
 
