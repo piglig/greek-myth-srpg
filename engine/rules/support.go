@@ -11,7 +11,7 @@ import "fmt"
 //	guard   并肩：把 max_range 格内一名同伴的护盾补到 power 点（不叠加）
 //	shot    远射：max_range 格内的一个敌人受 power 点物理伤害，不看掩护和视线
 //	sunder  劈盾：max_range 格内的一个敌人受 power 点伤害，不计算防御；之后 rounds 回合内它的防御少 SunderDefense
-//	aid     驮行：把 max_range 格内的一名同伴带到主角 carry 格内的一块空地（行动里的 To），回复 power 点生命、解一种异常
+//	aid     驮行：把主角自己或 max_range 格内的一名同伴带到主角 carry 格内的一块空地（行动里的 To），回复 power 点生命、解一种异常
 //	break   碎阵：max_range 格内的一个敌人受 power 点物理伤害，外加 stagger_bonus 点破势
 //	charge  冲锋：从主角身边起沿直线冲 max_range 格，路上每个敌人受 power 点物理伤害并被击退 knockback 格
 //
@@ -196,7 +196,8 @@ func validateSupport(s *BattleState, u *UnitState, sk *Skill, cell, to Cell) str
 			return "already shielded"
 		}
 	case "aid":
-		if target.Team != u.Team || target == u {
+		// 主角自己也可以上他的背：被围住时这是唯一能带他出来的一手。
+		if target.Team != u.Team {
 			return "need an ally"
 		}
 		if target.ID == "wounded_chiron" || target.DefID == "refugee" {
@@ -243,12 +244,14 @@ func doSupport(s *BattleState, u *UnitState, sk *Skill, a Action, ev *[]Event) {
 			t.Pos = a.To
 			t.undoOK = false
 		}
-		if t.HP < t.MaxHP && !t.HasStatus("blighted") && !(vessel(t) && s.Tier() >= TierInhuman) {
+		// 酒是给同伴的：主角自己上背只是换个地方，不回复。不然每隔几回合给"倒下就输"的那个人
+		// 回一口，这一手就成了哪一关都最好的选择。
+		if t != u && t.HP < t.MaxHP && !t.HasStatus("blighted") && !(vessel(t) && s.Tier() >= TierInhuman) {
 			gain := min(sk.Power, t.MaxHP-t.HP)
 			t.HP += gain
 			emit(ev, Event{Type: EvHeal, Target: t.ID, Amount: gain, HP: t.HP})
 		}
-		if st := cleanseTarget(t); st != "" {
+		if st := cleanseTarget(t); st != "" && t != u {
 			t.EraseStatus(st)
 			emit(ev, Event{Type: EvStatusEnd, Target: t.ID, Status: st})
 		}

@@ -39,8 +39,9 @@ type Good struct {
 
 // Recruit 是一位可以招募的英雄。
 type Recruit struct {
-	ID, Def, Skill, Name string
-	Fee, Opens           int // 雇金；哪一章起来投
+	// Def 是他借来的样子（画面上登场时用哪一套动作）；他不上场，数值用不上。
+	ID, Def, Name string
+	Fee, Opens    int // 雇金；哪一章起来投
 	// Support 是他来支援时的那一手（skills.json 里带 support 字段的招式）。
 	Support string
 }
@@ -92,10 +93,10 @@ func (d *Data) loadMarket() (*Market, error) {
 		if raw == nil {
 			return nil, fmt.Errorf("recruits.json 的 %s 不是对象", id)
 		}
-		if err := raw.need("英雄 "+id, "fee", "def", "skill", "name"); err != nil {
+		if err := raw.need("英雄 "+id, "fee", "def", "support", "name"); err != nil {
 			return nil, err
 		}
-		r := &Recruit{ID: id, Def: raw.str("def", ""), Skill: raw.str("skill", ""), Name: raw.str("name", ""),
+		r := &Recruit{ID: id, Def: raw.str("def", ""), Name: raw.str("name", ""),
 			Fee: raw.int("fee", 0), Opens: raw.int("opens", 2)}
 		r.Support = raw.str("support", "")
 		if sk := d.Skill(r.Support); sk == nil || sk.Support == "" {
@@ -103,9 +104,6 @@ func (d *Data) loadMarket() (*Market, error) {
 		}
 		if d.units[r.Def] == nil {
 			return nil, fmt.Errorf("英雄 %s 用到了不存在的单位 %s", id, r.Def)
-		}
-		if d.Skill(r.Skill) == nil {
-			return nil, fmt.Errorf("英雄 %s 带了不存在的招式 %s", id, r.Skill)
 		}
 		m.Recruits[id] = r
 	}

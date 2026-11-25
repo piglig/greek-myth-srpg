@@ -111,6 +111,18 @@ func TestSupportAidAndCharge(t *testing.T) {
 	}
 	check(t, Validate(state, LeapSkill(hero.ID, aid.ID, ally.Pos, c(hero.Pos.X, hero.Pos.Y-aid.Carry-1))) != "", "not farther than he carries")
 	check(t, Validate(state, LeapSkill(hero.ID, aid.ID, ally.Pos, hero.Pos)) != "", "not onto someone")
+	// 主角自己也能上他的背，但只是换个地方：不回复。
+	hero.HP -= 10
+	was := hero.HP
+	own := c(hero.Pos.X+1, hero.Pos.Y-3)
+	for _, u := range state.Units {
+		if u.Pos == own {
+			u.Pos = c(11, 12)
+		}
+	}
+	trial := state.Copy()
+	ride := Perform(trial, LeapSkill(hero.ID, aid.ID, hero.Pos, own))
+	check(t, ride.OK && trial.Unit("hero").Pos == own && trial.Unit("hero").HP == was, "the protagonist may ride too, for the ground only: "+ride.Error)
 	out := Perform(state, LeapSkill(hero.ID, aid.ID, ally.Pos, down))
 	check(t, out.OK && ally.Pos == down && ally.HP == hp+aid.Power && !ally.HasStatus("poisoned"),
 		"a ride, wine and a clean wound: "+out.Error)

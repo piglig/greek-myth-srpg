@@ -293,12 +293,12 @@ func TestLoadoutLimitsSkills(t *testing.T) {
 	}
 }
 
-// 招募来的人带着自己的起始招式进场。
+// 出战名单里的人可以带上单位定义之外的招式。
 func TestPartyBringsStarterSkill(t *testing.T) {
 	s := newServer(t)
-	st := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r1","def":"bandit","name":"吕科斯","skills":["heavy_cut"]}]}`)["state"].(map[string]any)
+	st := ask(t, s, `{"op":"build","battle":"1-4","party":[{"id":"r1","def":"bandit","name":"吕科斯","skills":["shield_bash"]}]}`)["state"].(map[string]any)
 	if got := unitOf(st, "r1")["skills"].([]any); len(got) != 2 {
-		t.Errorf("佣兵应有劈砍和重劈两招: %v", got)
+		t.Errorf("应有劈砍和带来的盾击两招: %v", got)
 	}
 }
 

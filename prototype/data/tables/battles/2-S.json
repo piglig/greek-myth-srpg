@@ -123,6 +123,26 @@
         6
       ],
       "facing": "W"
+    },
+    {
+      "id": "crab_2",
+      "def": "giant_crab",
+      "team": "enemy",
+      "pos": [
+        9,
+        2
+      ],
+      "facing": "W"
+    },
+    {
+      "id": "snake_5",
+      "def": "marsh_snake",
+      "team": "enemy",
+      "pos": [
+        9,
+        4
+      ],
+      "facing": "W"
     }
   ]
 }

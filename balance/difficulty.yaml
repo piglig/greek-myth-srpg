@@ -45,7 +45,9 @@ bands:
     typical: {casual: [0.70, 0.80], skilled: [0.88, 1.00]}
     frugal:  {casual: [0.45, 0.70]}
   boss:
-    typical: {casual: [0.55, 0.65], skilled: [0.78, 0.92]}
+    # 熟练那一格只设下限（2026-11-25 用户定：不考虑"熟练玩家几乎全胜"）。熟练机器人会推演
+    # 对面的回合，前两章的首领它稳赢；差距来自操作，加强首领会把普通玩家一起压下去。
+    typical: {casual: [0.55, 0.65], skilled: [0.78, 1.00]}
     frugal:  {casual: [0.30, 0.55]}
   side:
     typical: {casual: [0.75, 0.88], skilled: [0.90, 1.00]}

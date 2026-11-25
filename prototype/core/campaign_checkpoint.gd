@@ -223,7 +223,7 @@ static func support_words(id: String, learnt: Array = []) -> String:
 		"guard": words = "主角 %d 格内的一名同伴得到 %d 点护盾。" % [far,much]
 		"shot": words = "主角 %d 格内的一个敌人受 %d 点物理伤害，不看掩护和视线。" % [far,much]
 		"sunder": words = "主角 %d 格内的一个敌人受 %d 点伤害，不计算防御；之后 %d 回合它的防御 −4。" % [far,much,int(sk.get("rounds",2))]
-		"aid": words = "把主角 %d 格内的一名同伴带到主角 %d 格内的一块空地，回复 %d 点生命、解一种异常。" % [far,int(sk.get("carry",0)),much]
+		"aid": words = "把主角自己或他 %d 格内的一名同伴带到主角 %d 格内的一块空地。带的是同伴时回复 %d 点生命、解一种异常。" % [far,int(sk.get("carry",0)),much]
 		"break": words = "主角 %d 格内的一个敌人受 %d 点物理伤害，破势 +%d。" % [far,much,int(sk.get("stagger_bonus",0))]
 		"charge": words = "从主角身边沿直线冲 %d 格，路上每个敌人受 %d 点物理伤害并被击退 %d 格。" % [far,much,int(sk.get("knockback",0))]
 		_: return ""

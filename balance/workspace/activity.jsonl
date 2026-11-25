@@ -82,3 +82,5 @@
 {"ts": "2026-11-20T02:55:40", "actor": "human", "kind": "sim", "text": "模拟完成 1-4：熟练机器人胜率 84%，目标通过 0/9", "variant": "baseline", "battle": "1-4"}
 {"ts": "2026-11-25T17:48:03", "actor": "ai", "kind": "sim", "text": "开始难度判定：全部关卡", "variant": "baseline"}
 {"ts": "2026-11-25T17:48:13", "actor": "ai", "kind": "sim", "text": "难度判定（全部关卡）：11 关里 11 关达标", "variant": "baseline"}
+{"ts": "2026-11-25T19:20:40", "actor": "ai", "kind": "sim", "text": "开始支援对比：全部关卡", "variant": "baseline"}
+{"ts": "2026-11-25T19:20:46", "actor": "ai", "kind": "sim", "text": "支援对比（全部关卡）：差得最多的是 2-4，带法勒洛斯 76%、带伊菲克勒斯 56%", "variant": "baseline"}

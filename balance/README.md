@@ -20,4 +20,6 @@
 1. `srpg studio`，在工坊里新建变体、改数值、跑模拟、看结论，满意后采用。
 2. 或者直接改 `prototype/data/tables/` 下的 JSON，然后 `srpg check`，再 `srpg difficulty <关卡>` 看难度有没有跑出区间。
 
+想知道换一位支援英雄会怎样，用 `srpg supports <关卡>`，或者在工坊的"支援"页里看。
+
 机器人有三种：`casual`（普通玩家，主要验收对象）、`skilled`（熟练）、`novice`（几乎随机，只作参考，不进难度目标）。

@@ -80,6 +80,16 @@ export interface DifficultyView {
   report: { variant: string; finished: string; by: string; cells: DifficultyCell[]; hashes: Record<string, string> } | null
   run: DifficultyRun
 }
+export interface SupportCell { battle: string; support: string; usual: boolean; runs: number; win: number; rounds: number; calls: number }
+export interface SupportRun { running: boolean; variant: string; scope: string; actor: string; done: number; total: number; error: string; cells: SupportCell[] }
+export interface SupportView {
+  variant: string
+  runs: number
+  heroes: { id: string; name: string; fee: number; opens: number; move: string; kind: string; power: number; range: number; cooldown: number }[]
+  battles: { id: string; title: string; chapter: number; kind: string; primary: [string, string]; band: [number, number]; hash: string }[]
+  report: { variant: string; finished: string; by: string; cells: SupportCell[]; hashes: Record<string, string> } | null
+  run: SupportRun
+}
 export interface CompareRow { variant: string; verdicts: Verdict[]; bots: Record<string, { status: string; runs: number }> }
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -125,6 +135,10 @@ export const api = {
     call<Replay>('GET', `/api/replay${q({ battle, variant: vq(variant), bot, seed })}`),
   preview: (battle: string, variant: string) => call<{ url: string }>('POST', `/api/preview${q({ battle, variant: vq(variant) })}`),
   activity: () => call<Activity[]>('GET', '/api/activity'),
+  supports: (variant: string) => call<SupportView>('GET', `/api/supports${q({ variant: vq(variant) })}`),
+  runSupports: (variant: string, scope: string, runs = 0) =>
+    call<SupportRun>('POST', '/api/supports/run', { variant: vq(variant) ?? null, scope, runs }),
+  cancelSupports: () => call<SupportRun>('POST', '/api/supports/cancel', {}),
   difficulty: (variant: string) => call<DifficultyView>('GET', `/api/difficulty${q({ variant: vq(variant) })}`),
   runDifficulty: (variant: string, scope: string, runs = 0) =>
     call<DifficultyRun>('POST', '/api/difficulty/run', { variant: vq(variant) ?? null, scope, runs }),

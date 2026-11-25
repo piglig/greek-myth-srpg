@@ -1,11 +1,12 @@
 import { Button, Drawer, Menu, Modal, NumberInput, Stack, Text, TextInput, Textarea } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconArrowBigUpLines, IconChartHistogram, IconCheck, IconChevronDown, IconColumns3, IconMap2, IconPlayerPlay, IconPlus, IconStairsUp, IconTable, IconTrash } from '@tabler/icons-react'
+import { IconArrowBigUpLines, IconChartHistogram, IconCheck, IconChevronDown, IconColumns3, IconMap2, IconPlayerPlay, IconPlus, IconStairsUp, IconTable, IconTrash, IconUsersGroup } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { api, type Activity, type Battle, type DifficultyRun, type DifficultyView, type Job } from './api'
+import { api, type Activity, type Battle, type DifficultyRun, type DifficultyView, type Job, type SupportRun, type SupportView } from './api'
 import { CompareMode } from './CompareMode'
 import { DifficultyMode } from './DifficultyMode'
+import { SupportMode } from './SupportMode'
 import { LevelMode } from './LevelMode'
 import { ReplayMode } from './ReplayMode'
 import { SimMode } from './SimMode'
@@ -22,6 +23,7 @@ const NAV: { value: Mode; label: string; icon: typeof IconMap2 }[] = [
   { value: 'replay', label: '回放', icon: IconPlayerPlay },
   { value: 'compare', label: '对比', icon: IconColumns3 },
   { value: 'difficulty', label: '难度', icon: IconStairsUp },
+  { value: 'supports', label: '支援', icon: IconUsersGroup },
 ]
 
 /** Server-sent events: keeps every open browser (and what the AI does through the API) in sync. */
@@ -29,6 +31,7 @@ function useLiveEvents() {
   const qc = useQueryClient()
   const [online, setOnline] = useState(false)
   const [judging, setJudging] = useState<DifficultyRun | null>(null)
+  const [comparing, setComparing] = useState<SupportRun | null>(null)
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('nolive')) return // static captures
     const es = new EventSource('/api/events')
@@ -55,6 +58,11 @@ function useLiveEvents() {
         if (run.targets || !run.running) qc.invalidateQueries({ queryKey: ['difficulty'] })
         else qc.setQueriesData<DifficultyView>({ queryKey: ['difficulty'] }, (old) => (old ? { ...old, run } : old))
         setJudging(run.targets ? null : run.running ? run : null)
+      } else if (kind === 'supports') {
+        const run = data as SupportRun
+        if (!run.running) qc.invalidateQueries({ queryKey: ['supports'] })
+        else qc.setQueriesData<SupportView>({ queryKey: ['supports'] }, (old) => (old ? { ...old, run } : old))
+        setComparing(run.running ? run : null)
       } else if (kind === 'activity') {
         const entry = data as Activity
         qc.setQueryData<Activity[]>(['activity'], (old = []) => [entry, ...old].slice(0, 80))
@@ -63,7 +71,7 @@ function useLiveEvents() {
     }
     return () => es.close()
   }, [qc])
-  return { online, judging }
+  return { online, judging, comparing }
 }
 
 function ActivityFeed({ items }: { items: Activity[] }) {
@@ -190,7 +198,7 @@ function AdoptModal({ opened, onClose }: { opened: boolean; onClose: () => void 
 export function App() {
   const s = useStore()
   const qc = useQueryClient()
-  const { online, judging } = useLiveEvents()
+  const { online, judging, comparing } = useLiveEvents()
   const [modal, setModal] = useState<'variant' | 'battle' | 'adopt' | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -319,6 +327,7 @@ export function App() {
           : s.mode === 'sim' ? <SimMode data={d} />
           : s.mode === 'replay' ? <ReplayMode data={d} />
           : s.mode === 'difficulty' ? <DifficultyMode />
+          : s.mode === 'supports' ? <SupportMode />
           : <CompareMode data={d} />}
       </div>
 
@@ -329,6 +338,7 @@ export function App() {
           {latest ? <><span className={`who ${latest.actor}`} style={{ width: 20, height: 20, borderRadius: 6, fontSize: 9.5 }}>{latest.actor === 'ai' ? 'AI' : '你'}</span><span>{latest.text}</span></> : <span>操作记录</span>}
         </button>
         {judging && <span>难度判定 · {judging.done}/{judging.total || '…'} 格<span className="jobbar"><i style={{ width: `${(100 * judging.done) / Math.max(1, judging.total)}%` }} /></span></span>}
+        {comparing && <span>支援对比 · {comparing.done}/{comparing.total || '…'} 格<span className="jobbar"><i style={{ width: `${(100 * comparing.done) / Math.max(1, comparing.total)}%` }} /></span></span>}
         {activeJob && <span>模拟 {activeJob.battle} · {activeJob.done}/{activeJob.total}<span className="jobbar"><i style={{ width: `${(100 * activeJob.done) / Math.max(1, activeJob.total)}%` }} /></span></span>}
       </footer>
 

@@ -28,6 +28,10 @@ type Options struct {
 	// Kit 不为空时按这一档出战配置开局（见 kits.go）；KitsPath 是配置文件的位置。
 	Kit      string
 	KitsPath string
+	// Support 不为空时换掉出战配置里带的支援英雄："none" 是不带，否则是 recruits.json 里的名字。
+	// SupportPicks 是他学了的节点。只在用了 Kit 时有意义（对比不同英雄时用）。
+	Support      string
+	SupportPicks []string
 }
 
 // LoadData 按选项读入数据表。
@@ -69,6 +73,19 @@ func RunWith(ctx context.Context, data *rules.Data, opts Options) ([]Row, error)
 		}
 		if muster, err = kits.Muster(data, opts.Kit, opts.Battle); err != nil {
 			return nil, err
+		}
+		if opts.Support != "" {
+			swapped := *muster
+			swapped.Picks = map[string][]string{}
+			for who, nodes := range muster.Picks {
+				swapped.Picks[who] = nodes
+			}
+			swapped.Support = ""
+			if opts.Support != "none" {
+				swapped.Support = opts.Support
+				swapped.Picks[opts.Support] = opts.SupportPicks
+			}
+			muster = &swapped
 		}
 	}
 	workers := opts.Workers

@@ -187,16 +187,6 @@ func _ready() -> void:
 		hud.set_battle_controls_visible(false)
 	else:
 		var picks := SkillTree.default_picks()
-		if _demo == "heroes":
-			# The four hired heroes with all their trees learnt, in place of Atalanta.
-			_party = []
-			_bench = ["atalanta"]
-			for kind: String in ["iphicles","phalerus","ancaeus","pholus"]:
-				var hero: Dictionary = Checkpoint.RECRUITS[kind]
-				_party.append({"id":kind,"def":hero.def,"name":hero.name,"skills":[hero.skill],"look":hero.look,"tree":kind})
-				picks[kind] = []
-				for branch: Dictionary in SkillTree.trees()[kind]:
-					for node: Dictionary in branch.nodes: picks[kind].append(node.id)
 		_start_battle(_battle_id if _battle_id != "" else "1-4", picks)
 	if _capture_path != "":
 		_run_capture.call_deferred()
@@ -3008,51 +2998,6 @@ func _run_capture() -> void:
 				await get_tree().create_timer(1.0).timeout
 				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
 				await get_tree().create_timer(.6).timeout
-		"heroes":
-			# The hired heroes fight a few rounds with what their trees taught them, for a
-			# recording: each uses the last-learnt technique that has a target, walking up
-			# first if nothing is in reach.
-			for turn in 4:
-				for member: Dictionary in _party:
-					var id: String = member.id
-					var u := state.unit(id)
-					if u == null or not u.alive or not unit_views.has(id): continue
-					cam_rig.focus(unit_views[id].position)
-					await get_tree().create_timer(.5).timeout
-					for step in 2:
-						var used := false
-						var known := u.skills.duplicate()
-						known.reverse()
-						for sk: String in known:
-							if u.cooldown(sk) > 0: continue
-							var aim := Rules.targeting(state,{"type":"skill","unit":id,"skill":sk})
-							if aim.valid.is_empty(): continue
-							_popup(id,str(SkillCatalog.get_skill(sk).get("name",sk)),Color("#f1e3c4"))
-							await _perform({"type":"skill","unit":id,"skill":sk,"target":aim.valid[0]})
-							await get_tree().create_timer(1.2).timeout
-							used = true
-							break
-						if used or step == 1 or u.has_moved: break
-						# Nothing in reach: close on the nearest enemy, archers to bowshot.
-						var want := 3 if SkillCatalog.get_skill(u.skills[0]).get("ranged",false) else 1
-						var best := u.pos
-						var score := 999
-						var reach := Movement.destinations(state,u,-1)
-						for cell: Vector2i in reach:
-							for other_id: String in state.order:
-								var other := state.unit(other_id)
-								if other.team != Defs.Team.ENEMY or not other.alive or other.hidden: continue
-								var gap: int = absi(abs(cell.x-other.pos.x)+abs(cell.y-other.pos.y)-want)
-								if gap < score:
-									score = gap
-									best = cell
-						if best == u.pos: break
-						await _perform({"type":"move","unit":id,"to":best})
-						await get_tree().create_timer(.4).timeout
-				_end_turn()
-				await get_tree().create_timer(1.0).timeout
-				while state != null and state.phase != Defs.Phase.PLAYER: await get_tree().create_timer(.5).timeout
-				await get_tree().create_timer(.8).timeout
 		"guard":
 			# Two of ours brace: how the stance shows on the field.
 			await get_tree().create_timer(.4).timeout

@@ -46,6 +46,7 @@ type Server struct {
 	bus  *bus
 	mux  *http.ServeMux
 	diff *difficultyRun
+	sup  *supportRun
 	// KeepAlive 是事件流的保活间隔。
 	KeepAlive time.Duration
 }
@@ -89,7 +90,7 @@ func New(cfg Config) *Server {
 	if len(cfg.Rules) > 0 {
 		ws.Rules = cfg.Rules
 	}
-	s := &Server{WS: ws, cfg: cfg, bus: &bus{subs: map[chan string]bool{}}, KeepAlive: 15 * time.Second, diff: &difficultyRun{}}
+	s := &Server{WS: ws, cfg: cfg, bus: &bus{subs: map[chan string]bool{}}, KeepAlive: 15 * time.Second, diff: &difficultyRun{}, sup: &supportRun{}}
 	runner := &balance.Runner{Paths: cfg.Paths, Sim: cfg.Sim, Workers: cfg.Workers}
 	s.Jobs = NewJobs(ws, runner, s.bus.publish)
 	ws.OnActivity(func(entry *oj.Object) { s.bus.publish("activity", entry) })
@@ -281,6 +282,7 @@ func (s *Server) routes() {
 
 	s.mux.HandleFunc("GET /api/events", s.events)
 	s.difficultyRoutes()
+	s.supportRoutes()
 
 	// 静态词汇：地形代码、机器人、指标、结局
 	s.handle("GET /api/meta", func(r *http.Request) (any, error) {

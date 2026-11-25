@@ -20,7 +20,7 @@ const ACTION_ART := {"spear":"act_spear","slash":"act_slash","club":"act_slash",
 	"shoulder_throw":"shoulder_throw","wait":"act_wait",
 	"facing":"act_facing","face":"act_facing","undo_move":"act_undo","move":"boot","leap":"jump","mark":"act_mark",
 	"shoot":"act_shoot","heracles_bow":"act_shoot","bandit_bow":"act_shoot","witch_fire":"act_fire",
-	"push_boulder":"act_push","hoof_stomp":"heel_strike","brute_shove":"shield_drive","lance_charge":"phalanx_thrust"}
+	"push_boulder":"act_push"}
 var enemy_numbers := {}
 var _round_numbers := {}
 var _queue_round := -1

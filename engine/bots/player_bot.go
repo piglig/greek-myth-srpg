@@ -322,7 +322,7 @@ func (b *Bot) callSupport(s *rules.BattleState, u *rules.UnitState, ev *[]rules.
 				continue
 			}
 			// 驮行：这个同伴可以放到主角周围的每一块空地，各试一遍。
-			if o := s.UnitAt(c); o == nil || o.Team != u.Team || o == u {
+			if o := s.UnitAt(c); o == nil || o.Team != u.Team {
 				continue
 			}
 			for dy := -sk.Carry; dy <= sk.Carry; dy++ {

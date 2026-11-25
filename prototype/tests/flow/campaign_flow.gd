@@ -115,6 +115,7 @@ func _run() -> void:
 		await _new_game()
 	if failures.is_empty() or _scene().scene_file_path.ends_with("camp.tscn"):
 		await _old_save()
+		await _call_for_help()
 		await _side_road()
 		await _verdicts()
 	_finish()
@@ -625,6 +626,122 @@ func _lean(way: String) -> bool:
 
 ## The second chapter for someone who did not win the feast: Chiron lies wounded off the
 ## road, and bringing him to the spring is how he joins.
+## The index of the protagonist's command for calling his supporter, or -1.
+func _call_index() -> int:
+	var field := _scene()
+	for i in field._actions.size():
+		if SkillCatalog.get_skill(str(field._actions[i].get("action",{}).get("skill",""))).has("support"): return i
+	return -1
+
+## Ends the player's turn and waits until it is the player's again.
+func _next_round() -> bool:
+	var field := _scene()
+	var was: int = field.state.round_number
+	field._end_turn()
+	var deadline := Time.get_ticks_msec()+40000
+	while Time.get_ticks_msec() < deadline:
+		if field.state != null and field.state.round_number > was and field.state.phase == Defs.Phase.PLAYER and field._mode == field.Mode.IDLE:
+			await _frames(4)
+			return true
+		await get_tree().process_frame
+	return _check("the turn comes back to the player",false)
+
+## Opens 1-4 with this hired hero in support, the way the camp hands a battle over.
+func _field_with(hero: String) -> bool:
+	var entry := _disk()
+	entry.id = "1-4"
+	entry.choose_route = false
+	entry.campaign = false
+	entry.deploy = ["atalanta"]
+	entry.bench = []
+	entry.party = []
+	entry.support = hero
+	entry.support_picks = []
+	get_tree().set_meta("battle_entry",entry)
+	get_tree().change_scene_to_file("res://main.tscn")
+	await _frames(4)
+	if not await _battle_ready(): return false
+	return _check("%s came along" % hero,_scene().state.unit("hero").skills.has(str(Save.RECRUITS[hero].support)),_scene().state.unit("hero").skills)
+
+## Calling a hired hero in battle, through the same commands and clicks a player uses.
+func _call_for_help() -> void:
+	_begin("calling for help")
+	# The old save's battle is still open, with Iphicles in support.
+	var field := _scene()
+	field._select("hero")
+	await _frames()
+	var at := _call_index()
+	if not _check("the call is one of the protagonist's commands",at >= 0,field._actions.map(func(a): return a.get("label",""))): return
+	_check("it is closed in the first round",not field._actions[at].enabled and str(field._actions[at].brief).contains("第二回合"),field._actions[at])
+	if not await _next_round(): return
+	# The protagonist spends his own action first; the call is still open to him.
+	await field._perform({"type":"wait","unit":"hero"})
+	await _frames()
+	field._select("hero")
+	await _frames()
+	at = _call_index()
+	_check("he has acted",field.state.unit("hero").has_acted)
+	if not _check("and can still call",at >= 0 and field._actions[at].enabled,field._actions[at] if at >= 0 else "gone"): return
+	field._on_action(at)
+	await _frames()
+	_check("the call asks for a target",field._mode == field.Mode.TARGET,field._mode)
+	var friend: UnitState = field.state.unit("atalanta")
+	field._click(friend.pos)
+	await _frames(30)
+	_check("Atalanta is shielded",field.state.unit("atalanta").shield > 0,field.state.unit("atalanta").shield)
+	field._select("hero")
+	await _frames()
+	at = _call_index()
+	_check("and he must rest before the next call",at >= 0 and not field._actions[at].enabled and int(field._actions[at].cooldown) > 0,field._actions[at] if at >= 0 else "gone")
+
+	# Pholus carries: first where to set the companion down, then whom.
+	if not await _field_with("pholus"): return
+	if not await _next_round(): return
+	field = _scene()
+	field._select("hero")
+	await _frames()
+	at = _call_index()
+	if not _check("Pholus can be called",at >= 0 and field._actions[at].enabled,field._actions[at] if at >= 0 else "gone"): return
+	field._on_action(at)
+	await _frames()
+	_check("he asks where to first",field._needs_landing())
+	var aim: Dictionary = Rules.targeting(field.state,field._pending.merged({"unit":"hero"}))
+	if not _check("there are places to set someone down",not aim.landings.is_empty()): return
+	var hero_at: Vector2i = field.state.unit("hero").pos
+	var down: Vector2i = aim.landings[0]
+	for cell: Vector2i in aim.landings:
+		# The farthest he will carry, to see that she really travels.
+		if absi(cell.x-hero_at.x)+absi(cell.y-hero_at.y) > absi(down.x-hero_at.x)+absi(down.y-hero_at.y): down = cell
+	field._click(down)
+	await _frames()
+	_check("then he asks whom",field._mode == field.Mode.TARGET and not field._needs_landing() and field._pending.get("to") == down,field._pending)
+	var rider: UnitState = field.state.unit("atalanta")
+	field._click(rider.pos)
+	await _frames(40)
+	_check("Atalanta is set down where he was told",field.state.unit("atalanta").pos == down,[field.state.unit("atalanta").pos,down])
+	_check("the protagonist has not spent his action",not field.state.unit("hero").has_acted)
+
+	# Ancaeus splits armour, and the game has a name for what that leaves.
+	if not await _field_with("ancaeus"): return
+	field = _scene()
+	var marks: Array = []
+	for round in 5:
+		if not await _next_round(): return
+		field._select("hero")
+		await _frames()
+		at = _call_index()
+		if at < 0 or not field._actions[at].enabled: continue
+		var reach: Dictionary = Rules.targeting(field.state,{"type":"skill","unit":"hero","skill":str(Save.RECRUITS.ancaeus.support)})
+		if reach.valid.is_empty(): continue
+		field._on_action(at)
+		await _frames()
+		field._click(reach.valid[0])
+		await _frames(40)
+		marks = field.state.units.values().filter(func(u): return u.alive and u.has_status("sundered"))
+		break
+	if _check("the axe finds someone within five rounds, and leaves the armour split",not marks.is_empty()):
+		_check("split armour has a name the player can read",str(EventText.STATUS_NAMES.get("sundered","")).contains("破甲"),EventText.STATUS_NAMES.get("sundered"))
+
 func _side_road() -> void:
 	_begin("the wounded centaur")
 	var at := {"id":"2-2","stage":"camp","picks":{"hero":["iron_arm"],"atalanta":["vital_shot"]},"rescued":[],"chiron_joined":false,

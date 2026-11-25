@@ -152,7 +152,13 @@ func (ev *Evaluator) Material(s *rules.BattleState) float64 {
 				v -= w.Wounded * w.PlayerHP * (WoundedBelow - health)
 			}
 			v -= w.Linger * w.PlayerHP * float64(min(lingering(u), u.HP)) / float64(u.MaxHP)
-			v += 0.5 * w.PlayerHP * float64(min(u.Shield, u.MaxHP)) / float64(u.MaxHP)
+			// 护盾按半份生命看；护在"倒下就输"的人身上按双份，和他们的生命一样。不然机器人会把
+			// 护盾给了旁人，敌人见旁人打不动，反倒都去打要保护的那一个。
+			shield := 0.5 * w.PlayerHP * float64(min(u.Shield, u.MaxHP)) / float64(u.MaxHP)
+			if vital && u.ID != "hero" {
+				shield *= 2
+			}
+			v += shield
 			if u.HasStatus("impervious_hide") || u.HasStatus("thunder_body") {
 				v += 0.2 * w.PlayerHP
 			}
