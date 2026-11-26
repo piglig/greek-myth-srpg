@@ -363,10 +363,18 @@ static func icon(name: String, size := 16) -> Texture2D:
 ## Units drawn on four legs, whose portrait is the whole animal.
 const BEASTS := ["wolf","boar","lion"]
 
-## The face of a unit, cut from the sprite it fights with.
+## The face of a unit: from its painted bust when there is one (art/tools/pack_portraits.py
+## cuts the square), otherwise cut from the sprite it fights with.
 static func face(def_id: String, size := 32) -> Texture2D:
 	var key := "face/%s/%d" % [def_id,size]
 	if not _cache.has(key):
+		var painted := "res://art/original/portraits/faces/%s.png" % def_id
+		if ResourceLoader.exists(painted):
+			var bust: Image = (load(painted) as Texture2D).get_image()
+			bust.convert(Image.FORMAT_RGBA8)
+			bust.resize(size,size,Image.INTERPOLATE_LANCZOS)
+			_cache[key] = _roundel(bust,size)
+			return _cache[key]
 		var sheet_image: Image = (load("res://art/pixel/%s/actors.png" % def_id) as Texture2D).get_image()
 		var first := sheet_image.get_region(Rect2i(0,0,160,128))
 		var used := first.get_used_rect()
@@ -394,22 +402,26 @@ static func face(def_id: String, size := 32) -> Texture2D:
 			head.blit_rect(first,used,Vector2i((whole-used.size.x)/2,(whole-used.size.y)/2))
 		head.resize(size,size,Image.INTERPOLATE_NEAREST)
 		head.convert(Image.FORMAT_RGBA8)
-		# Set in a roundel, as a face is painted inside a cup: clay behind, a ring round it.
-		var medal := Image.create(size,size,false,Image.FORMAT_RGBA8)
-		var middle := (size-1)*.5
-		var reach := size*.5
-		var ground := CLAY_DARK.darkened(.35)
-		for y in size:
-			for x in size:
-				var far := Vector2(x-middle,y-middle).length()
-				if far > reach: continue
-				if far > reach-maxf(1.0,size/20.0):
-					medal.set_pixel(x,y,OCHRE)
-					continue
-				var paint := head.get_pixel(x,y)
-				medal.set_pixel(x,y,ground.lerp(Color(paint.r,paint.g,paint.b,1),paint.a))
-		_cache[key] = ImageTexture.create_from_image(medal)
+		_cache[key] = _roundel(head,size)
 	return _cache[key]
+
+
+## Set in a roundel, as a face is painted inside a cup: clay behind, a ring round it.
+static func _roundel(head: Image, size: int) -> Texture2D:
+	var medal := Image.create(size,size,false,Image.FORMAT_RGBA8)
+	var middle := (size-1)*.5
+	var reach := size*.5
+	var ground := CLAY_DARK.darkened(.35)
+	for y in size:
+		for x in size:
+			var far := Vector2(x-middle,y-middle).length()
+			if far > reach: continue
+			if far > reach-maxf(1.0,size/20.0):
+				medal.set_pixel(x,y,OCHRE)
+				continue
+			var paint := head.get_pixel(x,y)
+			medal.set_pixel(x,y,ground.lerp(Color(paint.r,paint.g,paint.b,1),paint.a))
+	return ImageTexture.create_from_image(medal)
 
 
 ## Battle screens are laid out in window pixels, not on the canvas, so their text snaps to

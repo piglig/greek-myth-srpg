@@ -620,7 +620,7 @@ func set_unit(u: UnitState, height: int, resolving: bool) -> void:
 		_selected_id = u.id
 		_diamond.open_group = ""
 		_unit_name.set_pressed_no_signal(false)
-		_portrait.texture = Px.face(u.look(),64)
+		_portrait.texture = Px.face(u.look(),roundi(74*ui_scale))
 	_unit_name.flat = true
 	_unit_name.text = u.display_name + "  ▾"
 	_vitals.text = "生命  %d / %d" % [maxi(u.hp,0),u.max_hp]

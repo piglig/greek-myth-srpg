@@ -23,11 +23,11 @@ var hit_target := ""
 const POPUP_LIFE := 1.1
 ## Conditions worth seeing at a glance, in the order they are laid out: [status, drawing, colour].
 ## Each is a small round badge beside the unit's bar for as long as it lasts.
-## The game has four ailments and no more: burning, poisoned, rooted, stunned. The rest
-## here are stances a unit takes itself. A boss's broken guard is told by its stagger bar,
-## which fills and holds while it lasts, so it has no badge.
+## The ailments come first: burning, poisoned, blighted (cannot be healed), rooted,
+## stunned. The rest here are stances a unit takes itself. A boss's broken guard is told by
+## its stagger bar, which fills and holds while it lasts, so it has no badge.
 const BADGES := [["burning","kindling","#ff9a4a"],["poisoned","st_poison","#9be07c"],
-	["rooted","bind_hex","#c9a0ff"],["stunned","st_stun","#ffe08a"],
+	["blighted","blighted","#6fae5a"],["rooted","bind_hex","#c9a0ff"],["stunned","st_stun","#ffe08a"],
 	["guard","act_guard","#8fd0ff"],["dodge","st_dodge","#9fe3d6"],["impervious_hide","st_shield","#f2d08a"],
 	["thunder_body","st_stun","#fff6da"]]
 

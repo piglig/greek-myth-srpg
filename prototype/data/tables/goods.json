@@ -49,10 +49,10 @@
   "wine_skin": {"slot": "material", "name": "酒囊", "rarity": "common", "price": 30, "lore": "还剩小半袋没掺水的酒。"},
   "horsehair": {"slot": "material", "name": "马鬃", "rarity": "common", "price": 28, "lore": "半人马的尾鬃，做弓弦比牛筋还韧。"},
   "lion_mane": {"slot": "material", "name": "狮鬃", "rarity": "epic", "price": 200, "lore": "涅墨亚狮子的鬃毛，刀割不断。"},
-  "snake_skin": {"slot": "material", "name": "蛇皮", "rarity": "common", "price": 24, "art": "scale", "lore": "整条褪下来的，花纹还在。做刀鞘的人收。"},
-  "venom_sac": {"slot": "material", "name": "毒囊", "rarity": "rare", "price": 70, "art": "st_poison", "lore": "小心别捏破。药师出的价比猎人高。"},
-  "crab_shell": {"slot": "material", "name": "蟹壳", "rarity": "common", "price": 40, "art": "broken_shield", "lore": "比盾还硬的一整片背甲。"},
-  "crab_claw": {"slot": "material", "name": "蟹钳", "rarity": "rare", "price": 80, "art": "claw", "lore": "钳口还合得上。有人拿它当门环。"},
-  "sacred_ribbon": {"slot": "material", "name": "祭带", "rarity": "common", "price": 36, "art": "red_thread", "lore": "女祭司束发的带子，绣着孔雀翎。"},
-  "incense": {"slot": "material", "name": "乳香", "rarity": "rare", "price": 70, "art": "kindling", "lore": "祭坛上烧的香。在集市上按粒卖。"}
+  "snake_skin": {"slot": "material", "name": "蛇皮", "rarity": "common", "price": 24, "lore": "整条褪下来的，花纹还在。做刀鞘的人收。"},
+  "venom_sac": {"slot": "material", "name": "毒囊", "rarity": "rare", "price": 70, "lore": "小心别捏破。药师出的价比猎人高。"},
+  "crab_shell": {"slot": "material", "name": "蟹壳", "rarity": "common", "price": 40, "lore": "比盾还硬的一整片背甲。"},
+  "crab_claw": {"slot": "material", "name": "蟹钳", "rarity": "rare", "price": 80, "lore": "钳口还合得上。有人拿它当门环。"},
+  "sacred_ribbon": {"slot": "material", "name": "祭带", "rarity": "common", "price": 36, "lore": "女祭司束发的带子，绣着孔雀翎。"},
+  "incense": {"slot": "material", "name": "乳香", "rarity": "rare", "price": 70, "lore": "祭坛上烧的香。在集市上按粒卖。"}
 }

@@ -2,7 +2,9 @@ shader_type spatial;
 render_mode diffuse_lambert, specular_disabled;
 // The bed of the marsh and its banks. The water is a sheet of its own (lerna_water).
 // Three grounds: rippled sand where it is dry, mud with stones in it where the water
-// reaches, bedded rock where it is cut steep (ambientCG, CC0). Bog is painted over them.
+// reaches, bedded earth where it is cut steep. Bog is painted over them. Lerna has its own
+// gouache grounds (painted_floor, with forest litter and ash); the lake at Stymphalus still
+// uses the ambientCG photographs (CC0). The relief maps are ambientCG's in both.
 #include "res://view/pixel_pigment.gdshaderinc"
 uniform sampler2D silt : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D sand : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
@@ -11,6 +13,9 @@ uniform sampler2D mud : source_color, repeat_enable, filter_linear_mipmap_anisot
 uniform sampler2D mud_relief : hint_normal, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D rock : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform sampler2D rock_relief : hint_normal, repeat_enable, filter_linear_mipmap_anisotropic;
+uniform sampler2D litter_ground : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
+uniform sampler2D ash_ground : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
+uniform bool painted_floor = false;
 uniform sampler2D wet_cells : filter_linear, repeat_disable;
 // Red where a cell has burnt to ash, green where there is forest floor.
 uniform sampler2D floor_marks : filter_linear, repeat_disable;
@@ -41,9 +46,20 @@ void fragment() {
 	// The sand is a photograph of a yellow beach: keep its ripples, take most of its colour
 	// from the field's own earth.
 	vec3 sand_ink = texture(sand, p*.31).rgb;
-	sand_ink = mix(vec3(dot(sand_ink,vec3(.3,.59,.11))),sand_ink,.38)*dry_tint*1.12;
-	vec3 mud_ink = texture(mud, p*.27).rgb*vec3(.72,.70,.66);
-	vec3 rock_ink = texture(rock, along*.42).rgb*vec3(.80,.74,.66);
+	vec3 mud_ink = texture(mud, p*.27).rgb;
+	vec3 rock_ink = texture(rock, along*.42).rgb;
+	if (painted_floor) {
+		// Painted for this marsh. Keep its strokes, but bring its average colour to the
+		// warmer earth the rest of the field (reeds, water, light) was tuned against;
+		// as painted it reads pink beside them.
+		sand_ink *= vec3(.955,.99,.91);
+		mud_ink *= vec3(.96,.95,.79);
+		rock_ink *= vec3(.84,.92,.88);
+	} else {
+		sand_ink = mix(vec3(dot(sand_ink,vec3(.3,.59,.11))),sand_ink,.38)*dry_tint*1.12;
+		mud_ink *= vec3(.72,.70,.66);
+		rock_ink *= vec3(.80,.74,.66);
+	}
 	vec3 paint = mix(sand_ink, mud_ink, damp);
 	paint = mix(paint, rock_ink, face);
 	// The same choice for the small relief that catches the light.
@@ -64,10 +80,17 @@ void fragment() {
 	// with a pale edge.
 	vec2 marks = texture(floor_marks, bank / field_size).rg;
 	float litter = smoothstep(.35,.65,marks.g + .25*(grain-.3));
-	paint = mix(paint, paint*vec3(.62,.72,.48) + vec3(.012,.020,.006), .8*litter);
 	float ash = smoothstep(.30,.62,marks.r + .30*(grain-.3));
-	paint = mix(paint, vec3(.060,.055,.052) + ink*.13, .88*ash);
-	paint += vec3(.16,.15,.14)*ash*smoothstep(.72,.9,sin(p.x*21.+3.*sin(p.y*9.))*sin(p.y*19.));
+	if (painted_floor) {
+		// Rotate the ash a little against the grid so its pale flecks do not line up in rows.
+		vec2 q = mat2(vec2(.96,.28),vec2(-.28,.96))*p;
+		paint = mix(paint, texture(litter_ground, p*.29).rgb*.92, .85*litter);
+		paint = mix(paint, texture(ash_ground, q*.37).rgb*.85, .92*ash);
+	} else {
+		paint = mix(paint, paint*vec3(.62,.72,.48) + vec3(.012,.020,.006), .8*litter);
+		paint = mix(paint, vec3(.060,.055,.052) + ink*.13, .88*ash);
+		paint += vec3(.16,.15,.14)*ash*smoothstep(.72,.9,sin(p.x*21.+3.*sin(p.y*9.))*sin(p.y*19.));
+	}
 	// Under the water the bed keeps its grain and loses its warmth.
 	float under = smoothstep(.0,-.10,above);
 	paint = mix(paint, paint*vec3(.70,.86,.80), under);

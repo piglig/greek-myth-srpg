@@ -19,7 +19,10 @@
 
 ## 0.1 审核返工（2026-11-25）
 
-第一批交付已审核，大部分通过。下面几项退回重做，对应条目已改回未完成，提示词已更新：
+第一批交付已审核，大部分通过。下面几项退回重做，对应条目已改回未完成，提示词已更新。
+
+> 所有待返工的条目都在原位置标了 **【返工】**，在本文搜「返工】」就能逐条找到，共 13 处：0.1 这一轮 10 处（福洛斯原画和半身像算两处，五枚图标各一处），0.1.1 这一轮 3 处。重画交付、审核通过后去掉标记并打勾。
+
 
 | 项 | 位置 | 原因 |
 |---|---|---|
@@ -30,6 +33,30 @@
 | 五枚图标 | 2.1 | 24 像素下认不出：扫膝、指隙箭、劈盾、不信预言、青铜碎片 |
 
 重做图标时守一条：一枚图标只画一个主体，不超过三个部件。
+
+## 0.1.1 第二批审核与接入（2026-11-26）
+
+第二章这批 37 件逐张看过，量了透明度，地表贴成 2×2 看了重复，图标缩到 24 像素看了。三件退回，对应条目已改回未完成、提示词已改：
+
+| 项 | 位置 | 原因 |
+|---|---|---|
+| 许德拉的身体 | 0.3.1 | 五根颈根画成切断的平口，其中一根在流血。开局五个头都在，这样像是已经被砍过 |
+| 焦土 | 0.3.3 | 白灰斑点排成规整的格子，铺开一眼看出重复 |
+| 巨蟹头像 | 0.3.1 | 蟹只占画面上七成，底下空三成；别的头像都画到底边，同一个框里它显得小而悬空 |
+
+不用返工、我这边处理的：神龛、垂柳、桤木、枯树边上有 alpha 1–4 的残留（深色底上像光晕和红边，游戏里看不见），打包时清掉；许德拉之首下排是朝左的侧脸而不是背面，头不走动，侧脸更好认。
+
+先用着、进游戏后再看的：毒囊像钱袋，乳香像蜂巢，钳制认不出是蟹钳；剧毒、噬咬、毒牙三枚都是蛇嘴，24 像素下彼此难分。剧毒特效在沼泽地面上偏暗。
+
+**已接入游戏的**（游戏只读 `prototype/art/`，原画放进 `art/originals/` 之后要我打包）：
+
+- 十五枚图标：复制到 `prototype/art/original/icons/`，六种材料去掉了借用。「蛇毒」加进了单位头顶的状态小标。「许德拉之首」小标游戏里暂时没有地方用。
+- 头像：`art/tools/pack_portraits.py` 把全部 21 张打包成 256×320，并按脸裁一张方形小图（`portraits/faces/`）。战斗里的单位卡和顶栏单位头像、营地各处的人物圆章，有画好的头像就用它，没有的才从战斗小人上裁头。之前交付的 14 张到这时才真正用上。
+- 许德拉之首：按沼蛇的流程烘成战斗小人（`art/tools/bake_lerna.py`），沼蛇替身去掉。断颈两态烘成小图（`art/tools/bake_hydra_stump.py`），头倒下的格子上显示，封住后换成焦黑那张。
+- 沼泽地表五张：勒拿各关用它们代替原来的照片贴图，林地和焦土也换成画的。平均色往原来的暖土色校正过，原样偏粉。斯廷法利斯湖（3-1）不变。
+- 特效七个：林火替换了原来的火焰，烧尽的格子留下焦桩；烧封、再生、毒涎、女祭司赐福、剧毒挂到了各自的事件上。
+
+**还没接入的**：许德拉的身体（等返工）；神龛和三棵树（沼泽是 3D 模型拼的场景，平面画要做成立牌，先试一张再定）；伊俄拉俄斯的原画和半身像（他还不是能上场的角色）。
 
 ## 0.2 第二章新增、暂借图标的六种材料（2026-11-25）
 
@@ -85,12 +112,14 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 2 columns and 1 row. The same severed stump of a hydra's neck in both cells, a thick scaled column cut off at knee height, seen from a high overhead 35 degree orthographic view. Left cell: the cut is raw and wet, dark red, with two small pale buds of new flesh already swelling from it. Right cell: the cut is burnt black and sealed, cracked like charcoal, with a few orange embers and a thin thread of smoke. Ancient Mediterranean gouache illustration, broad rich earthy color planes, wide empty gutter between the two. No text no dividers no backdrop or pedestal.
 ```
 
-#### [x] 许德拉的身体 `hydra_body`（单张）
+#### [ ] **【返工】** 许德拉的身体 `hydra_body`（单张，2026-11-26 退回：颈根画成了断口）
 
 放在地图中央，占 3×3 格，五个头围着它。它不动，不需要动作帧。
 
+第一版退回：颈根画成了切断的平口，还有一根在流血。2-5 里五个头各自站在身体四周的格子上，并不接在身体上，所以身体**不要画颈根**，只画盘起来的身子。
+
 ```
-The coiled body of the Lernaean hydra with no heads, a great knot of thick scaled coils piled into a low mound three times as wide as a man is tall, pale olive and bone-coloured scales with a row of spikes along each coil, five short neck roots rising from it where the heads would join, half sunk in marsh mud with a few reeds against it. Seen from a high three-quarter angle about 35 degrees, lit softly from the upper left. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork. Transparent background, the whole mound inside the picture with empty margin on every side. No heads, no characters, no text.
+The coiled body of the Lernaean hydra with no heads, a great knot of thick scaled coils piled into a low mound three times as wide as a man is tall, pale olive and bone-coloured scales with a row of spikes along each coil, the coils smooth and whole with no neck roots, no cut ends, no wounds and no blood, half sunk in marsh mud with a few reeds against it. Seen from a high three-quarter angle about 35 degrees, lit softly from the upper left. Ancient Mediterranean gouache illustration, broad rich earthy color planes, visible brushwork. Transparent background, the whole mound inside the picture with empty margin on every side. No heads, no necks, no stumps, no characters, no text.
 ```
 
 #### [x] 三个头像：沼蛇、巨蟹、许德拉之首
@@ -100,12 +129,12 @@ The coiled body of the Lernaean hydra with no heads, a great knot of thick scale
 | 完成 | 谁 | 文件名 | 接在共用后半段前面 |
 |---|---|---|---|
 | [x] | 沼蛇 | `portraits/marsh_snake.png` | `A large marsh water snake, thick mottled olive body, head raised and turned three-quarters, mouth slightly open showing one fang, a coil of its body behind the head.` |
-| [x] | 巨蟹 | `portraits/giant_crab.png` | `A giant marsh crab, dark green shell crusted with mud, seen from the front three-quarters, two small stalked eyes, one oversized claw raised beside its face.` |
+| [ ] | **【返工】** 巨蟹（2026-11-26 退回：太小、底下空了三成） | `portraits/giant_crab.png` | `A giant marsh crab seen close up, dark green shell crusted with mud, seen from the front three-quarters, two small stalked eyes, one oversized claw raised beside its face, the shell large in the picture and cut off by the bottom edge like a bust.` |
 | [x] | 许德拉之首 | `portraits/hydra_head.png` | `One head of the Lernaean hydra, heavy wedge-shaped serpent head with yellow eyes, pale olive and bone-coloured scales, a crest of spikes, jaws slightly parted, the thick neck filling the bottom of the picture.` |
 
 共用后半段把 `Bust portrait from the chest up, three-quarter face, gaze slightly off to one side, calm expression.` 换成 `Head and upper body only, three-quarter view.`，其余不变。
 
-2026-11-25 原画交付：[六格头颈](art/originals/hydra_head.png)、[两态断颈](art/originals/hydra_stump.png)、[盘绕身体](art/originals/hydra_body.png)，以及[沼蛇](art/originals/portraits/marsh_snake.png)、[巨蟹](art/originals/portraits/giant_crab.png)、[许德拉之首](art/originals/portraits/hydra_head.png)三张头像。勾选范围为原画，战场切图和回合条接入待办。
+2026-11-25 原画交付：[六格头颈](art/originals/hydra_head.png)、[两态断颈](art/originals/hydra_stump.png)、[盘绕身体](art/originals/hydra_body.png)，以及[沼蛇](art/originals/portraits/marsh_snake.png)、[巨蟹](art/originals/portraits/giant_crab.png)、[许德拉之首](art/originals/portraits/hydra_head.png)三张头像。勾选范围为原画。2026-11-26 头颈、断颈和两张头像已接入游戏，身体和巨蟹头像退回，见 0.1.1。
 
 ### 0.3.2 伊俄拉俄斯 `iolaus`
 
@@ -159,11 +188,11 @@ A small ruined Greek shrine on a low stone platform of two worn steps: four slim
 | [x] | 水边和水底的湿泥 | `lerna-mud.png` | `Dark wet marsh mud, glossy in patches, with small stones, rotting leaves and a few water-filled hollows.` |
 | [x] | 陡坎的断面 | `lerna-bank.png` | `A cut earth bank seen face on: horizontal layers of brown clay, grey silt and a band of pebbles, with thin roots hanging out of it.` |
 | [x] | 林地的地面 | `lerna-litter.png` | `Damp forest floor under trees: dark green moss, brown fallen leaves, twigs and a few fern fronds lying flat.` |
-| [x] | 烧过的焦土 | `lerna-ash.png` | `Burnt ground after a brush fire: black ash and grey cinders, charred twigs, a few pale patches of white ash.` |
+| [ ] | **【返工】** 烧过的焦土（2026-11-26 退回：白灰排成格子） | `lerna-ash.png` | `Burnt ground after a brush fire: black ash and grey cinders, charred twigs, pale flecks of white ash of different sizes scattered unevenly, some areas with none, no repeating pattern and no rows.` |
 
 注意第三张"断面"不是从正上方看的，把共用后半段里的 `seen from directly above` 换成 `seen face on`。
 
-2026-11-25 原画交付：[神龛](art/originals/lerna-shrine.png)、[垂柳](art/originals/marsh-willow.png)、[黑桤木](art/originals/marsh-alder.png)、[枯树](art/originals/marsh-snag.png)各为一张透明 PNG。[干岸](art/originals/lerna-terrain/lerna-sand.png)、[湿泥](art/originals/lerna-terrain/lerna-mud.png)、[岸壁断面](art/originals/lerna-terrain/lerna-bank.png)、[林地](art/originals/lerna-terrain/lerna-litter.png)、[焦土](art/originals/lerna-terrain/lerna-ash.png)各为 1024×1024，已检查 2×2 平铺。第 3.3 节的旧版湿泥仍在原位置。勾选范围为场景原画和地表贴图。
+2026-11-25 原画交付：[神龛](art/originals/lerna-shrine.png)、[垂柳](art/originals/marsh-willow.png)、[黑桤木](art/originals/marsh-alder.png)、[枯树](art/originals/marsh-snag.png)各为一张透明 PNG。[干岸](art/originals/lerna-terrain/lerna-sand.png)、[湿泥](art/originals/lerna-terrain/lerna-mud.png)、[岸壁断面](art/originals/lerna-terrain/lerna-bank.png)、[林地](art/originals/lerna-terrain/lerna-litter.png)、[焦土](art/originals/lerna-terrain/lerna-ash.png)各为 1024×1024，已检查 2×2 平铺。第 3.3 节的旧版湿泥仍在原位置。勾选范围为场景原画和地表贴图。2026-11-26 五张地表已接入（焦土退回重画，先用着这一版），神龛和树还没有，见 0.1.1。
 
 ### 0.3.4 特效
 
@@ -363,7 +392,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 Original PC tactical game sprite atlas on transparent background, precisely 3 columns and 2 rows. Same burly Arcadian Greek axeman, a brown bearskin worn over head and shoulders with the bear's muzzle as a hood, sea green tunic, thick bare arms, double-headed bronze axe, in all six cells. Top row front three-quarter view facing right, bottom row rear three-quarter view facing away left. Columns idle, walking, attacking with a wide axe swing. High overhead 35 degree orthographic. Ancient Mediterranean gouache illustration, broad rich earthy color planes, distinctive readable silhouette, full body plus equipment fits within each cell, wide empty gutters. No text no dividers no backdrop or pedestal.
 ```
 
-#### [ ] 福洛斯 `merc_lancer`（稀有）
+#### [ ] **【返工】** 福洛斯 `merc_lancer`（稀有）
 
 福洛厄山的半人马，好客的主人。四足。武器必须是长矛。
 
@@ -401,7 +430,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 
 ### 1.3 人物半身像
 
-现在所有头像都是从战斗小人上裁出来的头部，放大后发糊。规格见 6.2。**先出原画，再拿原画当参考图出半身像。**
+画好的半身像由 `art/tools/pack_portraits.py` 打包进游戏，单位卡和营地的人物圆章都用它；还没有半身像的人，头像仍从战斗小人上裁，放大后发糊（2026-11-26）。规格见 6.2。**先出原画，再拿原画当参考图出半身像。**
 
 **共用的后半段**（每条都已写全）：
 
@@ -446,10 +475,10 @@ The Greek hero Heracles as a weary man in his forties, massive bare shoulders, h
 | [x] | 行商阿齐尔 | `npc_trader` |
 | [x] | 教习达蒙 | `npc_drill` |
 | [x] | 领路人伊俄 | `npc_guide` |
-| [ ] | 伊达斯 | `idas` |
+| [ ] | **【返工】** 伊达斯 | `idas` |
 | [x] | 欧律提翁 | `eurytion` |
 | [x] | 安开俄斯 | `merc_captain` |
-| [ ] | 福洛斯 | `merc_lancer` |
+| [ ] | **【返工】** 福洛斯 | `merc_lancer` |
 | [x] | 伊菲克勒斯 | `merc_sword` |
 | [x] | 法勒洛斯 | `merc_archer` |
 
@@ -573,7 +602,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 方阵贯刺 | `phalanx_thrust` | `three parallel spears pointing the same way` |
 | [x] | 铁臂 | `iron_arm` | `a flexed forearm with a clenched fist` |
 | [x] | 破势之拳 | `stagger_fist` | `a fist striking a cracked breastplate` |
-| [ ] | 扫膝 | `heel_strike` | `one bent leg kicking low to the side, a single short curved motion line under the foot` |
+| [ ] | **【返工】** 扫膝 | `heel_strike` | `one bent leg kicking low to the side, a single short curved motion line under the foot` |
 | [x] | 角力呼吸 | `wrestler` | `a wrestler crouched in a ready stance, arms forward` |
 | [x] | 碎阵重击 | `breaker` | `a shield shattering into three pieces` |
 | [x] | 不坏之皮 | `impervious_hide` | `a man wearing a lion's head as a hood` |
@@ -603,7 +632,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | 完成 | 名称 | 标识 | {主体} |
 |---|---|---|---|
 | [x] | 净化箭 | `purify_arrow` | `an arrow with a sprig of herb bound to its shaft` |
-| [ ] | 指隙箭 | `weak_point` | `one arrow pointing into a V-shaped notch in the edge of a single armour plate` |
+| [ ] | **【返工】** 指隙箭 | `weak_point` | `one arrow pointing into a V-shaped notch in the edge of a single armour plate` |
 | [x] | 退敌箭 | `repel_arrow` | `an arrow knocking a figure backward` |
 | [x] | 射手座之矢 | `centaur_volley` | `a centaur drawing a bow, rearing` |
 | [x] | 战地医术 | `field_medicine` | `a staff with a single serpent twined round it` |
@@ -646,11 +675,11 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 绊足箭 | `snare_arrow` | `an arrow trailing a looped cord` |
 | [x] | 破甲箭 | `bodkin_arrow` | `a narrow needle-pointed arrowhead piercing a metal plate` |
 | [x] | 稳弓 | `pha_steady` | `a bow held level on a steady extended arm` |
-| [ ] | 劈盾 | `shield_split` | `a round shield broken into two clean halves with a single axe blade between them` |
+| [ ] | **【返工】** 劈盾 | `shield_split` | `a round shield broken into two clean halves with a single axe blade between them` |
 | [x] | 回旋斧 | `axe_sweep` | `a double-headed axe with a circular motion line round it` |
 | [x] | 伐木式 | `felling_blow` | `an axe sunk into a tree trunk` |
 | [x] | 熊皮 | `anc_hide` | `a bear's head worn as a hood` |
-| [ ] | 不信预言 | `anc_defy` | `a wide two-handled wine cup lying on its side, three large drops falling from its rim` |
+| [ ] | **【返工】** 不信预言 | `anc_defy` | `a wide two-handled wine cup lying on its side, three large drops falling from its rim` |
 | [x] | 践踏 | `trample` | `two horse hooves coming down on a small shield` |
 | [x] | 后蹄 | `hind_kick` | `a horse's hind legs kicking backward` |
 | [x] | 陈酒 | `old_wine` | `a wineskin pouring into a shallow cup` |
@@ -717,7 +746,7 @@ A single game icon in the manner of ancient Greek black-figure vase painting: {�
 | [x] | 野猪獠牙 | `boar_tusk` | `a single curved boar tusk` |
 | [x] | 野猪皮 | `boar_hide` | `a bristly boar hide spread flat` |
 | [x] | 钱袋 | `coin_pouch` | `a small coin purse with two coins beside it` |
-| [ ] | 青铜碎片 | `bronze_scrap` | `one bent rectangular metal plate with a torn corner and a single rivet hole` |
+| [ ] | **【返工】** 青铜碎片 | `bronze_scrap` | `one bent rectangular metal plate with a torn corner and a single rivet hole` |
 | [x] | 破盾 | `broken_shield` | `a round shield with a large piece broken out of it` |
 | [x] | 箭束 | `arrows` | `a bundle of five arrows tied with cord` |
 | [x] | 麻绳 | `rope` | `a coil of rope` |
@@ -812,7 +841,7 @@ ImageGen 参考图依次为 `portraits/hero.png`、`figures.png`、`pholoe-centa
 | 完成 | 阶 | 文件名 | 接在共用前半段后面 |
 |---|---|---|---|
 | [x] | 凡人 | 现有原画 | 不用改 |
-| [ ] | 受火 | `hero-tier1.png` | `the ochre cloak gains a broad band of bright blue along its whole hem, about a quarter of the cloak's width, and the spearhead turns pale blue-white as if faintly glowing. Do not change the face or the eyes. Everything else stays earthy and human.` |
+| [ ] | **【返工】** 受火 | `hero-tier1.png` | `the ochre cloak gains a broad band of bright blue along its whole hem, about a quarter of the cloak's width, and the spearhead turns pale blue-white as if faintly glowing. Do not change the face or the eyes. Everything else stays earthy and human.` |
 | [x] | 半神 | `hero-tier2.png` | `the cloak becomes deep blue with a gold border, the spearhead and shield rim become polished gold, and a thin rim of pale light outlines his whole figure. His skin is still warm and human.` |
 | [x] | 僭神 | `hero-tier3.png` | `nearly everything he wears and carries becomes blue and gold, his skin loses its warmth and turns pale as marble, his eyes glow faintly white, and thin threads of lightning cling to the spear. The red cord on his wrist remains the only warm colour left on him.` |
 
@@ -881,7 +910,7 @@ Original PC tactical game sprite atlas on transparent background, precisely 3 co
 | [x] | 2 | 沼蛇 | `large marsh water snake, thick mottled olive body, head raised to strike, half coiled` |
 | [x] | 2 | 巨蟹 | `giant marsh crab the size of a shield wall, dark green shell crusted with mud, one oversized claw` |
 | [x] | 2 | 赫拉的女祭司 | `priestess of Hera, stern woman in a white robe with a peacock-blue stole, tall diadem, a staff topped with a pomegranate` |
-| [ ] | 3 | 铜羽鸟 | `Stymphalian bird, a heavy vulture-like bird of prey as tall as a man, short thick neck with a pale ruff, hooked bronze beak, every feather a plate of polished bronze with sharp edges, bronze talons, wings half raised. Not a heron, not a crane, no long legs, no long neck` |
+| [ ] | 3 | **【返工】** 铜羽鸟 | `Stymphalian bird, a heavy vulture-like bird of prey as tall as a man, short thick neck with a pale ruff, hooked bronze beak, every feather a plate of polished bronze with sharp edges, bronze talons, wings half raised. Not a heron, not a crane, no long legs, no long neck` |
 | [x] | 3 | 鸟群 | `tight flock of five small dark marsh birds flying as one cluster` |
 | [ ] | 3 | 沼地佣兵 | `Greek mercenary spearman in mud-stained grey cloak, wicker shield, wide-brimmed felt hat` |
 | [ ] | 4 | 克里特卫兵 | `Minoan palace guard, bare chest, tight waist belt, kilt with a blue wave pattern, tall figure-eight shield and short spear` |

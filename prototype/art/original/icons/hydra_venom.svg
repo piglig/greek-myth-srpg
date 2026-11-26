@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64"><g fill="white"><path fill-rule="evenodd" d="M24 6H40V11H37V25C39 31 52 32 53 44Q54 58 33 59Q12 59 12 46Q12 34 24 29Q29 26 28 23V11H24Z M19 43Q26 35 43 38L45 41Q32 39 20 47Z"/><path fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M18 31C7 21 25 20 37 19S48 11 42 12"/><path fill-rule="evenodd" d="M39 12L43 8L50 11L49 15L42 16Z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64" fill="white">
+  <title>蛇血主动技：剧毒</title>
+  <path fill-rule="evenodd" d="M8 19 Q17 9 32 9 Q48 9 56 19 L52 28 46 42 44 25 Q33 18 20 25 L18 42 11 28Z M18 16 L28 13 24 17Z M47 16 L36 13 40 17Z"/>
+  <path fill-rule="evenodd" d="M32 32 C30 37 23 44 23 48 A9 9 0 0 0 41 48 C41 44 35 37 32 32Z M28 47 Q29 43 32 41 L30 48Z"/>
+</svg>

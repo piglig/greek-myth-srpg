@@ -19,7 +19,17 @@ const IMPACT := preload("res://art/thirdparty/pixelfx/hit.png")
 const SLASH := preload("res://art/thirdparty/pixelfx/slash.png")
 ## What a thing carried does where it lands, and what comes over whoever takes a status.
 const BURST := preload("res://art/thirdparty/pixelfx/burst.png")
-const FLAME := preload("res://art/thirdparty/pixelfx/flame.png")
+## The second chapter's own drawings (art/originals/fx): a burning thicket and what it
+## leaves, a neck sealed and a head grown back, the hydra's venom and the priestess's blessing.
+const BRUSHFIRE := preload("res://art/original/fx/brushfire.png")
+const CHARRED := preload("res://art/original/fx/charred.png")
+const CAUTERIZE := preload("res://art/original/fx/cauterize.png")
+const REGROW := preload("res://art/original/fx/regrow.png")
+const VENOM_SPIT := preload("res://art/original/fx/venom_spit.png")
+const HERA_BLESSING := preload("res://art/original/fx/hera_blessing.png")
+const HYDRA_VENOM := preload("res://art/original/fx/hydra_venom.png")
+## A blow that has its own drawing where it lands, instead of the common impact.
+const SKILL_HIT := {"hydra_spit":VENOM_SPIT}
 const THUD := preload("res://art/thirdparty/pixelfx/thud.png")
 const BLESS := preload("res://art/thirdparty/pixelfx/bless.png")
 ## The four ailments show on the body for as long as they last. With each, how high on the
@@ -232,9 +242,6 @@ func _start_battle(battle_id: String, picks: Dictionary) -> void:
 		hud.banner("无法开始战斗：%s" % GoEngine.error, 0.0)
 		return
 	UnitState.looks["hero"] = Checkpoint.hero_look(state.reward)
-	# The hydra's heads have no drawing of their own yet: the marsh snake stands in.
-	for id: String in state.order:
-		if state.unit(id).def_id == "hydra_head": UnitState.looks[id] = "marsh_snake"
 	Rules.start_battle(state)
 	if battle_id=="2-1":
 		for order: Dictionary in _saved_orders:
@@ -855,10 +862,12 @@ func _play(events: Array, from_round := -1) -> void:
 			"cauterize":
 				_popup(e.target,"烧封",Color("#ffb060"))
 				Soundscape.cue("hit")
-				await get_tree().create_timer(.3).timeout
+				BattleFX.spawn(_units_root,CAUTERIZE,map_view.anchor_world(state,state.unit(e.target).pos,1)+Vector3.UP*.5,.5)
+				await get_tree().create_timer(.5).timeout
 			"regrow":
 				# A new head on the old neck: a fresh figure where the fallen one lay.
 				var grown := state.unit(e.target)
+				await BattleFX.spawn(_units_root,REGROW,map_view.anchor_world(state,grown.pos,1)+Vector3.UP*.9,.67).finished
 				if unit_views.has(e.target): unit_views[e.target].queue_free()
 				var fresh := PixelUnit.new()
 				_units_root.add_child(fresh)
@@ -1010,6 +1019,14 @@ func _play(events: Array, from_round := -1) -> void:
 				elif e.amount>0:
 					if attack_source == e["source"] and attacker != null and state.unit(attacker.unit_id).def_id in ["atalanta","chiron","heracles","bandit_archer"] and SkillCatalog.get_skill(attack_source).get("ranged",false):
 						BattleFX.contact(_units_root,"arrow",_effect_origin(victim),force)
+					elif attack_source == e["source"] and attacker != null and SKILL_HIT.has(attack_source):
+						var spit := BattleFX._sprite(_units_root,SKILL_HIT[attack_source])
+						spit.position = _effect_origin(victim)
+						# Drawn flying left to right: turn it when the blow comes from the right.
+						spit.flip_h = (victim.position-attacker.position).dot(cam_rig.camera.global_basis.x) < 0.
+						var flight := spit.create_tween()
+						flight.tween_property(spit,"frame",spit.hframes-1,.5)
+						flight.tween_callback(spit.queue_free)
 					elif attack_source == e["source"] and attack_source in ["spear","shield_bash","bite"]:
 						BattleFX.contact(_units_root,attack_source,_effect_origin(victim)-force.normalized()*.13,force)
 					elif e.source != "fall":
@@ -1050,7 +1067,11 @@ func _play(events: Array, from_round := -1) -> void:
 					await _recover_cover(defender,guard_home,false)
 					defender=null
 			"heal":
-				if SkillCatalog.get_skill(e.skill).get("item",false):
+				if e.skill == "hera_blessing":
+					BattleFX.spawn(_units_root,HERA_BLESSING,unit_views[e.target].position+Vector3.UP*.45,.67)
+					_popup(e.target,"%s　+%d" % [SkillCatalog.get_skill(e.skill).name,e.amount],Color("#98e3ae"))
+					await get_tree().create_timer(.4).timeout
+				elif SkillCatalog.get_skill(e.skill).get("item",false):
 					await _take_tonic(unit_views[e.unit],unit_views[e.target],e.skill)
 					_popup(e.target,"%s　+%d" % [SkillCatalog.get_skill(e.skill).name,e.amount],Color("#98e3ae"))
 				else:
@@ -1063,6 +1084,8 @@ func _play(events: Array, from_round := -1) -> void:
 					_popup(e.target,"雷躯",_divine_tint())
 					await get_tree().create_timer(.44).timeout
 					continue
+				if e.status == "blighted":
+					BattleFX.spawn(_units_root,HYDRA_VENOM,unit_views[e.target].position+Vector3.UP*.7,.67)
 				_popup(e["target"], EventText.STATUS_NAMES.get(e["status"], e["status"]), Color(0.8, 0.9, 1))
 			"stun_skip":
 				_popup(e["unit"], "眩晕", Color(1, 0.85, 0.2))
@@ -2027,6 +2050,20 @@ func _sync_views() -> void:
 				if offset.length() <= 1.22*map_view.scale.x and (nearest == Vector2.ZERO or offset.length_squared() < nearest.length_squared()):
 					nearest = offset
 			view.set_nearby_stone(nearest)
+	# A hydra's neck is taller than anything else on the field and stands against the raised
+	# ground in the middle of the marsh. A camera-facing sprite leans back into that ground,
+	# so its upper part is tested as if it stood upright, as beside a boulder.
+	for id in state.order:
+		var neck: UnitState = state.units[id]
+		if neck.def_id != "hydra_head" or not neck.alive: continue
+		var here := map_view.anchor_world(state,neck.pos,1)
+		var lean := Vector2.ZERO
+		for step: Vector2i in [Vector2i(1,0),Vector2i(-1,0),Vector2i(0,1),Vector2i(0,-1)]:
+			var next := neck.pos+step
+			if state.grid.in_bounds(next) and state.grid.height_at(next) > state.grid.height_at(neck.pos):
+				var there := map_view.anchor_world(state,next,1)
+				lean += Vector2(there.x-here.x,there.z-here.z)
+		unit_views[id].set_nearby_stone(lean)
 
 
 # Rotate about the rolling axis and rest the lowest actual facet on the ground.
@@ -2233,15 +2270,23 @@ func _sync_fires() -> void:
 		if not alight.has(cell):
 			_flames[cell].queue_free()
 			_flames.erase(cell)
+			# Burnt out: a charred stump smoulders there for the rest of the fight.
+			var embers := BattleFX._sprite(_units_root,CHARRED)
+			embers.pixel_size = .016
+			embers.offset.y = CHARRED.get_height()*.5-8
+			embers.global_position = map_view.to_global(Vector3(cell.x+.5,map_view.cell_top(cell),cell.y+.5))
+			embers.create_tween().set_loops().tween_property(embers,"frame",embers.hframes-1,1.0).from(0)
 	for cell: Vector2i in alight:
 		if _flames.has(cell): continue
 		if _flame_paint == null:
 			_flame_paint = ShaderMaterial.new()
 			_flame_paint.shader = preload("res://view/pixel_flame.gdshader")
-			_flame_paint.set_shader_parameter("atlas",FLAME)
+			_flame_paint.set_shader_parameter("atlas",BRUSHFIRE)
+			_flame_paint.set_shader_parameter("frames",8.0)
+			_flame_paint.set_shader_parameter("fps",10.0)
 		var flame := MeshInstance3D.new()
 		var card := QuadMesh.new()
-		card.size = Vector2.ONE*1.9
+		card.size = Vector2.ONE*1.7
 		flame.mesh = card
 		flame.material_override = _flame_paint
 		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -2249,6 +2294,36 @@ func _sync_fires() -> void:
 		flame.global_position = map_view.to_global(Vector3(cell.x+.5,map_view.cell_top(cell),cell.y+.5))+Vector3.UP*.7
 		_flames[cell] = flame
 		if map_view.field != null and map_view.field.has_method("scorch"): map_view.field.scorch(cell)
+
+## What is left where a hydra's head has fallen: a raw stump while it can grow back, a
+## burnt one once it is sealed. Gone again when a new head stands there.
+const STUMP := preload("res://art/pixel/hydra_head/stump.png")
+var _stumps := {}
+
+func _sync_stumps() -> void:
+	var down := {}
+	for id: String in state.order:
+		var neck := state.unit(id)
+		if neck.def_id == "hydra_head" and not neck.alive: down[id] = neck
+	for id: String in _stumps.keys():
+		if not down.has(id):
+			_stumps[id].queue_free()
+			_stumps.erase(id)
+	for id: String in down:
+		var neck: UnitState = down[id]
+		if not _stumps.has(id):
+			var stump := Sprite3D.new()
+			stump.texture = STUMP
+			stump.hframes = 2
+			stump.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			stump.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			stump.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+			stump.pixel_size = .018
+			stump.offset.y = STUMP.get_height()*.5
+			_units_root.add_child(stump)
+			stump.position = map_view.anchor_world(state,neck.pos,1)
+			_stumps[id] = stump
+		(_stumps[id] as Sprite3D).frame = 1 if neck.sealed else 0
 
 func _finish_escort() -> Dictionary:
 	var next:=_entry("2-1")
@@ -2553,6 +2628,7 @@ func _refresh() -> void:
 		if not neck.alive and not neck.sealed and neck.regrow > 0: necks.append(neck.pos)
 	if not necks.is_empty(): highlights.show_frame("stumps",necks,Color("#e0453a"),9)
 	_sync_fires()
+	_sync_stumps()
 	if map_view.woodland:
 		highlights.show_frame("rescue_gate",state.rescue_exits,Color("#64bcad"),8)
 	if village != null:
@@ -3055,6 +3131,14 @@ func _run_capture() -> void:
 				call["target"] = calls.valid[0]
 				await _perform(call)
 			_select("hero")
+		"stumps":
+			# 2-5 for a capture only: one head just cut down, one sealed, as the view draws them.
+			for pair: Array in [["head_1",false],["head_4",true]]:
+				var neck := state.unit(pair[0])
+				neck.alive = false
+				neck.sealed = pair[1]
+				unit_views[neck.id].hide()
+			_refresh()
 		"fire":
 			# A fire pot thrown at empty forest, then two rounds for it to spread and burn out.
 			# Run with --kit=item_firepot.

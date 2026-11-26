@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64" fill="white">
+  <title>钳住短杆</title>
+  <path fill-rule="evenodd" d="M6 40 L16 35 Q14 24 24 16 Q35 8 49 11 Q48 15 42 17 L37 20 31 19 25 26 Q22 32 28 37 Q33 42 42 38 L47 32 50 34 47 42 Q41 50 28 50 L15 56Z M12 42 L21 38 24 42 15 46Z"/>
+  <path fill-rule="evenodd" d="M39 17 L46 13 57 47 50 50Z"/>
+</svg>

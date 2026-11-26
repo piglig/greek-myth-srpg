@@ -81,6 +81,14 @@ func build(battle_grid: BattleGrid, layer_height: float, _village := false, _woo
 	paint.set_shader_parameter("mud_relief",preload("res://art/thirdparty/ambientcg/mud_normal.jpg"))
 	paint.set_shader_parameter("rock",preload("res://art/thirdparty/ambientcg/rock_color.jpg"))
 	paint.set_shader_parameter("rock_relief",preload("res://art/thirdparty/ambientcg/rock_normal.jpg"))
+	if not pale_lake:
+		# Lerna's own gouache grounds (art/originals/lerna-terrain), forest litter and ash too.
+		paint.set_shader_parameter("painted_floor",true)
+		paint.set_shader_parameter("sand",preload("res://art/original/lerna/sand.webp"))
+		paint.set_shader_parameter("mud",preload("res://art/original/lerna/mud.webp"))
+		paint.set_shader_parameter("rock",preload("res://art/original/lerna/bank.webp"))
+		paint.set_shader_parameter("litter_ground",preload("res://art/original/lerna/litter.webp"))
+		paint.set_shader_parameter("ash_ground",preload("res://art/original/lerna/ash.webp"))
 	if pale_lake:
 		paint.set_shader_parameter("dry_tint",Color(.70,.70,.70))
 	paint.set_shader_parameter("grid_lines",grid_lines)

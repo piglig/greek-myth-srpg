@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Use one scale for the entire animal, so the coiled snake's body stays thick
 # when it extends, and the crab's walking legs never change shell size.
 SCALE = {"marsh_snake": .62, "giant_crab": .60, "hera_priestess": .49,
-         "stymphalian_bird": .60, "marsh_flock": .50}
+         "stymphalian_bird": .60, "marsh_flock": .50, "hydra_head": .46}
 FLIGHT_BASELINE = {"stymphalian_bird": 208, "marsh_flock": 202}
 
 
