@@ -35,8 +35,15 @@ var floor_marks: Image
 var floor_picture: ImageTexture
 var ground_paint: ShaderMaterial
 
-const ALTAR := preload("res://art/camp/altar.glb")
-const BRAZIER := preload("res://art/camp/brazier.glb")
+## Lerna's own painted shrine and trees, baked to the battle sprites' pixel density by
+## art/tools/bake_lerna_props.py. They stand up to face the camera, as the people do.
+## The lake at Stymphalus keeps the modelled olives and dead trees.
+const SHRINE := preload("res://art/pixel/props/lerna_shrine.png")
+const WILLOW := preload("res://art/pixel/props/marsh_willow.png")
+const ALDER := preload("res://art/pixel/props/marsh_alder.png")
+const SNAG := preload("res://art/pixel/props/marsh_snag.png")
+## Cells per pixel of a standee: the same as a battle sprite's.
+const STANDEE_PIXEL := .015
 
 
 func build(battle_grid: BattleGrid, layer_height: float, _village := false, _woodland := false) -> void:
@@ -299,7 +306,8 @@ func _dress_banks() -> void:
 					_plant(THYME,rng.randf_range(.8,1.25),Vector3(at.x,elevation(at.x,at.y),at.y),rng,false)
 					grown.append(get_child(get_child_count()-1))
 				if (x*3+z*5)%4 == 0:
-					_plant(OLIVE,rng.randf_range(1.2,1.7),Vector3(x+.24,elevation(x+.24,z+.26),z+.26),rng)
+					if pale_lake: _plant(OLIVE,rng.randf_range(1.2,1.7),Vector3(x+.24,elevation(x+.24,z+.26),z+.26),rng)
+					else: _stand(ALDER,rng.randf_range(.62,.78),Vector3(x+.32,elevation(x+.32,z+.30),z+.30),rng)
 					grown.append(get_child(get_child_count()-1))
 				growth[cell] = grown
 				continue
@@ -320,9 +328,11 @@ func _dress_banks() -> void:
 			elif roll < .58:
 				_set_down("rock",rng.randf_range(.7,1.7),spot,rng)
 			elif away >= 2 and roll < .80:
-				_plant(OLIVE,rng.randf_range(1.7,3.0),spot,rng)
+				if pale_lake: _plant(OLIVE,rng.randf_range(1.7,3.0),spot,rng)
+				else: _stand(WILLOW,rng.randf_range(.75,1.1),spot,rng)
 			elif away >= 1:
-				_set_down("dead_tree",rng.randf_range(1.5,2.6),spot,rng)
+				if pale_lake: _set_down("dead_tree",rng.randf_range(1.5,2.6),spot,rng)
+				else: _stand(SNAG,rng.randf_range(.7,1.0),spot,rng)
 	if not plant_shadows.is_empty():
 		var batch := MultiMesh.new()
 		batch.transform_format = MultiMesh.TRANSFORM_3D
@@ -346,6 +356,28 @@ func scorch(cell: Vector2i) -> void:
 		return
 	floor_marks.set_pixel(cell.x,cell.y,Color(1,0,0))
 	floor_picture.update(floor_marks)
+
+
+## A painted prop stood on the ground facing the camera, at `size` of its baked width,
+## its foot at `point`, with a soft shadow under it.
+func _stand(picture: Texture2D, size: float, point: Vector3, rng: RandomNumberGenerator, shadow := true) -> Sprite3D:
+	var prop := Sprite3D.new()
+	prop.texture = picture
+	prop.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prop.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	prop.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	prop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	prop.pixel_size = STANDEE_PIXEL*size
+	prop.offset.y = picture.get_height()*.5
+	prop.flip_h = rng.randf() < .5
+	# Unlit like a sprite, so a little darker than the paint, to sit with the lit ground.
+	prop.modulate = Color(.9,.9,.88)
+	prop.position = point
+	add_child(prop)
+	if shadow:
+		var wide := picture.get_width()*STANDEE_PIXEL*size
+		plant_shadows.append(Transform3D(Basis.from_scale(Vector3(wide*.55,1,wide*.32)),point+Vector3.UP*.012))
+	return prop
 
 
 ## A dead tree or a stone from the nature kit, set on the ground with its shadow.
@@ -376,7 +408,9 @@ func _strew_banks() -> void:
 				if fall > .16 and here > WATER-.12 and here < WATER+.55 and (not on_map or middle > .36) and rng.randf() < .42:
 					_set_down("rock",rng.randf_range(.28,.62) if on_map else rng.randf_range(.5,1.3),Vector3(at.x,here,at.y),rng,.04)
 				elif not on_map and here < WATER-.03 and here > WATER-.22 and rng.randf() < .05:
-					_set_down("dead_tree",rng.randf_range(1.6,2.8),Vector3(at.x,here,at.y),rng,.05)
+					if pale_lake: _set_down("dead_tree",rng.randf_range(1.6,2.8),Vector3(at.x,here,at.y),rng,.05)
+					# Standing in the shallows: black alder grows out of water, the rest are drowned.
+					else: _stand(ALDER if rng.randf() < .5 else SNAG,rng.randf_range(.75,1.05),Vector3(at.x,here-.05,at.y),rng)
 
 
 ## Where the shrine stands: on the far bank, just off the map, level with its middle.
@@ -411,57 +445,26 @@ func _column(at: Vector2, drums: int, lean := 0., turn := 0., sunk := 0., girth 
 	return column
 
 
-## A small ruined shrine on the far bank: what the crossing is for. An altar with a fire
-## beside it, columns standing and fallen, on two worn steps.
+## A small ruined shrine on the far bank: what the crossing is for. The painted one
+## (art/originals/lerna-shrine.png): columns standing and fallen, an altar, a fire in a
+## bronze bowl. A warm light from the fire says where to go.
 func _shrine() -> void:
 	if not shrine:
 		return
 	var ground := _shrine_ground()
 	var heart := ground.get_center()
-	var grid_scale := global_basis.get_scale()
-	for piece: Array in [[ALTAR,Vector2(-.2,0.),1.25,PI*.5],[BRAZIER,Vector2(-.95,1.15),.95,0.]]:
-		var model := (piece[0] as PackedScene).instantiate() as Node3D
-		var at: Vector2 = heart+piece[1]
-		model.scale = Vector3.ONE*float(piece[2])/grid_scale
-		model.rotation.y = piece[3]
-		model.position = Vector3(at.x,elevation(at.x,at.y)-.02,at.y)
-		add_child(model)
-	# The fire in the bowl: seen from the near bank, it says where to go.
-	var bowl := heart+Vector2(-.95,1.15)
-	var flame := MeshInstance3D.new()
-	var card := QuadMesh.new()
-	card.size = Vector2.ONE*1.5
-	flame.mesh = card
-	var paint := ShaderMaterial.new()
-	paint.shader = preload("res://view/pixel_flame.gdshader")
-	paint.set_shader_parameter("atlas",preload("res://art/thirdparty/pixelfx/flame.png"))
-	flame.material_override = paint
-	flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	flame.scale = Vector3.ONE/grid_scale
-	flame.position = Vector3(bowl.x,elevation(bowl.x,bowl.y)+1.1/grid_scale.y,bowl.y)
-	add_child(flame)
+	var rng := RandomNumberGenerator.new()
+	# The picture stands on its foot, so its foot goes at the near corner of the shrine's
+	# ground (toward the map and the camera), and the rest of it rises behind.
+	var foot := heart+Vector2(-.8,1.3)
+	var standee := _stand(SHRINE,.88,Vector3(foot.x,elevation(foot.x,foot.y)-.02,foot.y),rng,false)
+	standee.flip_h = false
 	var glow := OmniLight3D.new()
 	glow.light_color = Color("#ffb060")
 	glow.light_energy = 1.3
 	glow.omni_range = 4.2
-	glow.position = flame.position
+	glow.position = Vector3(foot.x,elevation(foot.x,foot.y)+1.2/global_basis.get_scale().y,foot.y)
 	add_child(glow)
-	# Four columns stood at the corners once. Two still do.
-	_column(heart+Vector2(-1.5,-1.7),6,0.,.2)
-	_column(heart+Vector2(.9,-1.8),4,.04,1.1)
-	_column(heart+Vector2(.8,1.9),5,-.03,.5)
-	_column(heart+Vector2(1.7,.1),3,0.,2.1)
-	_column(heart+Vector2(-1.9,2.2),3,PI*.5-.06,.7,0.,.2).position.y += .2/grid_scale.y
-	for step in 2:
-		var slab := MeshInstance3D.new()
-		var shape := BoxMesh.new()
-		shape.size = Vector3(3.6-step*.5,.1,4.4-step*.5)
-		slab.mesh = shape
-		slab.material_override = finish()
-		slab.set_instance_shader_parameter("limestone",1.0)
-		slab.scale = Vector3.ONE/grid_scale
-		slab.position = Vector3(heart.x-.1,elevation(heart.x,heart.y)+(.03+step*.09)/grid_scale.y,heart.y)
-		add_child(slab)
 
 
 ## Columns of something older, half under: in the deep cells of the map, where nobody can

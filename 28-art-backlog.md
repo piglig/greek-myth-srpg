@@ -55,8 +55,9 @@
 - 许德拉之首：按沼蛇的流程烘成战斗小人（`art/tools/bake_lerna.py`），沼蛇替身去掉。断颈两态烘成小图（`art/tools/bake_hydra_stump.py`），头倒下的格子上显示，封住后换成焦黑那张。
 - 沼泽地表五张：勒拿各关用它们代替原来的照片贴图，林地和焦土也换成画的。平均色往原来的暖土色校正过，原样偏粉。斯廷法利斯湖（3-1）不变。
 - 特效七个：林火替换了原来的火焰，烧尽的格子留下焦桩；烧封、再生、毒涎、女祭司赐福、剧毒挂到了各自的事件上。
+- 神龛和三棵树：`art/tools/bake_lerna_props.py` 按战斗小人的像素密度缩小、减色，做成正对镜头的立牌（和人物一样）。2-2 对岸的神龛换成这张画；勒拿各关地图外的橄榄树换垂柳、枯树换枯树，浅水里一半黑桤木一半枯树，地图内林地格上的橄榄树换黑桤木（烧掉时一起没）。3-1 湖岸仍用原来的模型。相机转 90° 时立牌还是同一张画，树看不出问题；神龛在地图外，也可以接受。
 
-**还没接入的**：许德拉的身体（等返工）；神龛和三棵树（沼泽是 3D 模型拼的场景，平面画要做成立牌，先试一张再定）；伊俄拉俄斯的原画和半身像（他还不是能上场的角色）。
+**还没接入的**：许德拉的身体（等返工）；伊俄拉俄斯的原画和半身像（他还不是能上场的角色）。
 
 ## 0.2 第二章新增、暂借图标的六种材料（2026-11-25）
 
@@ -192,7 +193,7 @@ A small ruined Greek shrine on a low stone platform of two worn steps: four slim
 
 注意第三张"断面"不是从正上方看的，把共用后半段里的 `seen from directly above` 换成 `seen face on`。
 
-2026-11-25 原画交付：[神龛](art/originals/lerna-shrine.png)、[垂柳](art/originals/marsh-willow.png)、[黑桤木](art/originals/marsh-alder.png)、[枯树](art/originals/marsh-snag.png)各为一张透明 PNG。[干岸](art/originals/lerna-terrain/lerna-sand.png)、[湿泥](art/originals/lerna-terrain/lerna-mud.png)、[岸壁断面](art/originals/lerna-terrain/lerna-bank.png)、[林地](art/originals/lerna-terrain/lerna-litter.png)、[焦土](art/originals/lerna-terrain/lerna-ash.png)各为 1024×1024，已检查 2×2 平铺。第 3.3 节的旧版湿泥仍在原位置。勾选范围为场景原画和地表贴图。2026-11-26 五张地表已接入（焦土退回重画，先用着这一版），神龛和树还没有，见 0.1.1。
+2026-11-25 原画交付：[神龛](art/originals/lerna-shrine.png)、[垂柳](art/originals/marsh-willow.png)、[黑桤木](art/originals/marsh-alder.png)、[枯树](art/originals/marsh-snag.png)各为一张透明 PNG。[干岸](art/originals/lerna-terrain/lerna-sand.png)、[湿泥](art/originals/lerna-terrain/lerna-mud.png)、[岸壁断面](art/originals/lerna-terrain/lerna-bank.png)、[林地](art/originals/lerna-terrain/lerna-litter.png)、[焦土](art/originals/lerna-terrain/lerna-ash.png)各为 1024×1024，已检查 2×2 平铺。第 3.3 节的旧版湿泥仍在原位置。勾选范围为场景原画和地表贴图。2026-11-26 五张地表、神龛和三棵树都已接入（焦土退回重画，先用着这一版），见 0.1.1。
 
 ### 0.3.4 特效
 
